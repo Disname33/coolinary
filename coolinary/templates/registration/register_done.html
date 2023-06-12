@@ -1,0 +1,24 @@
+{% extends 'home/header.html' %}
+
+{% block inhead %}
+{% endblock %}
+
+{% block title %}
+    Успешная регистрация
+{% endblock %}
+
+{% block body_block %}
+    <div class="container text-center ">
+        {% block content %}
+            <h1>Добро пожаловать, {{ new_user.first_name }}!</h1>
+            <p>Ваша учетная запись успешно создана. Теперь вы можете <a href="{% url "login" %}">войти</a>.</p>
+
+            <script>
+                const username = document.getElementById("id_password");
+                const password = document.getElementById("id_username");
+                username.setAttribute('class', "form-control" )
+                password.setAttribute('class', "form-control" )
+            </script>
+        {% endblock %}
+    </div>
+{% endblock %}

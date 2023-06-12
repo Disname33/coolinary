@@ -1,0 +1,11 @@
+{% extends "home/header.html" %}
+
+{% block title %}
+    Выход пользователя
+{% endblock %}
+
+{% block body_block %}
+    <p>Вы вышли из системы!</p>
+
+    <a href="{% url 'login'%}">Нажмите сюда, чтобы войти.</a>
+{% endblock %}

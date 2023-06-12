@@ -1,0 +1,60 @@
+{% extends 'home/header.html' %}
+
+{% block inhead %}
+{% endblock %}
+
+{% block title %}
+    Вход пользователя
+{% endblock %}
+
+{% block body_block %}
+    <div class="container-md text-center px-2">
+        {% block content %}
+
+            {% if form.errors %}
+                <p>Неверное имя пользователя и пароль. Пожалуйста, попробуйте еще раз.</p>
+            {% endif %}
+
+            {% if next %}
+                {% if user.is_authenticated %}
+                    <p>У вашего аккаунта нет доступа к этой странице. Чтобы продолжить,
+                        войдите в систему с учетной записью, которая имеет доступ.</p>
+                {% else %}
+                    <p>Пожалуйста, войдите, чтобы увидеть эту страницу.</p>
+                {% endif %}
+            {% endif %}
+
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+
+
+                <div class="d-grid row mx-auto">
+                    <div class="col-lg-6 offset-lg-3">
+                        <div >{{ form.username.label_tag }}</div>
+                        <div >{{ form.username }}</div>
+                        <div >{{ form.password.label_tag }}</div>
+                        <div >{{ form.password }}</div>
+
+
+                <br>
+                        <div >
+
+                <input class='btn btn-primary d-flex text-center col-12' type="submit" value="Войти" />
+                        </div>
+                <input type="hidden" name="next" value="{{ next }}" />
+
+                </div>
+                </div>
+            </form>
+            <br>
+            {# Assumes you setup the password_reset view in your URLconf #}
+            <p><a href="{% url 'password_reset' %}">Забыли пароль?</a></p>
+            <script>
+                const username = document.getElementById("id_password");
+                const password = document.getElementById("id_username");
+                username.setAttribute('class', "form-control" )
+                password.setAttribute('class', "form-control " )
+            </script>
+        {% endblock %}
+    </div>
+{% endblock %}

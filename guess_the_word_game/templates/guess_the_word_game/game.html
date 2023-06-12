@@ -1,0 +1,93 @@
+{% extends 'home/header.html' %}
+
+{% block inhead %}
+<style>
+
+    .none {
+        display: none;
+    }
+    code {
+        text-align: center;
+    }
+
+    body {
+        padding: 0;
+    }
+
+    .custom-tooltip {
+        --bs-tooltip-bg: var(--bs-primary);
+    }
+
+    .custom-popover {
+        --bs-popover-max-width: 200px;
+        --bs-popover-border-color: var(--bs-primary);
+        --bs-popover-header-bg: var(--bs-primary);
+        --bs-popover-header-color: var(--bs-white);
+        --bs-popover-body-padding-x: 1rem;
+        --bs-popover-body-padding-y: .5rem;
+    }
+
+    @media (min-width:992px) {
+        .border{
+            width: 60px;
+            height: 60px;
+            padding-top: 10px;
+            align-items: center;
+            vertical-align: center;
+            justify-content: center;
+            margin: 4px;
+        }
+    }
+    @media (max-width:991px) {
+        .border {
+            width: 50px;
+            height: 50px;
+            padding-top: 9px;
+            align-items: center;
+            vertical-align: center;
+            justify-content: center;
+            margin: 2px;
+        }
+    }
+
+
+
+</style>
+{% endblock %}
+
+
+{% block title %}
+   Игра угадай слово
+{% endblock %}
+
+{% block body_block %}
+    <div class="container-xl">
+        {% block start_game %} {% endblock %}
+
+
+        <div id="wordDisplay">
+        {% block entered_words %} {% endblock %}
+        <!-- Здесь будут отображаться введённые слова -->
+        </div>
+    {% block input_word %} {% endblock %}
+    </div>
+
+
+    <script>
+
+        function checkAnswer() {
+            // Добавьте код для проверки ответа пользователя и обновления отображения введённых слов
+        }
+    </script>
+
+    <pre id="codeBlock" class="hidden none">
+    <code class="align-center">
+<kbd>Й</kbd> <kbd>Ц</kbd> <kbd>У</kbd> <kbd>К</kbd> <kbd>Е</kbd> <kbd>Н</kbd> <kbd>Г</kbd> <kbd>Ш</kbd> <kbd>Щ</kbd> <kbd>З</kbd> <kbd>Х</kbd> <kbd>Ъ</kbd>
+  <kbd>Ф</kbd> <kbd>Ы</kbd> <kbd>В</kbd> <kbd>А</kbd> <kbd>П</kbd> <kbd>Р</kbd> <kbd>О</kbd> <kbd>Л</kbd> <kbd>Д</kbd> <kbd>Ж</kbd> <kbd>Э</kbd>
+    <kbd>Я</kbd> <kbd>Ч</kbd> <kbd>С</kbd> <kbd>М</kbd> <kbd>И</kbd> <kbd>Т</kbd> <kbd>Ь</kbd> <kbd>Б</kbd> <kbd>Ю</kbd>
+    </code>
+</pre>
+
+{% endblock %}
+
+

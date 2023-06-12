@@ -1,0 +1,52 @@
+{% extends 'home/header.html' %}
+
+{% block inhead %}
+{% endblock %}
+
+
+{% block title %}
+    Данные об устройстве
+{% endblock %}
+
+{% block body_block %}
+    <div class="container mt-2" id="device-info">
+<script>
+    // Основные характеристики устройства
+    const deviceInfo = document.getElementById('device-info');
+
+    const properties = {
+// Основные характеристики устройства
+        "User Agent": navigator.userAgent,
+        "Language": navigator.language,
+        "Platform": navigator.platform,
+        "Screen Resolution": screen.width +"x" + screen.height,
+
+// Характеристики экрана
+        "Screen Width": screen.width,
+        "Screen Height": screen.height,
+        "Color Depth": screen.colorDepth,
+        "Pixel Depth": screen.pixelDepth,
+
+// Характеристики браузера
+        "Cookies Enabled": navigator.cookieEnabled,
+        "Online Status": navigator.onLine,
+
+// Характеристики устройства
+    "CPU Cores": navigator.hardwareConcurrency,
+
+    // Характеристики сети
+    "Connection Type": navigator.connection.type,
+
+    // Характеристики пользователя
+    "User ID": navigator.id,
+    };
+
+    for (const prop in properties) {
+        const p = document.createElement('p');
+        p.textContent = prop+ ": " + properties[prop];
+        deviceInfo.appendChild(p);
+    }
+
+</script>
+    </div>
+{% endblock %}

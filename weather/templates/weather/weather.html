@@ -1,0 +1,42 @@
+{% extends 'home/header.html' %}
+
+{% block title %}
+    <h1>Погода</h1>
+{% endblock %}
+
+{% block body_block %}
+    <br>
+    <div class="container-xl">
+        <div class="row">
+            <div class="col-xl-5 offset-xl-1">
+                <h1>Погода в вашем городе</h1>
+                <label for="city">Город</label> <br>
+                <form action="" method="GET" >
+                    {% csrf_token %}
+
+                    <div class="input-group mb-3">
+                        {{ form.name }}
+                        <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Узнать</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-xl-4 offset-xl-1">
+                <h1>Информация</h1>
+                {% for info in all_cities_info %}
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div    class="col-9">
+                                <b>Город: </b>{{ info.city }}<br>
+                                <b>Температура:</b>{{ info.temp }}  °C <br>
+                            </div>
+                            <div class="col-2 offset-1">
+                                <img src="http://openweathermap.org/img/w/{{ info.icon }}.png" class="img-thumbnail" alt="Иконка погоды">
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

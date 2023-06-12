@@ -1,0 +1,60 @@
+{% extends 'home/header.html' %}
+
+{% block title %}
+    Рекорды Тетриса
+{% endblock %}
+
+{% block body_block %}
+<div class="container-lg">
+    <div class="row text-center">
+        <div class="col-xl-7">
+            <h1>Рекорды Тетриса</h1>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+    <div    class="col-12">
+
+            <table class="table table-dark table-striped text-center" id = 'record_table'>
+            {% if tetris_scores %}
+                <thead>
+                <tr>
+                    <th scope="col">Игрок</th>
+                    <th class = 'col' scope="col">Счёт</th>
+                    <th scope="col">Уровень</th>
+                    <th scope="col">Линии</th>
+                    <th class = 'd-none d-md-table-cell'  scope="col">Дата и время</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for tetris_score in tetris_scores %}
+                    <tr>
+                        <td>{{ tetris_score.user }}</td>
+                        <td>{{ tetris_score.score }}</td>
+                        <td>{{ tetris_score.level }}</td>
+                        <td>{{ tetris_score.lines }}</td>
+                        <td class = 'd-none d-md-table-cell'  >{{ tetris_score.date }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            {% else %}
+                <thead>
+                <tr>
+                    <th scope="col">Пока нет рекордов.</th>
+                </tr>
+                </thead>
+            {% endif %}
+            </table>
+
+    </div>
+    </div>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <div class=" col-xl-2 p-2">
+        <a  class="btn btn-outline-success d-flex text-center" href="{% url 'tetris' %}"  role="button">
+
+            Назад в игру
+        </a>
+    </div>
+    </div>
+</div>
+{% endblock %}
