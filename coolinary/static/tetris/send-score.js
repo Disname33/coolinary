@@ -1,5 +1,5 @@
 function sendScore() {
-    if (account.score> 1000) {
+    if (account.score > 1000) {
         const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
         $.ajax({
             url: window.location.href,

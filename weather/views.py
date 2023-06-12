@@ -1,9 +1,10 @@
-from django.shortcuts import render
 import requests
 from django.http import JsonResponse
-from .models import City
-from .forms import CityForm
+from django.shortcuts import render
+
 from coolinary.secret.secret import openweathermap_api_key
+from .forms import CityForm
+from .models import City
 
 
 def weather(request):

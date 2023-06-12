@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+
 from .secret import secret
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -111,9 +112,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # LANGUAGE_CODE = 'ru'
 LANGUAGE_CODE = 'ru'
 
-# DATETIME_FORMAT = 'D d.F.Y г. H:i:s'
-# DATE_FORMAT = 'D d.F.Y г.'
-
 # TIME_ZONE = 'UTC'
 TIME_ZONE = 'Europe/Moscow'
 
@@ -130,8 +128,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATIC_DIRS = [
     BASE_DIR / "static",
 ]
-# STATIC_ROOT = '/home/ploshadka/static/'
-# STATIC_ROOT = '/var/pyhost/coolinary/static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

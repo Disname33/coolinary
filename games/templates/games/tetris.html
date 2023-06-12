@@ -7,28 +7,28 @@
     <meta name="HandheldFriendly" content="true"/>
     <style>
 
-    .none {
-        display: none;
-    }
-
-    @media (max-width:766px) {
-        .right-column {
-            width: 65px;
-            height: 560px;
-            padding: 1px;
-            align-items: center;
-            vertical-align: center;
-            justify-content: center;
-            margin: 1px;
-        }
-    }
-
-
-    @media (max-height:690px) {
-        footer{
+        .none {
             display: none;
         }
-    }
+
+        @media (max-width: 766px) {
+            .right-column {
+                width: 65px;
+                height: 560px;
+                padding: 1px;
+                align-items: center;
+                vertical-align: center;
+                justify-content: center;
+                margin: 1px;
+            }
+        }
+
+
+        @media (max-height: 690px) {
+            footer {
+                display: none;
+            }
+        }
     </style>
 {% endblock %}
 
@@ -43,56 +43,71 @@
             <h1>Игра "Тетрис"</h1>
         </div>
 
-    <div class="row grid gx-0 gx-md-3 text-center">
-    <div class="col-auto">
-          <canvas id="board" class="border border-primary game-board"></canvas>
-    </div>
-        <div class="col-auto  gx-o gx-md-5 right-column">
-            <div class="row row-cols-md-2 user-select-none">
-                <div class="col">Счёт:</div> <div id="score" class="col">0</div>
-                <div class="col ">Линий:</div> <div id="lines" class="col">0</div>
-                <div class="col ">Уровень:</div> <div id="level" class="col">0</div>
-
+        <div class="row grid gx-0 gx-md-3 text-center">
+            <div class="col-auto">
+                <canvas id="board" class="border border-primary game-board"></canvas>
             </div>
-            <div class="col user-select-none">Далее:</div>
-            <canvas id="next" class="next"></canvas>
-            <div class="vstack gap-2">
-                <button onclick="gameOver()" class="btn col-md-12 btn-danger d-flex text-center">
-                    <span class="d-inline-flex d-md-none"> <img src="{% static "svg/x-circle.svg" %}" width="32" height="32"  alt="Exit"> </span>
-                    <span class="d-none d-md-inline-flex">Завершить игру</span>
-                </button>
-                <button onclick="pause()" class="btn col-md-12 btn-warning d-flex text-center">
-                    <span class="d-inline-flex d-md-none"> <img src="{% static "svg/pause-circle.svg" %}" width="32" height="32"  alt="Pause"> </span>
-                    <span class="d-none d-md-inline-flex">Пауза</span>
-                </button>
-            <button onclick="play()" class="btn col-md-12 btn-primary d-flex text-center play-button">
-                <span class="d-inline-flex d-md-none"> <img src="{% static "svg/play-circle.svg" %}"width="32" height="32"  alt="Play"> </span>
-                <span class="d-none d-md-inline-flex">Новая игра</span>
-            </button>
-                <a  class="btn col btn-outline-success d-flex text-center" href="{% url 'tetris_results' %}" role="button">
-                    <span class="d-inline-flex d-md-none"> <img src="{% static "svg/records-2.svg" %}"   width="32" height="32"  alt="Records"> </span>
-                    <span class="d-none d-md-inline-flex">Таблица рекордов</span>
+            <div class="col-auto  gx-o gx-md-5 right-column">
+                <div class="row row-cols-md-2 user-select-none">
+                    <div class="col">Счёт:</div>
+                    <div id="score" class="col">0</div>
+                    <div class="col ">Линий:</div>
+                    <div id="lines" class="col">0</div>
+                    <div class="col ">Уровень:</div>
+                    <div id="level" class="col">0</div>
 
-                </a>
-                <button onclick="maximize()" class="btn col-md-12 btn-outline-warning d-md-none d-flex text-center"  id ="maximize">
-                    <span class=""> <img src="{% static "svg/maximize-2.svg" %}" width="32" height="32" id ="maximize"  alt="Maximize"> </span>
-                </button>
-                <button onclick="minimize()" class="btn col-md-12 btn-outline-warning d-md-none d-flex text-center visually-hidden" id ="minimize">
-                    <span class=""> <img src="{% static "svg/minimize-2.svg" %}" width="32" height="32"   alt="Minimize"> </span>
-                </button>
-                 <a class="btn col btn-outline-primary d-flex text-center" id="rules_btn"  href="#rules" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseExample">
-                     <span class="d-inline-flex d-md-none"> <img src="{% static "svg/help-circle.svg" %}" width="32" height="32"  alt="Rules"> </span>
-                     <span class="d-none d-md-inline-flex">Напомнить правила</span>
+                </div>
+                <div class="col user-select-none">Далее:</div>
+                <canvas id="next" class="next"></canvas>
+                <div class="vstack gap-2">
+                    <button onclick="gameOver()" class="btn col-md-12 btn-danger d-flex text-center">
+                        <span class="d-inline-flex d-md-none"> <img src="{% static "svg/x-circle.svg" %}" width="32"
+                                                                    height="32" alt="Exit"> </span>
+                        <span class="d-none d-md-inline-flex">Завершить игру</span>
+                    </button>
+                    <button onclick="pause()" class="btn col-md-12 btn-warning d-flex text-center">
+                        <span class="d-inline-flex d-md-none"> <img src="{% static "svg/pause-circle.svg" %}" width="32"
+                                                                    height="32" alt="Pause"> </span>
+                        <span class="d-none d-md-inline-flex">Пауза</span>
+                    </button>
+                    <button onclick="play()" class="btn col-md-12 btn-primary d-flex text-center play-button">
+                        <span class="d-inline-flex d-md-none"> <img src="{% static "svg/play-circle.svg" %}" width="32"
+                                                                    height="32" alt="Play"> </span>
+                        <span class="d-none d-md-inline-flex">Новая игра</span>
+                    </button>
+                    <a class="btn col btn-outline-success d-flex text-center" href="{% url 'tetris_results' %}"
+                       role="button">
+                        <span class="d-inline-flex d-md-none"> <img src="{% static "svg/records-2.svg" %}" width="32"
+                                                                    height="32" alt="Records"> </span>
+                        <span class="d-none d-md-inline-flex">Таблица рекордов</span>
 
-                </a>
+                    </a>
+                    <button onclick="maximize()" class="btn col-md-12 btn-outline-warning d-md-none d-flex text-center"
+                            id="maximize">
+                        <span class=""> <img src="{% static "svg/maximize-2.svg" %}" width="32" height="32"
+                                             id="maximize" alt="Maximize"> </span>
+                    </button>
+                    <button onclick="minimize()"
+                            class="btn col-md-12 btn-outline-warning d-md-none d-flex text-center visually-hidden"
+                            id="minimize">
+                        <span class=""> <img src="{% static "svg/minimize-2.svg" %}" width="32" height="32"
+                                             alt="Minimize"> </span>
+                    </button>
+                    <a class="btn col btn-outline-primary d-flex text-center" id="rules_btn" href="#rules"
+                       data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseExample">
+                        <span class="d-inline-flex d-md-none"> <img src="{% static "svg/help-circle.svg" %}" width="32"
+                                                                    height="32" alt="Rules"> </span>
+                        <span class="d-none d-md-inline-flex">Напомнить правила</span>
+
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="collapse pb-2" id="rules">
-            <div class="card card-body text-start">
-                <b>
+            <div class="collapse pb-2" id="rules">
+                <div class="card card-body text-start">
+                    <b>
                     <span>Случайные фигурки тетрамино падают сверху в прямоугольный стакан шириной 10 и высотой 20 клеток. В полёте игрок может поворачивать фигурку на 90° и двигать её по горизонтали. Также можно «сбрасывать» фигурку, то есть ускорять её падение, когда уже решено, куда фигурка должна упасть. Фигурка летит до тех пор, пока не наткнётся на другую фигурку либо на дно стакана. Если при этом заполнился горизонтальный ряд из 10 клеток, он пропадает и всё, что выше него, опускается на одну клетку. Дополнительно показывается фигурка, которая будет следовать после текущей — это подсказка, которая позволяет игроку планировать действия. Темп игры постепенно ускоряется. Игра заканчивается, когда новая фигурка не может поместиться в стакан. Игрок получает очки за каждый заполненный ряд, поэтому его задача — заполнять ряды, не заполняя сам стакан (по вертикали) как можно дольше, чтобы таким образом получить как можно больше очков.<br>
                 </span>
-                    <span class="d-none d-md-inline">
+                        <span class="d-none d-md-inline">
                         Управление:<br>
                         Клавиши
                         <span class="link-primary">Влево</span> и
@@ -101,9 +116,9 @@
                         <span class="link-primary">Вниз</span> - ускорить падение фигурки,
                         <span class="link-primary">Пробел</span> - уронить фигурку вниз.
                     </span>
-                </b>
+                    </b>
+                </div>
             </div>
-        </div>
         </div>
     </div>
     </div>
@@ -111,7 +126,10 @@
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
-                <svg class="bd-placeholder-img rounded me-2" width="20" height="20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice" focusable="false"><rect width="100%" height="100%" fill="#007aff"></rect></svg>
+                <svg class="bd-placeholder-img rounded me-2" width="20" height="20" xmlns="http://www.w3.org/2000/svg"
+                     aria-hidden="true" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <rect width="100%" height="100%" fill="#007aff"></rect>
+                </svg>
                 <strong class="me-auto">Системное сообщение</strong>
                 <small>Только что</small>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -122,11 +140,11 @@
         </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script type="text/javascript" src="{% static "tetris/constants.js" %}?v=1.1" ></script>
-    <script type="text/javascript" src="{% static "tetris/board.js" %}?v=1.1" ></script>
-    <script type="text/javascript" src="{% static "tetris/piece.js" %}" ></script>
-    <script type="text/javascript" src="{% static "tetris/main.js" %}?v=1.1" ></script>
-    <script type="text/javascript" src="{% static "tetris/send-score.js" %}" ></script>
-    <script type="text/javascript" src="{% static "tetris/touch.listener.js" %}?v=1.1" ></script>
+    <script type="text/javascript" src="{% static "tetris/constants.js" %}?v=1.1"></script>
+    <script type="text/javascript" src="{% static "tetris/board.js" %}?v=1.1"></script>
+    <script type="text/javascript" src="{% static "tetris/piece.js" %}"></script>
+    <script type="text/javascript" src="{% static "tetris/main.js" %}?v=1.1"></script>
+    <script type="text/javascript" src="{% static "tetris/send-score.js" %}"></script>
+    <script type="text/javascript" src="{% static "tetris/touch.listener.js" %}?v=1.1"></script>
 
 {% endblock %}

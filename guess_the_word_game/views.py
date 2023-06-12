@@ -1,9 +1,10 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from .services import guess_the_word_game
 from django.contrib.auth.decorators import login_required
-from .services.timer import elapsed_time, start_timer
+from django.http import HttpResponse
+from django.shortcuts import render
+
 from .models import GameScore
+from .services import guess_the_word_game
+from .services.timer import elapsed_time, start_timer
 
 
 @login_required

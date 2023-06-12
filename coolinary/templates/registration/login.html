@@ -30,20 +30,20 @@
 
                 <div class="d-grid row mx-auto">
                     <div class="col-lg-6 offset-lg-3">
-                        <div >{{ form.username.label_tag }}</div>
-                        <div >{{ form.username }}</div>
-                        <div >{{ form.password.label_tag }}</div>
-                        <div >{{ form.password }}</div>
+                        <div>{{ form.username.label_tag }}</div>
+                        <div>{{ form.username }}</div>
+                        <div>{{ form.password.label_tag }}</div>
+                        <div>{{ form.password }}</div>
 
 
-                <br>
-                        <div >
+                        <br>
+                        <div>
 
-                <input class='btn btn-primary d-flex text-center col-12' type="submit" value="Войти" />
+                            <input class='btn btn-primary d-flex text-center col-12' type="submit" value="Войти"/>
                         </div>
-                <input type="hidden" name="next" value="{{ next }}" />
+                        <input type="hidden" name="next" value="{{ next }}"/>
 
-                </div>
+                    </div>
                 </div>
             </form>
             <br>
@@ -52,8 +52,8 @@
             <script>
                 const username = document.getElementById("id_password");
                 const password = document.getElementById("id_username");
-                username.setAttribute('class', "form-control" )
-                password.setAttribute('class', "form-control " )
+                username.setAttribute('class', "form-control")
+                password.setAttribute('class', "form-control ")
             </script>
         {% endblock %}
     </div>

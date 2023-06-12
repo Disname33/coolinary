@@ -9,10 +9,11 @@
         </div>
         <div class="col-xl-5 mb-4">
             <form method="GET" action="{% url 'guess_the_word_game' %}">
-                {%  csrf_token  %}
+                {% csrf_token %}
 
                 <div class="input-group justify-content-md-end">
-                    <select name="dif" class="form-select" id="inputDifGroupSelect" aria-label="Example select with button addon">
+                    <select name="dif" class="form-select" id="inputDifGroupSelect"
+                            aria-label="Example select with button addon">
                         <option value="4">Лёгкий</option>
                         <option value="5" selected>Средний</option>
                         <option value="6">Тяжёлый</option>
@@ -41,22 +42,24 @@
     </div>
     <script>
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        document.getElementById("inputDifGroupSelect").addEventListener("change", function() {
+        document.getElementById("inputDifGroupSelect").addEventListener("change", function () {
             const selectedValue = this.value;
             $.ajax({
                 url: '{% url 'guess_the_word_game_results' %}',
                 type: 'GET',
-                headers: { 'X-CSRFToken': csrftoken },
-                data: { 'csrfmiddlewaretoken': csrftoken,
-                    'dif': selectedValue },
-                success: function(response) {
+                headers: {'X-CSRFToken': csrftoken},
+                data: {
+                    'csrfmiddlewaretoken': csrftoken,
+                    'dif': selectedValue
+                },
+                success: function (response) {
                     // Обработка успешного ответа
                     const newTableContent = $(response).find('#record_table').html(); // Извлекаем HTML-код только для нужной таблицы
                     $('#record_table').html(newTableContent); // Обновляем содержимое таблицы
                     {#location.reload(); // Обновление страницы#}
                     tooltipInit()
                 },
-                error: function(error) {
+                error: function (error) {
                     // Обработка ошибки
                     console.log(error);
                 }
@@ -69,102 +72,107 @@
 
 
     <div class="overflow-x-auto">
-    <div    class="col-12">
+        <div class="col-12">
 
-            <table class="table table-dark table-striped text-center" id = 'record_table'>
-            {% if game_scores %}
-                <thead>
-                <tr>
-                    <th scope="col">Игрок</th>
-                    <th class = 'd-none d-md-table-cell' scope="col">Сложность</th>
-                    <th scope="col">Попытки</th>
-                    <th scope="col">Время</th>
-                    <th scope="col">Слово</th>
-                    <th class = 'd-none d-md-table-cell'  scope="col">Дата и время</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for game_score in game_scores %}
+            <table class="table table-dark table-striped text-center" id='record_table'>
+                {% if game_scores %}
+                    <thead>
                     <tr>
-                        <td>{{ game_score.user }}</td>
-                        <td class = 'd-none d-md-table-cell' >{{ game_score.difficulty }}</td>
-                        <td>{{ game_score.attempts }}</td>
-                        <td>{{ game_score.score }} с.</td>
-                        <td>
-                            <a class="link-primary link-underline link-underline-opacity-0 link-underline-opacity-25-hover popover-btn"
-                               data-bs-toggle="tooltip" data-bs-placement="top"
-                                            data-bs-custom-class="custom-tooltip"
-                                            data-bs-title="Нажмите, чтобы увидеть значение.">
-                            {{ game_score.hidden_word }}
-                        </a></td>
-
-                        <td class = 'd-none d-md-table-cell'  >{{ game_score.date }}</td>
+                        <th scope="col">Игрок</th>
+                        <th class='d-none d-md-table-cell' scope="col">Сложность</th>
+                        <th scope="col">Попытки</th>
+                        <th scope="col">Время</th>
+                        <th scope="col">Слово</th>
+                        <th class='d-none d-md-table-cell' scope="col">Дата и время</th>
                     </tr>
-                {% endfor %}
-                </tbody>
-            {% else %}
-                <thead>
-                <tr>
-                    <th scope="col">Пока нет рекордов на этом уровне сложности.</th>
-                </tr>
-                </thead>
-            {% endif %}
+                    </thead>
+                    <tbody>
+                    {% for game_score in game_scores %}
+                        <tr>
+                            <td>{{ game_score.user }}</td>
+                            <td class='d-none d-md-table-cell'>{{ game_score.difficulty }}</td>
+                            <td>{{ game_score.attempts }}</td>
+                            <td>{{ game_score.score }} с.</td>
+                            <td>
+                                <a class="link-primary link-underline link-underline-opacity-0 link-underline-opacity-25-hover popover-btn"
+                                   data-bs-toggle="tooltip" data-bs-placement="top"
+                                   data-bs-custom-class="custom-tooltip"
+                                   data-bs-title="Нажмите, чтобы увидеть значение.">
+                                    {{ game_score.hidden_word }}
+                                </a></td>
+
+                            <td class='d-none d-md-table-cell'>{{ game_score.date }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                {% else %}
+                    <thead>
+                    <tr>
+                        <th scope="col">Пока нет рекордов на этом уровне сложности.</th>
+                    </tr>
+                    </thead>
+                {% endif %}
             </table>
 
-    <script>
-        function tooltipInit() {
-            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-            const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            {#const popover_btn = document.querySelectorAll(".popover-btn");#}
-            // Назначаем слушатель события для каждой кнопки
+            <script>
+                function tooltipInit() {
+                    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+                    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+                    const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    {#const popover_btn = document.querySelectorAll(".popover-btn");#}
+                    // Назначаем слушатель события для каждой кнопки
 
-            for (let element of tooltipTriggerList){
-                element.addEventListener('click', function() {
-                    // Обработка события нажатия кнопки
-                    const selectedValue = this.innerText;
-                    if ("Нажмите, чтобы увидеть значение." === this.getAttribute('data-bs-title')){
-                        let el = this;
+                    for (let element of tooltipTriggerList) {
+                        element.addEventListener('click', function () {
+                            // Обработка события нажатия кнопки
+                            const selectedValue = this.innerText;
+                            if ("Нажмите, чтобы увидеть значение." === this.getAttribute('data-bs-title')) {
+                                let el = this;
 
-                        $.ajax({
-                            url: "{% url 'guess_the_word_game_results' %}",
-                            type: 'GET',
-                            headers: { 'X-CSRFToken': csrftoken2 },
-                            data: { 'csrfmiddlewaretoken': csrftoken2,
-                                'need_mean': selectedValue },
-                            success: function(response) {
-                                // Обработка успешного ответа
+                                $.ajax({
+                                    url: "{% url 'guess_the_word_game_results' %}",
+                                    type: 'GET',
+                                    headers: {'X-CSRFToken': csrftoken2},
+                                    data: {
+                                        'csrfmiddlewaretoken': csrftoken2,
+                                        'need_mean': selectedValue
+                                    },
+                                    success: function (response) {
+                                        // Обработка успешного ответа
 
-                                el.setAttribute('data-bs-title', selectedValue.charAt(0).toUpperCase() + selectedValue.slice(1) +
-                                    ' - это ' +response);
-                                const tooltip = bootstrap.Tooltip.getInstance(el) // Returns a Bootstrap tooltip instance
-                                tooltip.setContent({ '.tooltip-inner': selectedValue.charAt(0).toUpperCase() + selectedValue.slice(1) +
-                                        ' - это ' +response })
-                            },
-                            error: function(error) {
-                                // Обработка ошибки
-                                console.log(error);
+                                        el.setAttribute('data-bs-title', selectedValue.charAt(0).toUpperCase() + selectedValue.slice(1) +
+                                            ' - это ' + response);
+                                        const tooltip = bootstrap.Tooltip.getInstance(el) // Returns a Bootstrap tooltip instance
+                                        tooltip.setContent({
+                                            '.tooltip-inner': selectedValue.charAt(0).toUpperCase() + selectedValue.slice(1) +
+                                                ' - это ' + response
+                                        })
+                                    },
+                                    error: function (error) {
+                                        // Обработка ошибки
+                                        console.log(error);
+                                    }
+                                });
                             }
+
                         });
+
+
                     }
 
-                });
+                }
 
+                tooltipInit()
+            </script>
 
-            }
-
-        }
-        tooltipInit()
-    </script>
-
-    </div>
+        </div>
     </div>
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-    <div class=" col-xl-2 p-2">
-        <a  class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game' %}"  role="button">
+        <div class=" col-xl-2 p-2">
+            <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game' %}" role="button">
 
-            Назад в игру
-        </a>
-    </div>
+                Назад в игру
+            </a>
+        </div>
     </div>
 {% endblock %}

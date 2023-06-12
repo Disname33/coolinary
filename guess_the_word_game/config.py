@@ -1,4 +1,3 @@
-
 attempts = {4: 6, 5: 6, 6: 8, 7: 10}
 # красный, синий, зелёный
 colors = {"R": "<div class='col-1 link-danger border border-danger'>{}</div>",

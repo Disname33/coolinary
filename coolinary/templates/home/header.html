@@ -5,17 +5,18 @@
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="{% static "key-d-32.png" %}" type="image/png">
     <title>{% block title %} {% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
-{#    <link rel="stylesheet" href="{% static 'css/styles.css' %}">#}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    {#    <link rel="stylesheet" href="{% static 'css/styles.css' %}">#}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<style>
-    .text-center {
-        align-items: center;
-        vertical-align: center;
-        justify-content: center;
-    }
+    <style>
+        .text-center {
+            align-items: center;
+            vertical-align: center;
+            justify-content: center;
+        }
 
-</style>
+    </style>
     {% block inhead %}{% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 </head>
@@ -23,69 +24,80 @@
 <header class="navbar-expand-lg bg-dark bd-navbar sticky-top user-select-none">
     <nav class="navbar navbar-dark bg-gradient container-fluid" aria-label="First navbar example">
         <div class="row container-fluid">
-        <div class="col-9">
+            <div class="col-9">
 
-            <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample01" aria-controls="navbarsExample01" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span> <span>Disname server</span>
-            </button>
-
-            <div class="navbar-collapse collapse" id="navbarsExample01">
-                <button class="navbar-toggler d-none d-lg-inline d-0 m-0 " type="button" >
-                    <span> <img src="{% static "key-d-32.png" %}" width="32" height="32"  alt="logo"> </span><span>isname server</span>
+                <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarsExample01" aria-controls="navbarsExample01" aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span> <span>Disname server</span>
                 </button>
-                <ul class="navbar-nav me-auto mb-2">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Домашняя страница</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'weather' %}">Погода</a>
-                    </li>
-                    {#                <li class="nav-item">#}
-                    {#                    <a class="nav-link disabled">Disabled</a>#}
-                    {#                </li>#}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Игры</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'guess_the_word_game' %}">Угадай слово</a></li>
-                            <li><a class="dropdown-item" href="{% url 'tetris' %}">Тетрис</a></li>
-                        </ul>
+
+                <div class="navbar-collapse collapse" id="navbarsExample01">
+                    <button class="navbar-toggler d-none d-lg-inline d-0 m-0 " type="button">
+                        <span> <img src="{% static "key-d-32.png" %}" width="32" height="32" alt="logo"> </span><span>isname server</span>
+                    </button>
+                    <ul class="navbar-nav me-auto mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Домашняя страница</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'weather' %}">Погода</a>
+                        </li>
+                        {#                <li class="nav-item">#}
+                        {#                    <a class="nav-link disabled">Disabled</a>#}
+                        {#                </li>#}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
+                               aria-expanded="false">Игры</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'guess_the_word_game' %}">Угадай слово</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'tetris' %}">Тетрис</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    {#            <form role="search" class="hidden">#}
+                    {#                <input class="form-control" type="search" placeholder="Search" aria-label="Search">#}
+                    {#            </form>#}
+                </div>
+            </div>
+            <div class="col-auto position-absolute top-0 end-0 mt-3">
+                <ul class="d-flex justify-content-end me-1">
+                    <li class="nav-item dropdown mb-lg-2 d-flex ">
+                        {% if user.is_authenticated %}
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
+                               aria-expanded="false">{{ user.get_username }}</a>
+                            <ul class="dropdown-menu dropdown-menu-end float-end">
+                                <li><a class="dropdown-item" href="{% url 'logout' %}?next={{ request.path }}">Выйти</a>
+                                </li>
+                            </ul>
+                        {% else %}
+                            <a class="nav-link d-flex justify-content-end " href="#" data-bs-toggle="dropdown"
+                               aria-expanded="false">Войти</a>
+                            <ul class="dropdown-menu dropdown-menu-end float-end">
+                                <li><a class="dropdown-item" href="{% url 'login' %}?next={{ request.path }}">Войти</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'register' %}?next={{ request.path }}">Зарегистрироваться</a>
+                                </li>
+                            </ul>
+                        {% endif %}
                     </li>
                 </ul>
-                {#            <form role="search" class="hidden">#}
-                {#                <input class="form-control" type="search" placeholder="Search" aria-label="Search">#}
-                {#            </form>#}
             </div>
-        </div>
-        <div class="col-auto position-absolute top-0 end-0 mt-3">
-            <ul class="d-flex justify-content-end me-1">
-                <li class="nav-item dropdown mb-lg-2 d-flex ">
-                    {% if user.is_authenticated %}
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">{{ user.get_username }}</a>
-                        <ul class="dropdown-menu dropdown-menu-end float-end">
-                            <li ><a class="dropdown-item" href="{% url 'logout'%}?next={{request.path}}">Выйти</a></li>
-                        </ul>
-                    {% else %}
-                        <a class="nav-link d-flex justify-content-end " href="#" data-bs-toggle="dropdown" aria-expanded="false">Войти</a>
-                        <ul class="dropdown-menu dropdown-menu-end float-end">
-                            <li ><a class="dropdown-item" href="{% url 'login' %}?next={{request.path}}">Войти</a></li>
-                            <li ><a class="dropdown-item" href="{% url 'register'%}?next={{request.path}}">Зарегистрироваться</a></li>
-                        </ul>
-                    {% endif %}
-                </li>
-            </ul>
-        </div>
         </div>
     </nav>
 </header>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
 
 {#<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>#}
 {% block body_block %} {% endblock %}
 
 <footer class="bd-footer py-2 py-md-3 mt-3 bg-body-tertiary user-select-none">
     <div class="container py-2 py-md-3 px-2 px-md-1 text-body-secondary ">
-            <div class="d-flex justify-content-end">Created by Yashurin Denis</div>
+        <div class="d-flex justify-content-end">Created by Yashurin Denis</div>
     </div>
 </footer>
 </body>

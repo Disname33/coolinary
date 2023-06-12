@@ -1,10 +1,12 @@
-import random
-from typing import NamedTuple
 import json
-from ..models import CurrentSession
+import random
+from re import match
+from typing import NamedTuple
+
 from .timer import elapsed_time, start_timer
 from ..config import *
-from re import match
+from ..models import CurrentSession
+
 
 class NounWithDefinition(NamedTuple):
     # Определение именованного кортежа с именами полей
@@ -153,7 +155,7 @@ def notice_loss(current_session: CurrentSession) -> str:
 
 def notice_congratulations_final(current_session: CurrentSession) -> str:
     return (
-            notice_congratulations+notice_final).format(
+            notice_congratulations + notice_final).format(
         len(current_session.entered_words_list),
         int(elapsed_time(current_session.start_time)),
         current_session.hidden_word.upper(),
