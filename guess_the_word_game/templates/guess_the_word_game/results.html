@@ -1,6 +1,5 @@
 {% extends 'guess_the_word_game/game.html' %}
 
-
 {% block start_game %}
 
     <div class="row text-center">
@@ -10,7 +9,6 @@
         <div class="col-xl-5 mb-4">
             <form method="GET" action="{% url 'guess_the_word_game' %}">
                 {% csrf_token %}
-
                 <div class="input-group justify-content-md-end">
                     <select name="dif" class="form-select" id="inputDifGroupSelect"
                             aria-label="Example select with button addon">
@@ -117,11 +115,9 @@
             <script>
                 function tooltipInit() {
                     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-                    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+                    [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
                     const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                    {#const popover_btn = document.querySelectorAll(".popover-btn");#}
                     // Назначаем слушатель события для каждой кнопки
-
                     for (let element of tooltipTriggerList) {
                         element.addEventListener('click', function () {
                             // Обработка события нажатия кнопки
@@ -154,23 +150,16 @@
                                     }
                                 });
                             }
-
                         });
-
-
                     }
-
                 }
-
                 tooltipInit()
             </script>
-
         </div>
     </div>
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
         <div class=" col-xl-2 p-2">
             <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game' %}" role="button">
-
                 Назад в игру
             </a>
         </div>

@@ -1,3 +1,11 @@
+function showToast(text = 'Ошибка', title = 'Системное сообщение') {
+    const toastLive = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastLive);
+    toastLive.querySelector('.toast-title').textContent = title;
+    toastLive.querySelector('.toast-body').textContent = text;
+    toast.show();
+}
+
 function sendScore() {
     if (account.score > 1000) {
         const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -13,9 +21,8 @@ function sendScore() {
             },
             success: function (response) {
                 // Обработка успешного ответа
-                const toastLiveExample = document.getElementById('liveToast');
-                const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample);
-                toastBootstrap.show();
+                console.log(response)
+                showToast("Ваш результат добавлен в таблицу рекордов")
                 // setTimeout(toastBootstrap.hide(), 5000);
             },
             error: function (error) {

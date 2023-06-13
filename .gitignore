@@ -1,0 +1,6 @@
+migrations/
+/static/
+/venv/
+/.idea/
+/bin/
+secret/

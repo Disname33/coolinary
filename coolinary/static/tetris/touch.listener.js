@@ -133,22 +133,29 @@ function touchControl(msg) {
 }
 
 
-const imageMaxi = document.querySelector('#maximize');
-const imageMini = document.querySelector('#minimize');
+const btnMaxi = document.querySelector('#maximize');
+const btnMini = document.querySelector('#minimize');
 /* Get the documentElement (<html>) to display the page in fullscreen */
 const elem = document.documentElement;
 
 /* View in fullscreen */
 function maximize() {
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
+    try {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        }
+    } catch (e) {
+        showToast("iPhone не поддерживает открытие страницы на весь экран.");
     }
-    imageMaxi.classList.add('visually-hidden');
-    imageMini.classList.remove('visually-hidden');
+    try {
+        if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+        }
+    } catch (e) {
+        console.log(e)
+    }
+    btnMaxi.classList.add('visually-hidden');
+    btnMini.classList.remove('visually-hidden');
 
 }
 
@@ -158,9 +165,7 @@ function minimize() {
         document.exitFullscreen();
     } else if (document.webkitExitFullscreen) { /* Safari */
         document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) { /* IE11 */
-        document.msExitFullscreen();
     }
-    imageMini.classList.add('visually-hidden');
-    imageMaxi.classList.remove('visually-hidden');
+    btnMini.classList.add('visually-hidden');
+    btnMaxi.classList.remove('visually-hidden');
 }

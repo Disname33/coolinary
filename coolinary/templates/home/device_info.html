@@ -43,7 +43,12 @@
 
             for (const prop in properties) {
                 const p = document.createElement('p');
-                p.textContent = prop + ": " + properties[prop];
+                try {
+                    p.textContent = prop + ": " + properties[prop];
+                } catch (e) {
+                    p.textContent = prop + ": " + e;
+                }
+
                 deviceInfo.appendChild(p);
             }
 
