@@ -143,20 +143,14 @@ function maximize() {
     try {
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
         }
+        btnMaxi.classList.add('visually-hidden');
+        btnMini.classList.remove('visually-hidden');
     } catch (e) {
         showToast("iPhone не поддерживает открытие страницы на весь экран.");
     }
-    try {
-        if (elem.webkitRequestFullscreen) { /* Safari */
-            elem.webkitRequestFullscreen();
-        }
-    } catch (e) {
-        console.log(e)
-    }
-    btnMaxi.classList.add('visually-hidden');
-    btnMini.classList.remove('visually-hidden');
-
 }
 
 /* Close fullscreen */
