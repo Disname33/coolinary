@@ -10,7 +10,7 @@ class City(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        self.name = self.name.title()
+        self.name = self.name.strip().title()
         if self.__class__.objects.filter(name=self.name).exists():
             # Объект уже существует в базе данных, обновляем только поле date
             self.__class__.objects.filter(name=self.name).update(date=timezone.now())

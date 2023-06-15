@@ -6,7 +6,8 @@ from coolinary.secret.secret import openweathermap_api_key
 def city_exist(city: str) -> bool:
     try:
         res = requests.get("https://api.openweathermap.org/data/2.5/find",
-                           params={'q': city, 'type': 'like', 'units': 'metric', 'APPID': openweathermap_api_key})
+                           params={'q': city.strip(), 'type': 'like', 'units': 'metric',
+                                   'APPID': openweathermap_api_key})
         data = res.json()
         city_id = data['list'][0]['id']
         return city_id
