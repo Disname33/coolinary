@@ -1,7 +1,7 @@
 {% extends 'home/header.html' %}
 
 {% block title %}
-    <h1>Погода</h1>
+    Погода
 {% endblock %}
 
 {% block body_block %}
@@ -13,10 +13,21 @@
                 <label for="city">Город</label> <br>
                 <form action="" method="GET">
                     {% csrf_token %}
-
                     <div class="input-group mb-3">
                         {{ form.name }}
                         <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Узнать</button>
+                    </div>
+
+                    <div class="locate btn btn-outline-secondary col-12 py-0 my-0">
+                        <span>Вычислить координаты по IP</span>
+                        <span>
+                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                             x="0px" y="0px" width="50px" height="50px" viewBox="0 0 50 50"
+                             enable-background="new 0 0 50 50" xml:space="preserve">
+                            <polyline fill="#01B2EB"
+                                      points="23.241,25.775 11,25.775 35.768,12.018 24.24,38.283 "></polyline>
+                            </svg>
+                            </span>
                     </div>
                 </form>
             </div>
@@ -31,7 +42,7 @@
                                 <b>Температура:</b>{{ info.temp }} °C <br>
                             </div>
                             <div class="col-2 offset-1">
-                                <img src="http://openweathermap.org/img/w/{{ info.icon }}.png" class="img-thumbnail"
+                                <img src="https://openweathermap.org/img/w/{{ info.icon }}.png" class="img-thumbnail"
                                      alt="Иконка погоды">
                             </div>
                         </div>
@@ -40,4 +51,43 @@
             </div>
         </div>
     </div>
+    <script>
+
+        function findMe() {
+            if (navigator.geolocation) {
+                // Геолокация доступна
+                navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+            } else {
+                // Геолокация не поддерживается в этом браузере
+                console.log("Геолокация не поддерживается");
+            }
+
+            function successCallback(position) {
+                const latitude = position.coords.latitude.toString();
+                const longitude = position.coords.longitude.toString();
+                const accuracy = position.coords.accuracy.toString();
+                console.log("Широта:", latitude);
+                console.log("Долгота:", longitude);
+                console.log("Точность:", accuracy);
+                fetch("https://api.foreca.net/locations/".concat(longitude, ",").concat(latitude, ".json?accuracy=").concat(accuracy, "&legacyFormat=true&pplx=true&lang=ru"))
+                    .then(response => response.json()) // Преобразование ответа в формат JSON
+                    .then(data => {
+                        // Обработка полученных данных
+                        const input = document.getElementById("city");
+                        input.value = data.name;
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        // Обработка ошибок
+                        console.error('Ошибка:', error);
+                    });
+            }
+
+            function errorCallback(error) {
+                console.log("Произошла ошибка при получении координат:", error.message);
+            }
+        }
+
+        document.querySelector(".locate").addEventListener("click", findMe)
+    </script>
 {% endblock %}

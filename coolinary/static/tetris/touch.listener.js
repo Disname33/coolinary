@@ -145,7 +145,7 @@ function maximize() {
             elem.requestFullscreen();
         } else if (elem.webkitRequestFullscreen) { /* Safari */
             elem.webkitRequestFullscreen();
-        }
+        } else showToast("iPhone не поддерживает открытие страницы на весь экран.");
         btnMaxi.classList.add('visually-hidden');
         btnMini.classList.remove('visually-hidden');
     } catch (e) {

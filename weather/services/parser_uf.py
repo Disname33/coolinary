@@ -1,3 +1,6 @@
+city = "Nizhny_Novgorod"
+url = "https://www.foreca.ru/Russia/" + city
+
 # from selenium import webdriver
 # from selenium.webdriver.common.by import By
 # from selenium_stealth import stealth

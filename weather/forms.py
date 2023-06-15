@@ -15,6 +15,5 @@ class CityForm(ModelForm):
             'aria-label': "Recipient's username",
             'aria-describedby': "button-addon2",
             'class': "form-control"
-
         })
         }

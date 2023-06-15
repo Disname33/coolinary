@@ -27,6 +27,7 @@ SECRET_KEY = secret.SECRET_KEY
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1',
+                 'localhost',
                  '37.220.84.147',
                  '10.7.0.5',
                  'disname.fun',

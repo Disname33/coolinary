@@ -83,7 +83,7 @@ def results(request):
         print(difficulty)
     else:
         difficulty = guess_the_word_game.get_current_session(request.user).difficulty
-    sorted_game_scores = GameScore.objects.filter(difficulty=difficulty).order_by('attempts', 'score')[:40]
+    sorted_game_scores = GameScore.objects.filter(difficulty=difficulty).order_by('attempts', 'elapsed_time')[:40]
 
     context = {
         'game_scores': sorted_game_scores,

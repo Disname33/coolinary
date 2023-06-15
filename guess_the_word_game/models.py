@@ -8,7 +8,7 @@ from .services.timer import start_timer, elapsed_time
 class GameScore(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     difficulty = models.IntegerField('Сложность')
-    score = models.IntegerField('Счёт')
+    elapsed_time = models.IntegerField('Затраченное время')
     hidden_word = models.CharField('Слово', max_length=10)
     attempts = models.IntegerField('Попытки')
     date = models.DateTimeField(auto_now=True, blank=True, verbose_name='Дата')
@@ -16,7 +16,7 @@ class GameScore(models.Model):
     def __str__(self):
         return f'Игрок: {self.user},' \
                f' сложность: {self.difficulty},' \
-               f' время: {self.score},' \
+               f' время: {self.elapsed_time},' \
                f' загаданное слово {self.hidden_word}.'
 
     class Meta:
@@ -31,14 +31,12 @@ class GameScore(models.Model):
         game_score_obj.difficulty = source_obj.difficulty
         game_score_obj.hidden_word = source_obj.hidden_word
         game_score_obj.attempts = len(source_obj.entered_words_list)
-        game_score_obj.score = int(elapsed_time(source_obj.start_time))
-        # Копируйте другие поля по аналогии
+        game_score_obj.elapsed_time = int(elapsed_time(source_obj.start_time))
         return game_score_obj
 
 
 class EnterWords(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-
     enter_word = models.CharField('Введённое слово', max_length=10)
 
     def __str__(self):

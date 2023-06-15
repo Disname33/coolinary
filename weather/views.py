@@ -1,32 +1,19 @@
-import requests
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from coolinary.secret.secret import openweathermap_api_key
 from .forms import CityForm
 from .models import City
+from .services.open_weather_map import city_exist, get_weather_for_all_city
 
 
 def weather(request):
-    if request.method == 'GET':
-        form = CityForm(request.GET)
-        form.save()
+    if name := request.GET.get('name'):
+        if city_exist(name):
+            City(name=name).save()
     form = CityForm()
-    api_key = openweathermap_api_key
-    url = 'https://api.openweathermap.org/data/2.5/weather?q={}&units=metric&lang=ru&appid={}'
-    cities = City.objects.order_by('-id')[:10]
-    all_cities = []
-    for city in cities:
-        res = requests.get(url.format(city.name, api_key)).json()
-        city_info = {
-            'city': res['name'],
-            'temp': res["main"]['temp'],
-            'icon': res['weather'][0]['icon']
-        }
-        all_cities.append(city_info)
-
+    cities = City.objects.order_by('-date')[:10]
     context = {
-        'all_cities_info': all_cities,
+        'all_cities_info': get_weather_for_all_city(cities),
         'form': form
     }
     return render(request, 'weather/weather.html', context)
