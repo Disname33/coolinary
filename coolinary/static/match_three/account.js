@@ -44,23 +44,32 @@ function gameOver(text = 'Ошибка.',
     modalBackdrop.querySelector('#staticBackdropLabel').textContent = title;
     modalBackdrop.querySelector('.modal-body').textContent = text;
     modalBackdrop.querySelector('.btn').classList.add(primary ? "btn-primary" : "btn-secondary");
-    modal.show(options);
+    waitForCondition(function () {
+        modal.show(options)
+    });
 }
 
-function closeModal() {
 
-    modal.hide();
-    modalActive = false;
-    restartGame();
+
+function closeModal() {
+    if (endFall()) {
+        restartGame();
+        modal.hide();
+        modalActive = false;
+    }
 }
 
 function waitForCondition(callback) {
     const intervalId = setInterval(function () {
-        if (gameState !== "pick") {
+        if (endFall()) {
             clearInterval(intervalId);
             callback();
         }
     }, 100); // Период проверки условия (в миллисекундах)
+}
+
+function endFall() {
+    return $(".remove").length === 0 && $(".switch").length === 0 && $(".fall").length === 0
 }
 
 const modalBackdrop = document.getElementById('staticBackdrop');

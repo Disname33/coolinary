@@ -5,7 +5,7 @@ $(document).ready(function () {
 	$("#game-field").swipe({
 		threshold: 10,
 		tap: function (event, target) {
-			if ($(target).hasClass("gem") && gameState === "pick") {
+			if ($(target).hasClass("gem") && gameState === "pick" && !modalActive) {
 				const row = parseInt($(target).attr("id").split("_")[1]);
 				const col = parseInt($(target).attr("id").split("_")[2]);
 				$("#marker").show();
@@ -28,7 +28,7 @@ $(document).ready(function () {
 			}
 		},
 		swipe: function (event, direction) {
-			if (swipeStart != null && gameState === "pick") {
+			if (swipeStart != null && gameState === "pick" && !modalActive) {
 				selectedRow = parseInt($(swipeStart).attr("id").split("_")[1]);
 				selectedCol = parseInt($(swipeStart).attr("id").split("_")[2]);
 				switch (direction) {
@@ -129,7 +129,7 @@ function restartGame(firstStart = false) {
 			do {
 				jewels[i][j] = Math.floor(Math.random() * difficultly);
 			} while (isStreak(i, j));
-			$("#game-field").append('<div class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_' + i + '_' + j + '"></div>');
+			$("#game-field").append('<img class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_' + i + '_' + j + getImg(jewels[i][j]));
 			$("#" + GEM_ID_PREFIX + "_" + i + "_" + j).css({
 				"top": (i * GEM_SIZE) + 4 + absoluteTop + "px",
 				"left": (j * GEM_SIZE) + 4 + absoluteLeft + "px",
@@ -187,7 +187,7 @@ function placeNewGems() {
 	for (let i = 0; i < NUM_COLS; i++) {
 		if (jewels[0][i] === -1) {
 			jewels[0][i] = Math.floor(Math.random() * difficultly);
-			$("#game-field").append('<div class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_0_' + i + '"></div>');
+			$("#game-field").append('<img class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_0_' + i + getImg(jewels[0][i]));
 			$("#" + GEM_ID_PREFIX + "_0_" + i).css({
 				"top": 4 + absoluteTop + "px",
 				"left": (i * GEM_SIZE) + 4 + absoluteLeft + "px",
