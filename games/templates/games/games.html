@@ -18,14 +18,7 @@
 {% block body_block %}
     <div class="container mt-2">
         <ul class="mb-2">
-            <li class="nav-item ">
-                <a class="nav-link " href="#" aria-expanded="true">Игры</a>
-                <ul class="menu">
-                    <li><a class="list-group-item list-group-item-action" href="{% url 'guess_the_word_game' %}">Угадай
-                        слово</a></li>
-                    <li><a class="list-group-item list-group-item-action" href="{% url 'tetris' %}">Тетрис</a></li>
-                </ul>
-            </li>
+            {% include "games/game_list.html" %}
         </ul>
     </div>
 {% endblock %}

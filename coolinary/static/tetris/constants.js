@@ -15,7 +15,7 @@ const COLORS = [
   'purple',
   'red'
 ];
-
+Object.freeze(COLORS);
 const COLORS_RGBA = {};
 
 COLORS_RGBA['none'] = 'rgba(0, 0, 0, 0)';
@@ -27,7 +27,7 @@ COLORS_RGBA['green'] = 'rgba(0, 128, 0, 0.2)';
 COLORS_RGBA['purple'] = 'rgba(128, 0, 128, 0.2)';
 COLORS_RGBA['red'] = 'rgba(255, 0, 0, 0.2)';
 
-Object.freeze(COLORS);
+Object.freeze(COLORS_RGBA);
 
 const SHAPES = [
   [],

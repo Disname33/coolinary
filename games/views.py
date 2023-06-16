@@ -25,3 +25,7 @@ def tetris_results(request):
         'tetris_scores': sorted_game_scores,
     }
     return render(request, 'games/tetris_results.html', context)
+
+
+def match_three(request):
+    return render(request, 'games/match_three.html')

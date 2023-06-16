@@ -34,7 +34,7 @@
 
                 <div class="navbar-collapse collapse" id="navbarsExample01">
                     <button class="navbar-toggler d-none d-lg-inline d-0 m-0 " type="button">
-                        <span> <img src="{% static "key-d-32.png" %}" width="32" height="32" alt="logo"> </span><span>isname server</span>
+                        <span> <img src="{% static "key-d-32.png" %}" width="32" height="32" alt="logo"> </span><span>Disname server</span>
                     </button>
                     <ul class="navbar-nav me-auto mb-2">
                         <li class="nav-item">
@@ -43,18 +43,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'weather' %}">Погода</a>
                         </li>
-                        {#                <li class="nav-item">#}
-                        {#                    <a class="nav-link disabled">Disabled</a>#}
-                        {#                </li>#}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
-                               aria-expanded="false">Игры</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'guess_the_word_game' %}">Угадай слово</a>
-                                </li>
-                                <li><a class="dropdown-item" href="{% url 'tetris' %}">Тетрис</a></li>
-                            </ul>
-                        </li>
+                        {% include "games/game_dropdown_list.html" %}
                     </ul>
                     {#            <form role="search" class="hidden">#}
                     {#                <input class="form-control" type="search" placeholder="Search" aria-label="Search">#}
