@@ -1,6 +1,6 @@
 const NUM_ROWS = 6;
 const NUM_COLS = 7;
-const START_TARGET = 250;
+const START_TARGET = 200;
 const GEM_CLASS = "gem"
 const GEM_ID_PREFIX = "gem";
 const bgColors = ["magenta", "mediumblue", "yellow", "lime", "cyan", "orange", "crimson", "gray"];

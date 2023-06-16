@@ -20,7 +20,8 @@ function checkAccount() {
         accountValues.target = START_TARGET * accountValues.level;
     } else if (accountValues.moves < 1) {
         gameOver('К сожалению ходы закончились. Может в другой раз повезёт.', 'Игра окончена', false);
-        accountValues.target = START_TARGET
+        accountValues.target = START_TARGET;
+        accountValues.level = 1;
     }
 }
 
