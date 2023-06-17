@@ -39,23 +39,28 @@ def get_weather(city: str):
         weather_now["city"] = city
         # print(data[0])
         # for el in data:
-        #     print(el + ': ' + str(data[el]))
+        #     print(el)
     else:
         print("Данные 'data' не найдены в скрипте.")
     return weather_day, weather_now, data
 
 
 def get_plot_coordinates(data):
-    from datetime import datetime, timedelta
-    timezone_offset = timedelta(hours=3)  # Смещение временной зоны +3 часа
+    from datetime import datetime
     date = []
     temp = []
+    uvi = []
+    rain = []
     if data is None:
         data = get_weather("Москва")[2]
     for data_per_6_hours in data:
         date.append(datetime.strptime(data_per_6_hours['time'], '%Y-%m-%dT%H:%M'))
         temp.append(data_per_6_hours['temp'])
-    return date, temp
+        rain.append(data_per_6_hours['rain'])
+        if data_per_6_hours['uvi']:
+            uvi.append(data_per_6_hours['uvi'])
+
+    return date, temp, uvi, rain
 
 
 def get_uvi_day(city="Нижний Новгород"):

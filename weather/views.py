@@ -15,13 +15,19 @@ def weather(request):
     form = CityForm()
     cities = City.objects.order_by('-date')[:6]
     weather_day, weather_now, data = get_weather(cities[0].name)
-    x, y = get_plot_coordinates(data)
+    time, temp, uvi, rain = get_plot_coordinates(data)
     context = {
         'weather_day': weather_day,
         'weather_now': weather_now,
-        'plot': plot_chart(x=x, y=y,
-                           x_label="Время", y_label="Температура",
-                           title="График погоды"),
+        'plot_temp': plot_chart(x=time, y=temp,
+                                x_label="Время", y_label="Температура",
+                                title="График температуры"),
+        'plot_uvi': plot_chart(x=time[:len(uvi)], y=uvi,
+                               x_label="Время", y_label="УФ-индекс",
+                               title="График УФ-излучения", color='violet'),
+        'plot_rain': plot_chart(x=time, y=rain,
+                                x_label="Время", y_label="Осадки",
+                                title="График осадков", color='blue', plot_type='bar'),
         'all_cities_info': get_weather_for_all_city(cities),
         'form': form
     }
