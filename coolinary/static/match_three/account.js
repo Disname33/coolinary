@@ -12,17 +12,25 @@ function updateAccount(key, value) {
     }
 }
 
+function is_win() {
+    return accountValues.score >= accountValues.target
+}
+
+function is_lose() {
+    return accountValues.moves < 1;
+}
+
 function checkAccount() {
-    if (accountValues.score >= accountValues.target) {
-        gameOver("Поздравляем с победой! Следующий уровень.", "Вы победили!", true);
+    if (is_win()) {
+        gameOver("Поздравляем с победой! Ваш результат: " + accountValues.score, "Вы победили!", true);
         accountValues.level++
         difficultly = (accountValues.level < 12) ? levelDifficultly[accountValues.level] : 8;
         accountValues.target = START_TARGET * accountValues.level;
-    } else if (accountValues.moves < 1) {
+    } else if (is_lose()) {
         gameOver('К сожалению ходы закончились. Может в другой раз повезёт.', 'Игра окончена', false);
         accountValues.target = START_TARGET;
         accountValues.level = 1;
-    }
+    } else modalActive = false;
 }
 
 let account = new Proxy(accountValues, {
@@ -30,7 +38,8 @@ let account = new Proxy(accountValues, {
         target[key] = value;
         updateAccount(key, value);
         if (!modalActive) {
-            checkAccount();
+            modalActive = true;
+            waitForCondition(checkAccount);
         }
         return true;
     }
@@ -43,7 +52,15 @@ function gameOver(text = 'Ошибка.',
     modalActive = true;
     modalBackdrop.querySelector('#staticBackdropLabel').textContent = title;
     modalBackdrop.querySelector('.modal-body').textContent = text;
-    modalBackdrop.querySelector('.btn').classList.add(primary ? "btn-primary" : "btn-secondary");
+    if (primary) {
+        modalBtn.classList.remove("btn-secondary");
+        modalBtn.classList.add("btn-primary");
+        modalBtn.innerHTML = "Следующий уровень"
+    } else {
+        modalBtn.classList.remove("btn-primary");
+        modalBtn.classList.add("btn-secondary");
+        modalBtn.innerHTML = "Начать с начала"
+    }
     waitForCondition(function () {
         modal.show(options)
     });
@@ -63,7 +80,7 @@ function waitForCondition(callback) {
     const intervalId = setInterval(function () {
         if (endFall()) {
             clearInterval(intervalId);
-            callback();
+            return callback();
         }
     }, 100); // Период проверки условия (в миллисекундах)
 }
@@ -78,3 +95,4 @@ const options = {
     keyboard: false // Запретить закрытие модального окна при нажатии на клавишу Esc
 };
 const modal = new bootstrap.Modal(modalBackdrop);
+const modalBtn = modalBackdrop.querySelector('.btn');

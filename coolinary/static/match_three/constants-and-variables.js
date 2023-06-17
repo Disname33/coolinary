@@ -19,7 +19,7 @@ let gameState = "pick";
 let swiped = false;
 let swipeStart = null;
 let multiplyScore = 1;
-const levelDifficultly = [3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8];
+const levelDifficultly = [3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8];
 const staticImg = `"> <img src="` + window.location.origin + `/static/svg/play.svg" width="86" height="86" alt="Exit"> </div>`
 
 

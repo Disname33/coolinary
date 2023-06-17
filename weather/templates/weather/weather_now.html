@@ -1,0 +1,48 @@
+<div class="item sm6 md4 text-center ">
+    <div class="vstack gap-2">
+        <h1>{{ weather_now.city }}</h1>
+        <div class="row">
+            <div class="col-md-7 row">
+                <div class="temp col-7">
+                    <div class="value temp temp_c warm fs-2">
+                        {% if weather_now.temp|slice:":1" != "-" or weather_now.temp|slice:":1" != "0" %}
+                            +{% endif %}{{ weather_now.temp }}°
+                    </div>
+                    <div class="value temp temp_c warm "> Ощущается:
+                        {% if weather_now.flike|slice:":1" != "-" or weather_now.flike|slice:":1" != "0" %}
+                            +{% endif %}{{ weather_now.flike }}°
+                    </div>
+                </div>
+                <div class="symb center col-5">
+                    <img src="https://www.foreca.com/public/images/symbols/{{ weather_now.symb }}.svg"
+                         alt="{{ weather_now.wx }}" title="{{ weather_now.wx }}"
+                         width="80" height="80">
+                </div>
+            </div>
+            <div class="col-md-5 row pt-1">
+                <div class="wind col-5">
+                    <img src="https://www.foreca.com/public/images/wind/blue/w{{ weather_now.windd }}.svg"
+                         alt="{{ weather_now.windCardinal }}" width="50" height="50">
+                    <div class="value wind wind_kmh "> {{ weather_now.windskmh }} км/ч</div>
+                </div>
+                <div class="wind col-7 pt-2">
+                    <div class="gust">Порывы ветра:</div>
+                    <div class="value wind wind_kmh">{{ weather_now.maxwindkmh }} км/ч</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row details">
+            <div class="col-md-5 row pb-1">
+                <div class="rain col"><span class="value rain rain_mm">Осадки: <br> {{ weather_now.rainin }} мм</span>
+                </div>
+                <div class="wx col"><span class="align-self-center">{{ weather_now.wx }}</span></div>
+            </div>
+            <div class="col-md-7 row">
+                <div class="rhum center col">Влажность: <br> {{ weather_now.rhum }} %</div>
+                <div class="pres right col"><span
+                        class="value pres pres_hpa"> УФ-индекс:  <br> {{ weather_now.uvi }}</span></div>
+            </div>
+        </div>
+    </div>
+</div>

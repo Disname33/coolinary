@@ -5,10 +5,9 @@
 {% endblock %}
 
 {% block body_block %}
-    <br>
-    <div class="container-xl">
+    <div class="container-lg">
         <div class="row">
-            <div class="col-xl-5 offset-xl-1">
+            <div class="col-lg-5 offset-lg-1">
                 <h1>Погода в вашем городе</h1>
                 <label for="city">Город</label> <br>
                 <form action="" method="GET">
@@ -30,10 +29,54 @@
                             </span>
                     </div>
                 </form>
+                <div class="accordion my-3" id="accordionExample">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Погода сейчас
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show"
+                             data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                {% include "weather/weather_now.html" %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Погода на день
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                {% include "weather/weather_day.html" %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                График
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <img class=" img-fluid rounded mx-auto d-block" src="data:image/png;base64,{{ plot }}"
+                                     alt="Chart Image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="col-xl-4 offset-xl-1">
-                <h1>Информация</h1>
+            <div class="col-lg-4 offset-lg-1">
+                <h2>Ранее смотрели:</h2>
                 {% for info in all_cities_info %}
                     <div class="alert alert-info">
                         <div class="row">
