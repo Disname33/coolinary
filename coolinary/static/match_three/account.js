@@ -27,7 +27,9 @@ function checkAccount() {
         difficultly = (accountValues.level < 12) ? levelDifficultly[accountValues.level] : 8;
         accountValues.target = START_TARGET * accountValues.level;
     } else if (is_lose()) {
-        gameOver('К сожалению ходы закончились. Может в другой раз повезёт. Ваш результат: ' + accountValues.score, 'Игра окончена', false);
+        gameOver('К сожалению ходы закончились. Может в другой раз повезёт.  Уровень : ' + accountValues.level
+            + ' Счёт: ' + accountValues.score, 'Игра окончена', false);
+        sendScore(accountValues.score, accountValues.level);
         accountValues.target = START_TARGET;
         accountValues.level = 1;
     } else modalActive = false;
@@ -104,3 +106,25 @@ const options = {
 };
 const modal = new bootstrap.Modal(modalBackdrop);
 const modalBtn = modalBackdrop.querySelector('.btn');
+
+function sendScore(score, level) {
+    if (level > 8) {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        $.ajax({
+            url: window.location.href,
+            type: 'GET',
+            headers: {'X-CSRFToken': token},
+            data: {
+                'csrfmiddlewaretoken': token,
+                'score': score,
+                'level': level,
+            },
+            success: function (response) {
+                console.log(response)
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        });
+    }
+}

@@ -1,0 +1,58 @@
+{% extends 'home/header.html' %}
+
+{% block title %}
+    Рекорды Три в ряд
+{% endblock %}
+
+{% block body_block %}
+    <div class="container-lg">
+        <div class="row text-center">
+            <div class="col-xl-7">
+                <h1>Рекорды Три в ряд</h1>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <div class="col-12">
+
+                <table class="table table-dark table-striped text-center" id='record_table'>
+                    {% if match_three_scores %}
+                        <thead>
+                        <tr>
+                            <th scope="col">Игрок</th>
+                            <th scope="col">Уровень</th>
+                            <th class='col' scope="col">Счёт</th>
+                            <th class='d-none d-md-table-cell' scope="col">Дата и время</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for match_three_score in match_three_scores %}
+                            <tr>
+                                <td>{{ match_three_score.user }}</td>
+                                <td>{{ match_three_score.level }}</td>
+                                <td>{{ match_three_score.score }}</td>
+                                <td class='d-none d-md-table-cell'>{{ match_three_score.date }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    {% else %}
+                        <thead>
+                        <tr>
+                            <th scope="col">Пока нет рекордов.</th>
+                        </tr>
+                        </thead>
+                    {% endif %}
+                </table>
+
+            </div>
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <div class=" col-xl-2 p-2">
+                <a class="btn col btn-outline-success d-flex text-center" href="javascript:history.back()"
+                   role="button">
+                    Назад в игру
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
