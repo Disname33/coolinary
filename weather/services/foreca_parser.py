@@ -9,8 +9,10 @@ def get_weather(city: str):
     url = "https://www.foreca.ru/Russia/" + city
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "lxml")
-    target_script7 = str(soup.find_all('script')[7])[8:-8]
-    target_script8 = str(soup.find_all('script')[8])[8:-8]
+    scripts = soup.find_all('script')
+    print(*scripts, sep="\n")
+    target_script7 = str(scripts[7])[8:-8]
+    target_script8 = str(scripts[8])[8:-8]
     # Извлечение содержимого скрипта
     # script_content = re.search(r'<script>(.*?)</script>', str(target_script), re.DOTALL).group(1)
     # Получение прогноза погоды на сегодня
@@ -30,19 +32,17 @@ def get_weather(city: str):
     # Получение прогноза погоды на 5 дней с интервалом в 6 часов
     # Извлечение данных из объекта 'data'
     data_match = re.search(r'data:\s*(\[{.*}])', target_script8)
-    weather_now = None
     data = None
     if data_match:
         data_string = data_match.group(1)
         data = json.loads(data_string)
-        weather_now = data[0]
-        weather_now["city"] = city
+        data[0]["city"] = city
         # print(data[0])
         # for el in data:
         #     print(el)
     else:
         print("Данные 'data' не найдены в скрипте.")
-    return weather_day, weather_now, data
+    return weather_day, data
 
 
 def get_plot_coordinates(data):
@@ -52,7 +52,7 @@ def get_plot_coordinates(data):
     uvi = []
     rain = []
     if data is None:
-        data = get_weather("Москва")[2]
+        data = get_weather("Москва")[1]
     for data_per_6_hours in data:
         date.append(datetime.strptime(data_per_6_hours['time'], '%Y-%m-%dT%H:%M'))
         temp.append(data_per_6_hours['temp'])
@@ -68,7 +68,7 @@ def get_uvi_day(city="Нижний Новгород"):
 
 
 def get_uvi_now(city="Нижний Новгород"):
-    return get_weather(city)[1]["uvi"]
+    return get_weather(city)[1][0]["uvi"]
 
 
 if __name__ == '__main__':

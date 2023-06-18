@@ -27,7 +27,7 @@ function checkAccount() {
         difficultly = (accountValues.level < 12) ? levelDifficultly[accountValues.level] : 8;
         accountValues.target = START_TARGET * accountValues.level;
     } else if (is_lose()) {
-        gameOver('К сожалению ходы закончились. Может в другой раз повезёт.', 'Игра окончена', false);
+        gameOver('К сожалению ходы закончились. Может в другой раз повезёт. Ваш результат: " + accountValues.score', 'Игра окончена', false);
         accountValues.target = START_TARGET;
         accountValues.level = 1;
     } else modalActive = false;
@@ -52,6 +52,7 @@ function gameOver(text = 'Ошибка.',
     modalActive = true;
     modalBackdrop.querySelector('#staticBackdropLabel').textContent = title;
     modalBackdrop.querySelector('.modal-body').textContent = text;
+    // modalBackdrop.querySelector('#modal_result').textContent = accountValues.score;
     if (primary) {
         modalBtn.classList.remove("btn-secondary");
         modalBtn.classList.add("btn-primary");

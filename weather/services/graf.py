@@ -1,12 +1,12 @@
 import base64
 
+import matplotlib.dates as m_dates
 import matplotlib.pyplot as plt
 from six import BytesIO
 
 
 def plot_chart(x, y, x_label='X-координаты', y_label='Y-координаты',
                title='Название графика', color='red', plot_type='plot') -> base64:
-    # Создание графика с использованием Matplotlib
     plt.figure(figsize=(6, 5))
     if plot_type == "bar":
         plt.bar(x, y, color=color)
@@ -15,6 +15,10 @@ def plot_chart(x, y, x_label='X-координаты', y_label='Y-координ
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
+    # Настройка меток оси X
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(m_dates.DayLocator())
+    ax.xaxis.set_major_formatter(m_dates.DateFormatter("%Y-%m-%d"))
     plt.xticks(rotation=90)
     plt.subplots_adjust(bottom=0.3)
     plt.grid(True)

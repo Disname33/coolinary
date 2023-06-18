@@ -9,7 +9,7 @@ $(document).ready(function () {
 				const row = parseInt($(target).attr("id").split("_")[1]);
 				const col = parseInt($(target).attr("id").split("_")[2]);
 				$("#marker").show();
-				$("#marker").css("top", row * GEM_SIZE + absoluteTop).css("left", col * GEM_SIZE + absoluteLeft);
+				$("#marker").css("top", row * GEM_SIZE).css("left", col * GEM_SIZE);
 				if (selectedRow === -1) {
 					selectedRow = row;
 					selectedCol = col;
@@ -84,14 +84,11 @@ $(document).ready(function () {
 
 function windowsSet() {
 	GEM_SIZE = (window.innerWidth < (96 * NUM_COLS)) ? (window.innerWidth - 10) / NUM_COLS : 96;
-	const gameField = document.getElementById('game-field');
-	absoluteTop = gameField.getBoundingClientRect().top + window.scrollY;
-	absoluteLeft = (window.innerWidth - (NUM_COLS * GEM_SIZE)) / 2;
-
 	$("#game-field").css({
 		"background-color": "#000000",
 		"width": (NUM_COLS * GEM_SIZE) + "px",
-		"height": (NUM_ROWS * GEM_SIZE) + "px"
+		"height": (NUM_ROWS * GEM_SIZE) + "px",
+		"position": "relative"
 	});
 	$("#marker").css({
 		"width": GEM_SIZE + "px",
@@ -99,6 +96,7 @@ function windowsSet() {
 		"border": "5px solid white",
 		"position": "absolute"
 	}).hide();
+
 }
 
 function newGame() {
@@ -129,10 +127,10 @@ function restartGame(firstStart = false) {
 			do {
 				jewels[i][j] = Math.floor(Math.random() * difficultly);
 			} while (isStreak(i, j));
-			$("#game-field").append('<img class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_' + i + '_' + j + getImg(jewels[i][j]));
+			$("#game-field").append('<div class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_' + i + '_' + j + `">` + getImg(jewels[i][j]) + `</div>`);
 			$("#" + GEM_ID_PREFIX + "_" + i + "_" + j).css({
-				"top": (i * GEM_SIZE) + 4 + absoluteTop + "px",
-				"left": (j * GEM_SIZE) + 4 + absoluteLeft + "px",
+				"top": (i * GEM_SIZE) + 4 + "px",
+				"left": (j * GEM_SIZE) + 4 + "px",
 				"width": (GEM_SIZE - 10) + "px",
 				"height": (GEM_SIZE - 10) + "px",
 				"position": "absolute",
@@ -150,7 +148,18 @@ function checkMoving() {
 		switch (gameState) {
 			case "revert":
 			case "switch":
-				if (!isStreak(selectedRow, selectedCol) && !isStreak(posY, posX)) {
+				if (is_rainbow(selectedRow, selectedCol) || is_rainbow(posY, posX)) {
+					gameState = "remove";
+					if (is_rainbow(selectedRow, selectedCol)) {
+						removeColor(posY, posX, selectedRow, selectedCol)
+					}
+					if (is_rainbow(posY, posX)) {
+						removeColor(selectedRow, selectedCol, posY, posX)
+					}
+					gemFade();
+					account.moves--;
+					multiplyScore = 1;
+				} else if (!isStreak(selectedRow, selectedCol) && !isStreak(posY, posX)) {
 					if (gameState !== "revert") {
 						gameState = "revert";
 						gemSwitch();
@@ -159,7 +168,6 @@ function checkMoving() {
 						selectedRow = -1;
 					}
 				} else {
-
 					gameState = "remove";
 					if (isStreak(selectedRow, selectedCol)) {
 						removeGems(selectedRow, selectedCol);
@@ -182,15 +190,39 @@ function checkMoving() {
 	}
 }
 
+function is_rainbow(row, col) {
+	const gem = document.getElementById(GEM_ID_PREFIX + "_" + row + "_" + col);
+	if (gem !== null) {
+		return (gem.classList.contains('rainbow'))
+	} else return false
+}
+
+function removeColor(row, col, rainbow_row, rainbow_col) {
+	const gemClass = document.getElementById(GEM_ID_PREFIX + "_" + row + "_" + col).classList[1];
+	const gemValue = jewels[row][col];
+	for (let i = 0; i < NUM_ROWS; i++) {
+		for (let j = 0; j < NUM_COLS; j++) {
+			if (jewels[i][j] === gemValue) {
+				document.getElementById(GEM_ID_PREFIX + "_" + i + "_" + j).classList.add(gemClass);
+				flash_explode(i, j);
+
+				jewels[i][j] = -1;
+			}
+		}
+	}
+	flash_explode(rainbow_row, rainbow_col)
+	jewels[rainbow_row][rainbow_col] = -1
+}
+
 function placeNewGems() {
 	let gemsPlaced = 0;
 	for (let i = 0; i < NUM_COLS; i++) {
 		if (jewels[0][i] === -1) {
 			jewels[0][i] = Math.floor(Math.random() * difficultly);
-			$("#game-field").append('<img class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_0_' + i + getImg(jewels[0][i]));
+			$("#game-field").append('<div class = "' + GEM_CLASS + '" id = "' + GEM_ID_PREFIX + '_0_' + i + `">` + getImg(jewels[0][i]) + `</div>`);
 			$("#" + GEM_ID_PREFIX + "_0_" + i).css({
-				"top": 4 + absoluteTop + "px",
-				"left": (i * GEM_SIZE) + 4 + absoluteLeft + "px",
+				"top": 4 + "px",
+				"left": (i * GEM_SIZE) + 4 + "px",
 				"width": (GEM_SIZE - 10) + "px",
 				"height": (GEM_SIZE - 10) + "px",
 				"position": "absolute",
@@ -306,44 +338,104 @@ function gemSwitch() {
 
 function removeGems(row, col) {
 	const gemValue = jewels[row][col];
+	const v_streak = verticalStreak(row, col)
+	const h_streak = horizontalStreak(row, col)
+	const gem = $("#" + GEM_ID_PREFIX + "_" + row + "_" + col)
+	let flash_str = flash_explode(row, col, false);
+	if (gemValue !== -1) {
+		if (v_streak > 3 || h_streak > 3) {
+			gem.addClass("rainbow");
+		} else if (v_streak > 1 && h_streak > 1) {
+			gem.addClass("double-flash");
+		} else if (h_streak > 2) {
+			gem.addClass("horizontal-flash");
+		} else if (v_streak > 2) {
+			gem.addClass("vertical-flash");
+		} else {
+			flash_explode(row, col);
+		}
+	}
 	let tmp = row;
-	$("#" + GEM_ID_PREFIX + "_" + row + "_" + col).addClass("remove");
-	if (isVerticalStreak(row, col)) {
-		while (tmp > 0 && jewels[tmp - 1][col] === gemValue) {
-			$("#" + GEM_ID_PREFIX + "_" + (tmp - 1) + "_" + col).addClass("remove");
-			jewels[tmp - 1][col] = -1;
+	if (v_streak > 1) {
+		while (flash_str === "double-flash" || flash_str === "horizontal-flash" || tmp > 0 && jewels[tmp - 1][col] === gemValue) {
+			flash_str = flash_explode(tmp - 1, col);
 			tmp--;
-			account.score += multiplyScore++;
 		}
 		tmp = row;
-		while (tmp < NUM_ROWS - 1 && jewels[tmp + 1][col] === gemValue) {
-			$("#" + GEM_ID_PREFIX + "_" + (tmp + 1) + "_" + col).addClass("remove");
-			jewels[tmp + 1][col] = -1;
+		while (flash_str === "double-flash" || flash_str === "horizontal-flash" || tmp < NUM_ROWS - 1 && jewels[tmp + 1][col] === gemValue) {
+			flash_str = flash_explode(tmp + 1, col);
 			tmp++;
-			account.score += multiplyScore++;
 		}
 	}
-	if (isHorizontalStreak(row, col)) {
+	if (h_streak > 1) {
 		tmp = col;
-		while (tmp > 0 && jewels[row][tmp - 1] === gemValue) {
-			$("#" + GEM_ID_PREFIX + "_" + row + "_" + (tmp - 1)).addClass("remove");
-			jewels[row][tmp - 1] = -1;
+		while (flash_str === "double-flash" || flash_str === "vertical-flash" || tmp > 0 && jewels[row][tmp - 1] === gemValue) {
+			flash_str = flash_explode(row, tmp - 1);
 			tmp--;
-			account.score += multiplyScore++;
 		}
 		tmp = col;
-		while (tmp < NUM_COLS - 1 && jewels[row][tmp + 1] === gemValue) {
-			$("#" + GEM_ID_PREFIX + "_" + row + "_" + (tmp + 1)).addClass("remove");
-			jewels[row][tmp + 1] = -1;
+		while (flash_str === "double-flash" || flash_str === "vertical-flash" || tmp < NUM_COLS - 1 && jewels[row][tmp + 1] === gemValue) {
+			flash_str = flash_explode(row, tmp + 1);
 			tmp++;
-			account.score += multiplyScore++;
 		}
 	}
-	jewels[row][col] = -1;
 	account.score += multiplyScore;
 }
 
-function isVerticalStreak(row, col) {
+
+function flash_explode(row, col, del_self = true) {
+	let flash_str = ''
+	const gem = document.getElementById(GEM_ID_PREFIX + "_" + row + "_" + col);
+	if (gem !== null) {
+		if (gem.classList.contains('rainbow')) {
+			const gemValue = Math.floor(Math.random() * difficultly);
+			for (let i = 0; i < NUM_ROWS; i++) {
+				for (let j = 0; j < NUM_COLS; j++) {
+					if (jewels[i][j] === gemValue) {
+						flash_explode(i, j);
+						jewels[i][j] = -1;
+					}
+				}
+			}
+			account.score += 150;
+			gem.classList.add("remove");
+			jewels[row][col] = -1
+		} else if (gem.classList.contains('double-flash')) {
+			removeRow(row);
+			removeCol(col);
+			flash_str = 'double-flash'
+		} else if (gem.classList.contains('horizontal-flash')) {
+			removeRow(row);
+			flash_str = 'horizontal-flash'
+		} else if (gem.classList.contains('vertical-flash')) {
+			flash_str = 'vertical-flash'
+			removeCol(col);
+		} else if (del_self) {
+			gem.classList.add("remove");
+			jewels[row][col] = -1;
+			account.score += multiplyScore++;
+		}
+	}
+	return flash_str
+}
+
+function removeRow(row) {
+	for (let i = 0; i < NUM_COLS; i++) {
+		$("#" + GEM_ID_PREFIX + "_" + row + "_" + i).addClass("remove");
+		jewels[row][i] = -1;
+	}
+	account.score += 50;
+}
+
+function removeCol(col) {
+	for (let i = 0; i < NUM_ROWS; i++) {
+		$("#" + GEM_ID_PREFIX + "_" + i + "_" + col).addClass("remove");
+		jewels[i][col] = -1;
+	}
+	account.score += 50;
+}
+
+function verticalStreak(row, col) {
 	const gemValue = jewels[row][col];
 	let streak = 0;
 	let tmp = row;
@@ -356,10 +448,10 @@ function isVerticalStreak(row, col) {
 		streak++;
 		tmp++;
 	}
-	return streak > 1
+	return streak
 }
 
-function isHorizontalStreak(row, col) {
+function horizontalStreak(row, col) {
 	const gemValue = jewels[row][col];
 	let streak = 0;
 	let tmp = col;
@@ -372,9 +464,9 @@ function isHorizontalStreak(row, col) {
 		streak++;
 		tmp++;
 	}
-	return streak > 1
+	return streak
 }
 
 function isStreak(row, col) {
-	return isVerticalStreak(row, col) || isHorizontalStreak(row, col);
+	return verticalStreak(row, col) > 1 || horizontalStreak(row, col) > 1;
 }

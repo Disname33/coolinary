@@ -33,10 +33,15 @@
         </div>
 
         <div class="row details">
-            <div class="rain col"><span class="value rain rain_mm">Осадки: <br> {{ weather_day.rainin }} мм</span></div>
-            <div class="wx col pb-1"><span class="align-self-center">{{ weather_day.wx }}</span></div>
-            <div class="rhum center col">Влажность: <br> {{ weather_day.rhum }} %</div>
-            <div class="pres right col"><span class="value pres pres_hpa"> УФ-индекс:  <br> {{ weather_day.uvi }}</span>
+            <div class="col-6 vstack pb-1">
+                <div class="rain col"><span class="value rain rain_mm">Осадки: {{ weather_day.rainin }} мм</span>
+                </div>
+                <div class="wx col"><span class="align-self-center">{{ weather_day.wx }}</span></div>
+            </div>
+            <div class="col-6 vstack">
+                <div class="rhum center col">Влажность: {{ weather_day.rhum }}%</div>
+                <div class="pres right col"><span
+                        class="value pres pres_hpa"> УФ-индекс: {{ weather_day.uvi }}</span></div>
             </div>
         </div>
 

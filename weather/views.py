@@ -14,20 +14,20 @@ def weather(request):
             City(name=name).save()
     form = CityForm()
     cities = City.objects.order_by('-date')[:6]
-    weather_day, weather_now, data = get_weather(cities[0].name)
+    weather_day, data = get_weather(cities[0].name)
     time, temp, uvi, rain = get_plot_coordinates(data)
     context = {
         'weather_day': weather_day,
-        'weather_now': weather_now,
+        'weather_now': data[0],
         'plot_temp': plot_chart(x=time, y=temp,
-                                x_label="Время", y_label="Температура",
-                                title="График температуры"),
+                                x_label="Дата", y_label="Температура, °C",
+                                title=cities[0].name + ". График температуры", color='red', plot_type='plot'),
         'plot_uvi': plot_chart(x=time[:len(uvi)], y=uvi,
-                               x_label="Время", y_label="УФ-индекс",
-                               title="График УФ-излучения", color='violet'),
+                               x_label="Дата", y_label="УФ-индекс",
+                               title=cities[0].name + ". График УФ-излучения", color='violet', plot_type='plot'),
         'plot_rain': plot_chart(x=time, y=rain,
-                                x_label="Время", y_label="Осадки",
-                                title="График осадков", color='blue', plot_type='bar'),
+                                x_label="Дата", y_label="Осадки, мм",
+                                title=cities[0].name + ". График осадков", color='blue', plot_type='bar'),
         'all_cities_info': get_weather_for_all_city(cities),
         'form': form
     }
@@ -49,4 +49,12 @@ def uvi_now(request):
         city = request.GET.get("city")
     uvi_value = get_uvi_now(city)
     data = {"status": "ok", "text": f"солнечное излучение в {city} сейчас {uvi_value} балл", "value": uvi_value}
+    return JsonResponse(data)
+
+
+def all_data(request):
+    city = "Нижний Новгород"
+    if request.GET.get("city"):
+        city = request.GET.get("city")
+    data = {"status": "ok", "city": city, 'data': get_weather(city)[1]}
     return JsonResponse(data)
