@@ -30,10 +30,46 @@
             </div>
         </div>
 
-        <div class="mx-auto" id="game-field">
+        <div class="mx-auto mb-3" id="game-field">
             <div id="marker"></div>
+        </div>
+        <div class="col-auto mx-auto px-lg-5">
+            <div class="container-lg row d-flex mx-auto justify-content-md-center px-lg-5">
+                <div class="col-lg-auto pb-2">
+                    <a class="btn btn-outline-success d-flex text-center" href="{% url 'match_three_results' %}"
+                       role="button">
+                        Таблица рекордов
+                    </a>
+                </div>
+                <div class="col-lg-auto pb-2">
+                    <a class="btn btn-outline-danger d-flex text-center" onclick="start_new_game()" role="button">
+                        Начать сначала
+                    </a>
+                </div>
+                <div class="col-lg-auto pb-2">
+                    <a class="btn btn-outline-primary d-flex text-center" id="rules_btn" href="#rules"
+                       data-bs-toggle="collapse"
+                       role="button" aria-expanded="true" aria-controls="collapseExample">
+                        Напомнить правила
+                    </a>
+                </div>
+            </div>
+            <div class="collapse {{ show_rules }} pb-2" id="rules">
+                <div class="card card-body">
+                    <b>
+                        Перед игроком представлено поле, которое имеет вид сетки с разными элементами внутри.
+                        Передвигать можно только элементы, находящиеся по соседству.
+                        Главная задача игрока состоит в том, чтобы составить комбинацию из одинаковых фигур.
+                        В последующем они исчезнут.
+                        После нахождения схожих элементов, их место занимают другие фигурки.
+                        То есть сетка никогда не пустеет, всегда остается заполненной.
+                        У игрока есть ограниченное количество ходов,
+                        за которое необходимо набрать требуемое количество очков для прохождения на следующий уровень.
+                    </b>
+                </div>
+            </div>
         </div>
     </div>
     {% include "modules/modal.html" %}
-    <script src="{% static "match_three/account.js" %}?v1.1"></script>
+    <script src="{% static "match_three/account.js" %}?v1.2"></script>
 {% endblock %}

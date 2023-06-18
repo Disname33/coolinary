@@ -23,13 +23,13 @@ function is_lose() {
 function checkAccount() {
     if (is_win()) {
         gameOver("Поздравляем с победой! Ваш результат: " + accountValues.score, "Вы победили!", true);
+        sendScore(accountValues.score, accountValues.level);
         accountValues.level++
         difficultly = (accountValues.level < 12) ? levelDifficultly[accountValues.level] : 8;
         accountValues.target = START_TARGET * accountValues.level;
     } else if (is_lose()) {
         gameOver('К сожалению ходы закончились. Может в другой раз повезёт.  Уровень : ' + accountValues.level
             + ' Счёт: ' + accountValues.score, 'Игра окончена', false);
-        sendScore(accountValues.score, accountValues.level);
         accountValues.target = START_TARGET;
         accountValues.level = 1;
     } else modalActive = false;
@@ -50,11 +50,14 @@ let account = new Proxy(accountValues, {
 
 function gameOver(text = 'Ошибка.',
                   title = 'Системное сообщение.',
-                  primary = false) {
+                  primary = false, second_btn = false) {
     modalActive = true;
     modalBackdrop.querySelector('#staticBackdropLabel').textContent = title;
     modalBackdrop.querySelector('.modal-body').textContent = text;
     // modalBackdrop.querySelector('#modal_result').textContent = accountValues.score;
+    if (second_btn) {
+        modalBtnCancel.classList.remove("visually-hidden");
+    }
     if (primary) {
         modalBtn.classList.remove("btn-secondary");
         modalBtn.classList.add("btn-primary");
@@ -64,23 +67,39 @@ function gameOver(text = 'Ошибка.',
         modalBtn.classList.add("btn-secondary");
         modalBtn.innerHTML = "Начать с начала"
     }
+
     waitForCondition(function () {
         modal.show(options)
     });
 }
 
-function closeModalAndSubmit() {
+function closeModalAndCancel() {
     if (endFall()) {
         modal.hide();
-        restartGame();
         modalActive = false;
+        modalBtnCancel.classList.add("visually-hidden")
     }
 }
 
 function closeModal() {
     if (endFall()) {
-        restartGame();
         modal.hide();
+        if (!modalBtnCancel.classList.contains("visually-hidden")) {
+            modalBtnCancel.classList.add("visually-hidden")
+        } else restartGame();
+        modalActive = false;
+    }
+}
+
+function closeModalAndRestart() {
+    if (endFall()) {
+        modal.hide();
+        if (!modalBtnCancel.classList.contains("visually-hidden")) {
+            accountValues.target = START_TARGET;
+            accountValues.level = 1;
+            modalBtnCancel.classList.add("visually-hidden")
+        }
+        restartGame();
         modalActive = false;
     }
 }
@@ -106,6 +125,7 @@ const options = {
 };
 const modal = new bootstrap.Modal(modalBackdrop);
 const modalBtn = modalBackdrop.querySelector('.btn');
+const modalBtnCancel = modalBackdrop.querySelector('.btn-cancel');
 
 function sendScore(score, level) {
     if (level > 8) {
@@ -127,4 +147,9 @@ function sendScore(score, level) {
             }
         });
     }
+}
+
+function start_new_game() {
+    modalActive = true;
+    gameOver('Прогресс будет сброшен и игра начнётся с первого уровня', 'Вы уверены?', false, true);
 }
