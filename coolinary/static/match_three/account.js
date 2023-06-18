@@ -128,7 +128,7 @@ const modalBtn = modalBackdrop.querySelector('.btn');
 const modalBtnCancel = modalBackdrop.querySelector('.btn-cancel');
 
 function sendScore(score, level) {
-    if (level > 8) {
+    if (level > 7) {
         const token = document.querySelector('[name=csrfmiddlewaretoken]').value;
         $.ajax({
             url: window.location.href,

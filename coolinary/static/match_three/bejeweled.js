@@ -9,7 +9,7 @@ $(document).ready(function () {
 				const row = parseInt($(target).attr("id").split("_")[1]);
 				const col = parseInt($(target).attr("id").split("_")[2]);
 				$("#marker").show();
-				$("#marker").css("top", row * GEM_SIZE).css("left", col * GEM_SIZE);
+				$('#marker').css("top", row * GEM_SIZE).css("left", col * GEM_SIZE);
 				if (selectedRow === -1) {
 					selectedRow = row;
 					selectedCol = col;
@@ -347,40 +347,41 @@ function removeGems(row, col) {
 		} else {
 			flash_explode(row, col);
 		}
+		let tmp = row;
+		if (v_streak > 1) {
+			while (flash_str === "double-flash" || flash_str === "horizontal-flash" || tmp > 0 && jewels[tmp - 1][col] === gemValue) {
+				flash_str = flash_explode(tmp - 1, col);
+				tmp--;
+			}
+			tmp = row;
+			while (flash_str === "double-flash" || flash_str === "horizontal-flash" || tmp < NUM_ROWS - 1 && jewels[tmp + 1][col] === gemValue) {
+				flash_str = flash_explode(tmp + 1, col);
+				tmp++;
+			}
+		}
+		if (h_streak > 1) {
+			tmp = col;
+			while (flash_str === "double-flash" || flash_str === "vertical-flash" || tmp > 0 && jewels[row][tmp - 1] === gemValue) {
+				flash_str = flash_explode(row, tmp - 1);
+				tmp--;
+			}
+			tmp = col;
+			while (flash_str === "double-flash" || flash_str === "vertical-flash" || tmp < NUM_COLS - 1 && jewels[row][tmp + 1] === gemValue) {
+				flash_str = flash_explode(row, tmp + 1);
+				tmp++;
+			}
+		}
+		account.score += multiplyScore;
 	}
-	let tmp = row;
-	if (v_streak > 1) {
-		while (flash_str === "double-flash" || flash_str === "horizontal-flash" || tmp > 0 && jewels[tmp - 1][col] === gemValue) {
-			flash_str = flash_explode(tmp - 1, col);
-			tmp--;
-		}
-		tmp = row;
-		while (flash_str === "double-flash" || flash_str === "horizontal-flash" || tmp < NUM_ROWS - 1 && jewels[tmp + 1][col] === gemValue) {
-			flash_str = flash_explode(tmp + 1, col);
-			tmp++;
-		}
-	}
-	if (h_streak > 1) {
-		tmp = col;
-		while (flash_str === "double-flash" || flash_str === "vertical-flash" || tmp > 0 && jewels[row][tmp - 1] === gemValue) {
-			flash_str = flash_explode(row, tmp - 1);
-			tmp--;
-		}
-		tmp = col;
-		while (flash_str === "double-flash" || flash_str === "vertical-flash" || tmp < NUM_COLS - 1 && jewels[row][tmp + 1] === gemValue) {
-			flash_str = flash_explode(row, tmp + 1);
-			tmp++;
-		}
-	}
-	account.score += multiplyScore;
 }
 
 
 function flash_explode(row, col, del_self = true) {
 	let flash_str = ''
 	const gem = document.getElementById(GEM_ID_PREFIX + "_" + row + "_" + col);
-	if (gem !== null) {
+	if (gem !== null && jewels[row][col] !== -1) {
 		if (gem.classList.contains('rainbow')) {
+			removeGem(row, col)
 			const gemValue = Math.floor(Math.random() * difficultly);
 			for (let i = 0; i < NUM_ROWS; i++) {
 				for (let j = 0; j < NUM_COLS; j++) {
@@ -394,38 +395,43 @@ function flash_explode(row, col, del_self = true) {
 			gem.classList.add("remove");
 			jewels[row][col] = -1
 		} else if (gem.classList.contains('double-flash')) {
+			removeGem(row, col)
 			removeRow(row);
 			removeCol(col);
 			flash_str = 'double-flash'
 		} else if (gem.classList.contains('horizontal-flash')) {
+			removeGem(row, col)
 			removeRow(row);
 			flash_str = 'horizontal-flash'
 		} else if (gem.classList.contains('vertical-flash')) {
-			flash_str = 'vertical-flash'
+			removeGem(row, col)
 			removeCol(col);
+			flash_str = 'vertical-flash'
 		} else if (del_self) {
-			gem.classList.add("remove");
-			jewels[row][col] = -1;
-			account.score += multiplyScore++;
+			removeGem(row, col)
 		}
 	}
 	return flash_str
 }
 
+function removeGem(row, col) {
+	$("#" + GEM_ID_PREFIX + "_" + row + "_" + col).addClass("remove");
+	jewels[row][col] = -1;
+	account.score += multiplyScore++;
+}
+
 function removeRow(row) {
 	for (let i = 0; i < NUM_COLS; i++) {
-		$("#" + GEM_ID_PREFIX + "_" + row + "_" + i).addClass("remove");
-		jewels[row][i] = -1;
+		flash_explode(row, i)
 	}
-	account.score += 50;
+	account.score += 30;
 }
 
 function removeCol(col) {
 	for (let i = 0; i < NUM_ROWS; i++) {
-		$("#" + GEM_ID_PREFIX + "_" + i + "_" + col).addClass("remove");
-		jewels[i][col] = -1;
+		flash_explode(i, col)
 	}
-	account.score += 50;
+	account.score += 30;
 }
 
 function verticalStreak(row, col) {
