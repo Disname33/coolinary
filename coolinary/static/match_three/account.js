@@ -27,7 +27,7 @@ function checkAccount() {
         difficultly = (accountValues.level < 12) ? levelDifficultly[accountValues.level] : 8;
         accountValues.target = START_TARGET * accountValues.level;
     } else if (is_lose()) {
-        gameOver('К сожалению ходы закончились. Может в другой раз повезёт. Ваш результат: " + accountValues.score', 'Игра окончена', false);
+        gameOver('К сожалению ходы закончились. Может в другой раз повезёт. Ваш результат: ' + accountValues.score, 'Игра окончена', false);
         accountValues.target = START_TARGET;
         accountValues.level = 1;
     } else modalActive = false;
