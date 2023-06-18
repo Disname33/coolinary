@@ -5,68 +5,7 @@
     <script src="{% static "match_three/constants-and-variables.js" %}?v1.1"></script>
     <script src="{% static "match_three/jquery.touchSwipe.js" %}?v1.1"></script>
     <script src="{% static "match_three/bejeweled.js" %}?v1.1"></script>
-    <style>
-        .animation-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Это позволяет картинке быть интерактивной */
-        }
-
-        .pointer-events {
-            pointer-events: none;
-        }
-
-        .gem.horizontal-flash::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Это позволяет картинке быть интерактивной */
-            background-image: url('{% static "match_three/horisontal-flash.gif" %}');
-            background-size: cover;
-        }
-
-        .gem.vertical-flash::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Это позволяет картинке быть интерактивной */
-            background-image: url('{% static "match_three/vertical-flash.gif" %}');
-            background-size: cover;
-        }
-
-        .gem.double-flash::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Это позволяет картинке быть интерактивной */
-            background-image: url('{% static "match_three/double-flash.gif" %}');
-            background-size: cover;
-        }
-
-        .gem.rainbow::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Это позволяет картинке быть интерактивной */
-            background-image: url('{% static "match_three/rainbow.gif" %}');
-            background-size: cover;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'match_three/match-three-style.css' %}">
 {% endblock %}
 
 
@@ -95,25 +34,6 @@
             <div id="marker"></div>
         </div>
     </div>
-    <!-- Modal -->
-    <div class="modal fade " id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-         aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Системное сообщение</h1>
-                    <button onclick="closeModal()" type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    ...
-                </div>
-                <div class="modal-footer">
-                    <button onclick="closeModal()" type="button" class="btn " data-bs-dismiss="modal">Закрыть</button>
-                    {#                    <button type="button" class="btn btn-primary">Understood</button>#}
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include "modules/modal.html" %}
     <script src="{% static "match_three/account.js" %}?v1.1"></script>
 {% endblock %}

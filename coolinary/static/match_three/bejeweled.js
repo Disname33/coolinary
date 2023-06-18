@@ -1,6 +1,6 @@
 $(document).ready(function () {
 	windowsSet();
-	newGame();
+	restartGame(true);
 
 	$("#game-field").swipe({
 		threshold: 10,
@@ -73,10 +73,7 @@ $(document).ready(function () {
 		},
 		swipeStatus: function (event, phase) {
 			if (phase === "start") {
-				swipeStart = null;
-				if ($(event.target).hasClass("gem")) {
-					swipeStart = event.target;
-				}
+				swipeStart = ($(event.target).hasClass("gem")) ? event.target : null;
 			}
 		}
 	})
@@ -97,10 +94,6 @@ function windowsSet() {
 		"position": "absolute"
 	}).hide();
 
-}
-
-function newGame() {
-	restartGame(true);
 }
 
 function restartGame(firstStart = false) {

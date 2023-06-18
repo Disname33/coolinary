@@ -67,7 +67,13 @@ function gameOver(text = 'Ошибка.',
     });
 }
 
-
+function closeModalAndSubmit() {
+    if (endFall()) {
+        modal.hide();
+        restartGame();
+        modalActive = false;
+    }
+}
 
 function closeModal() {
     if (endFall()) {
@@ -85,6 +91,7 @@ function waitForCondition(callback) {
         }
     }, 100); // Период проверки условия (в миллисекундах)
 }
+
 
 function endFall() {
     return $(".remove").length === 0 && $(".switch").length === 0 && $(".fall").length === 0

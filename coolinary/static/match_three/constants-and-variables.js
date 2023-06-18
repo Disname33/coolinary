@@ -22,16 +22,16 @@ const levelDifficultly = [3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8];
 
 function getImg(index) {
     const url = 'https://cache.foreca.net/static/img/symb-100x100/';
-    const img_class = `class = "img-fluid pointer-events"`
+    const img_class = `<img class = "img-fluid pointer-events" src="`
     const img = [
-        `<img ` + img_class + ` src="` + url + `d440.png" alt="Гроза">`,
-        `<img  ` + img_class + ` src="` + url + `n000.png" alt="Месяц">`,
-        `<img  ` + img_class + ` src="` + url + `d000.png" alt="Солнце">`,
-        `<img  ` + img_class + ` src="` + url + `d400.png" alt="Тучи">`,
-        `<img  ` + img_class + ` src="` + url + `d430.png" alt="Дождь">`,
-        `<img  ` + img_class + ` src="` + url + `d432.png" alt="Снег">`,
-        `<img  ` + img_class + ` src="` + url + `d220.png" alt="Пасмурно">`,
-        `<img  ` + img_class + ` src="` + url + `n220.png" alt="Пасмурно ночь">`,
+        img_class + url + `d440.png" alt="Гроза">`,
+        img_class + url + `n000.png" alt="Месяц">`,
+        img_class + url + `d000.png" alt="Солнце">`,
+        img_class + url + `d400.png" alt="Тучи">`,
+        img_class + url + `d430.png" alt="Дождь">`,
+        img_class + url + `d432.png" alt="Снег">`,
+        img_class + url + `d220.png" alt="Пасмурно">`,
+        img_class + url + `n220.png" alt="Пасмурно ночь">`,
     ];
     return img [index];
 }
