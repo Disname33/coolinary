@@ -58,3 +58,21 @@
     background-image: url('/static/match_three/rainbow.gif');
     background-size: cover;
 }
+
+@keyframes blink {
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.blinking-element {
+    animation: blink 2s;
+    animation-iteration-count: 3;
+}
+

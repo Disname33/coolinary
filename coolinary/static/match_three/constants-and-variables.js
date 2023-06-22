@@ -1,7 +1,11 @@
 const NUM_ROWS = 6;
 const NUM_COLS = 7;
 const START_TARGET = 200;
-const GEM_CLASS = "gem"
+const MARKER = "#marker";
+const GAME_FIELD = "#game-field";
+const GameStates = {PICK: 'pick', REVERT: 'revert', SWITCH: 'switch', REMOVE: 'remove', REFILL: 'refill', FALL: 'fall'};
+const Flash = {HORIZONTAL: 'horizontal-flash', VERTICAL: 'vertical-flash', DOUBLE: 'double-flash', RAINBOW: 'rainbow'};
+const GEM_CLASS = "gem";
 const GEM_ID_PREFIX = "gem";
 const bgColors = ["magenta", "mediumblue", "yellow", "lime", "cyan", "orange", "crimson", "gray"];
 let difficultly = 4;
@@ -13,10 +17,11 @@ let selectedRow = -1;
 let selectedCol = -1;
 let jewels = [];
 let movingItems = 0;
-let gameState = "pick";
+let gameState = GameStates.PICK;
 let swiped = false;
 let swipeStart = null;
 let multiplyScore = 1;
+let idleTimeout = null;
 const levelDifficultly = [3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8];
 
 
@@ -42,9 +47,9 @@ function refreshVariables() {
     selectedRow = -1;
     selectedCol = -1;
     movingItems = 0;
-    gameState = "pick";
+    gameState = GameStates.PICK;
     swiped = false;
     swipeStart = null;
     modalActive = false;
-
+    idleTimeout = null;
 }

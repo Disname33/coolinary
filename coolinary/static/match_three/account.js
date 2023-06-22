@@ -22,16 +22,19 @@ function is_lose() {
 
 function checkAccount() {
     if (is_win()) {
+        clearInterval(idleTimeout);
         gameOver("Поздравляем с победой! Ваш результат: " + accountValues.score, "Вы победили!", true);
         sendScore(accountValues.score, accountValues.level);
         accountValues.level++
         difficultly = (accountValues.level < 12) ? levelDifficultly[accountValues.level] : 8;
         accountValues.target = START_TARGET * accountValues.level;
     } else if (is_lose()) {
+        clearInterval(idleTimeout);
         gameOver('К сожалению ходы закончились. Может в другой раз повезёт.  Уровень : ' + accountValues.level
             + ' Счёт: ' + accountValues.score, 'Игра окончена', false);
         accountValues.target = START_TARGET;
         accountValues.level = 1;
+        difficultly = 4;
     } else modalActive = false;
 }
 
