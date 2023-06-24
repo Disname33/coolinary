@@ -30,7 +30,7 @@ function checkAccount() {
         accountValues.target = START_TARGET * accountValues.level;
     } else if (is_lose()) {
         clearInterval(idleTimeout);
-        gameOver('К сожалению ходы закончились. Может в другой раз повезёт.  Уровень : ' + accountValues.level
+        gameOver('К сожалению, ходы закончились. Возможно, повезёт в другой раз.  Уровень : ' + accountValues.level
             + ' Счёт: ' + accountValues.score, 'Игра окончена', false);
         accountValues.target = START_TARGET;
         accountValues.level = 1;

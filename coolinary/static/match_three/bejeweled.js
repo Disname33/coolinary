@@ -417,13 +417,13 @@ function removeGems(row, col) {
 		}
 		for (let v_row of v_streak) {
 			flash_str = flash_explode(v_row, col);
-			if (flash_str === Flash.DOUBLE || flash_str === Flash.HORIZONTAL) {
+			if (flash_str === Flash.DOUBLE || flash_str === Flash.VERTICAL) {
 				break;
 			}
 		}
 		for (let h_col of h_streak) {
 			flash_str = flash_explode(row, h_col);
-			if (flash_str === Flash.DOUBLE || flash_str === Flash.VERTICAL) {
+			if (flash_str === Flash.DOUBLE || flash_str === Flash.HORIZONTAL) {
 				break;
 			}
 		}
