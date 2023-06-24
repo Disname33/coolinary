@@ -6,7 +6,7 @@ $(document).ready(function () {
 		threshold: 10,
 		tap: function (event, target) {
 			resetIdleTimer();
-			if ($(target).hasClass("gem") && gameState === GameStates.PICK && !modalActive) {
+			if ($(target).hasClass(GEM_CLASS) && gameState === GameStates.PICK && !modalActive) {
 				const row = parseInt($(target).attr("id").split("_")[1]);
 				const col = parseInt($(target).attr("id").split("_")[2]);
 				$(MARKER).show();
@@ -29,8 +29,8 @@ $(document).ready(function () {
 			}
 		},
 		swipe: function (event, direction) {
-			resetIdleTimer();
 			if (swipeStart != null && gameState === GameStates.PICK && !modalActive) {
+				resetIdleTimer();
 				const position = $(swipeStart).attr("id").split("_");
 				selectedRow = parseInt(position[1]);
 				selectedCol = parseInt(position[2]);
@@ -112,11 +112,13 @@ function restartGame(firstStart = false) {
 				jewels[i][j] = -1;
 			}
 		}
+		startIdleTimer();
 	} else {
 		document.querySelectorAll('.gem').forEach(function (element) {
 			element.remove();
 		});
 		refreshVariables();
+		resetIdleTimer()
 	}
 	for (let i = 0; i < NUM_ROWS; i++) {
 		for (let j = 0; j < NUM_COLS; j++) {
@@ -136,52 +138,54 @@ function restartGame(firstStart = false) {
 			});
 		}
 	}
-	startIdleTimer();
+
 }
 
 function checkMoving() {
 	movingItems--;
 	if (movingItems === 0) {
+		if (!checkingForMoves().length) shuffleJewels();
 		switch (gameState) {
 			case GameStates.REVERT:
 			case GameStates.SWITCH:
 				if (is_rainbow(selectedRow, selectedCol) || is_rainbow(posY, posX)) {
-					multiplyScore = 1;
-					gameState = GameStates.REMOVE;
 					if (is_rainbow(selectedRow, selectedCol)) {
 						removeColor(posY, posX, selectedRow, selectedCol);
 					}
 					if (is_rainbow(posY, posX)) {
 						removeColor(selectedRow, selectedCol, posY, posX);
 					}
-					gemFade();
-					account.moves--;
+					afterAction()
 				} else if (is_double_flash(selectedRow, selectedCol) && is_double_flash(posY, posX)) {
-					multiplyScore = 1;
-					removeRow(selectedRow - 1);
+					if (selectedRow > 0) removeRow(selectedRow - 1);
 					removeRow(selectedRow);
-					removeRow(selectedRow + 1);
-					removeCol(selectedCol - 1);
+					if (selectedRow < NUM_ROWS) removeRow(selectedRow + 1);
+					if (selectedCol > 0) removeCol(selectedCol - 1);
 					removeCol(selectedCol);
-					removeCol(selectedCol + 1);
-					gameState = GameStates.REMOVE;
-					gemFade();
-					account.moves--;
+					if (selectedCol < NUM_COLS) removeCol(selectedCol + 1);
+					afterAction()
+				} else if ((is_double_flash(selectedRow, selectedCol) && is_line_flash(posY, posX)) || ((is_line_flash(selectedRow, selectedCol) && is_double_flash(posY, posX)))) {
+					removeRow(selectedRow);
+					removeRow(posY);
+					removeCol(selectedCol);
+					removeCol(posX);
+					afterAction()
+				} else if (is_line_flash(selectedRow, selectedCol) && is_line_flash(posY, posX)) {
+					removeRow(selectedRow);
+					removeCol(selectedCol);
+					afterAction()
 				} else if (isStreak(selectedRow, selectedCol) || isStreak(posY, posX)) {
-					multiplyScore = 1;
-					gameState = GameStates.REMOVE;
 					if (isStreak(selectedRow, selectedCol)) {
 						removeGems(selectedRow, selectedCol);
 					}
 					if (isStreak(posY, posX)) {
 						removeGems(posY, posX);
 					}
-					gemFade();
-					account.moves--;
+					afterAction()
 				} else if (gameState !== GameStates.REVERT) {
 					gameState = GameStates.REVERT;
 					gemSwitch();
-				} else if (!checkingForMoves()) {
+				} else if (!checkingForMoves().length) {
 					shuffleJewels();
 				} else {
 					gameState = GameStates.PICK;
@@ -194,21 +198,45 @@ function checkMoving() {
 			case GameStates.REFILL:
 				placeNewGems();
 				break;
+			case GameStates.PICK:
+				if (!checkingForMoves().length) shuffleJewels();
+				break
 		}
 	}
+}
+
+function afterAction() {
+	account.moves--;
+	multiplyScore = 1;
+	gameState = GameStates.REMOVE;
+	gemFade();
+}
+
+function is_flash(row, col) {
+	const gem = document.getElementById(getGemID(row, col));
+	if (gem !== null) {
+		return gem.classList.contains(Flash.HORIZONTAL) || gem.classList.contains(Flash.VERTICAL) || gem.classList.contains(Flash.DOUBLE) || gem.classList.contains(Flash.RAINBOW);
+	} else return false
+}
+
+function is_line_flash(row, col) {
+	const gem = document.getElementById(getGemID(row, col));
+	if (gem !== null) {
+		return gem.classList.contains(Flash.HORIZONTAL) || gem.classList.contains(Flash.VERTICAL);
+	} else return false
 }
 
 function is_double_flash(row, col) {
 	const gem = document.getElementById(getGemID(row, col));
 	if (gem !== null) {
-		return (gem.classList.contains(Flash.DOUBLE))
+		return gem.classList.contains(Flash.DOUBLE);
 	} else return false
 }
 
 function is_rainbow(row, col) {
 	const gem = document.getElementById(getGemID(row, col));
 	if (gem !== null) {
-		return (gem.classList.contains(Flash.RAINBOW))
+		return gem.classList.contains(Flash.RAINBOW);
 	} else return false
 }
 
@@ -256,14 +284,29 @@ function placeNewGems() {
 }
 
 function findCombos() {
-	let combo = 0
+	let combo = 0;
 	for (let i = 0; i < NUM_ROWS; i++) {
 		for (let j = 0; j < NUM_COLS; j++) {
-			if (j <= NUM_COLS - 3 && jewels[i][j] === jewels[i][j + 1] && jewels[i][j] === jewels[i][j + 2]) {
-				combo++;
-				removeGems(i, j);
+			let double = false
+			const h_streak = horizontalStreak(i, j)
+			const v_streak = verticalStreak(i, j)
+			for (let v_row of v_streak) {
+				if (horizontalStreak(v_row, j).length) {
+					combo++;
+					removeGems(v_row, j);
+					double = true
+					break;
+				}
 			}
-			if (i <= NUM_ROWS - 3 && jewels[i][j] === jewels[i + 1][j] && jewels[i][j] === jewels[i + 2][j]) {
+			for (let h_col of h_streak) {
+				if (verticalStreak(i, h_col).length) {
+					combo++;
+					removeGems(i, h_col);
+					double = true
+					break;
+				}
+			}
+			if (!double && (h_streak.length || v_streak.length)) {
 				combo++;
 				removeGems(i, j);
 			}
@@ -361,45 +404,32 @@ function removeGems(row, col) {
 	const gem = $("#" + getGemID(row, col))
 	let flash_str = flash_explode(row, col, false);
 	if (gemValue !== -1) {
-		if (v_streak > 3 || h_streak > 3) {
+		if (v_streak.length > 3 || h_streak.length > 3) {
 			gem.addClass(Flash.RAINBOW);
-		} else if (v_streak > 1 && h_streak > 1) {
+		} else if (v_streak.length && h_streak.length) {
 			gem.addClass(Flash.DOUBLE);
-		} else if (h_streak > 2) {
+		} else if (h_streak.length > 2) {
 			gem.addClass(Flash.HORIZONTAL);
-		} else if (v_streak > 2) {
+		} else if (v_streak.length > 2) {
 			gem.addClass(Flash.VERTICAL);
 		} else {
 			flash_explode(row, col);
 		}
-		let tmp = row;
-		if (v_streak > 1) {
-			while (flash_str === Flash.DOUBLE || flash_str === Flash.HORIZONTAL || tmp > 0 && jewels[tmp - 1][col] === gemValue) {
-				flash_str = flash_explode(tmp - 1, col);
-				tmp--;
-			}
-			tmp = row;
-			while (flash_str === Flash.DOUBLE || flash_str === Flash.HORIZONTAL || tmp < NUM_ROWS - 1 && jewels[tmp + 1][col] === gemValue) {
-				flash_str = flash_explode(tmp + 1, col);
-				tmp++;
+		for (let v_row of v_streak) {
+			flash_str = flash_explode(v_row, col);
+			if (flash_str === Flash.DOUBLE || flash_str === Flash.HORIZONTAL) {
+				break;
 			}
 		}
-		if (h_streak > 1) {
-			tmp = col;
-			while (flash_str === Flash.DOUBLE || flash_str === Flash.VERTICAL || tmp > 0 && jewels[row][tmp - 1] === gemValue) {
-				flash_str = flash_explode(row, tmp - 1);
-				tmp--;
-			}
-			tmp = col;
-			while (flash_str === Flash.DOUBLE || flash_str === Flash.VERTICAL || tmp < NUM_COLS - 1 && jewels[row][tmp + 1] === gemValue) {
-				flash_str = flash_explode(row, tmp + 1);
-				tmp++;
+		for (let h_col of h_streak) {
+			flash_str = flash_explode(row, h_col);
+			if (flash_str === Flash.DOUBLE || flash_str === Flash.VERTICAL) {
+				break;
 			}
 		}
 		account.score += multiplyScore;
 	}
 }
-
 
 function flash_explode(row, col, del_self = true) {
 	let flash_str = ''
@@ -459,38 +489,38 @@ function removeCol(col) {
 
 function verticalStreak(row, col) {
 	const gemValue = jewels[row][col];
-	let streak = 0;
+	let streak = [];
 	let tmp = row;
 	while (tmp > 0 && jewels[tmp - 1][col] === gemValue) {
-		streak++;
+		streak.push(tmp - 1);
 		tmp--;
 	}
 	tmp = row;
 	while (tmp < NUM_ROWS - 1 && jewels[tmp + 1][col] === gemValue) {
-		streak++;
+		streak.push(tmp + 1);
 		tmp++;
 	}
-	return streak
+	return streak.length > 1 ? streak : []
 }
 
 function horizontalStreak(row, col) {
 	const gemValue = jewels[row][col];
-	let streak = 0;
+	let streak = [];
 	let tmp = col;
 	while (tmp > 0 && jewels[row][tmp - 1] === gemValue) {
-		streak++;
+		streak.push(tmp - 1);
 		tmp--;
 	}
 	tmp = col;
 	while (tmp < NUM_COLS - 1 && jewels[row][tmp + 1] === gemValue) {
-		streak++;
+		streak.push(tmp + 1);
 		tmp++;
 	}
-	return streak
+	return streak.length > 1 ? streak : []
 }
 
 function isStreak(row, col) {
-	return verticalStreak(row, col) > 1 || horizontalStreak(row, col) > 1;
+	return verticalStreak(row, col).length || horizontalStreak(row, col).length;
 }
 
 function getGemID(row, col) {
@@ -502,42 +532,67 @@ function checkingForMoves() {
 	for (let i = 0; i < NUM_ROWS; i++) {
 		for (let j = 0; j < NUM_COLS; j++) {
 			jewel = jewels[i][j];
-			if (i < NUM_ROWS - 1 && j < NUM_COLS - 2) {
-				if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i][j + 2]) {
-					return [i + 1, j + 1]
-				} else if (jewel === jewels[i][j + 1] && jewel === jewels[i + 1][j + 2]) {
-					return [i + 1, j + 2]
-				} else if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i + 1][j + 2]) {
-					return [i, j]
+			if (j < NUM_COLS - 1) {
+				if (is_flash(i, j) && is_flash(i, j + 1)) return [i, j];
+				if (j < NUM_COLS - 2) {
+					if (i < NUM_ROWS - 1) {
+						if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i][j + 2]) {
+							return [i + 1, j + 1];
+						} else if (jewel === jewels[i][j + 1] && jewel === jewels[i + 1][j + 2]) {
+							return [i + 1, j + 2];
+						} else if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i + 1][j + 2]) {
+							return [i, j];
+						}
+					}
+					if (i > 0) {
+						if (jewel === jewels[i - 1][j + 1] && jewel === jewels[i][j + 2]) {
+							return [i - 1, j + 1];
+						} else if (jewel === jewels[i][j + 1] && jewel === jewels[i - 1][j + 2]) {
+							return [i - 1, j + 2];
+						} else if (jewel === jewels[i - 1][j + 1] && jewel === jewels[i - 1][j + 2]) {
+							return [i, j];
+						}
+					}
+					if (j < NUM_COLS - 3) {
+						if (jewel === jewels[i][j + 1] && jewel === jewels[i][j + 3]) {
+							return [i, j + 3];
+						} else if (jewel === jewels[i][j + 2] && jewel === jewels[i][j + 3]) {
+							return [i, j];
+						}
+					}
 				}
 			}
-			if (i > 0 && j < NUM_COLS - 2) {
-				if (jewel === jewels[i - 1][j + 1] && jewel === jewels[i][j + 2]) {
-					return [i - 1, j + 1]
-				} else if (jewel === jewels[i][j + 1] && jewel === jewels[i - 1][j + 2]) {
-					return [i - 1, j + 2]
-				} else if (jewel === jewels[i - 1][j + 1] && jewel === jewels[i - 1][j + 2]) {
-					return [i, j]
+			if (i < NUM_ROWS - 1) {
+				if (is_flash(i, j) && is_flash(i + 1, j)) return [i, j];
+				if (i < NUM_ROWS - 2) {
+					if (j > 0) {
+						if (jewel === jewels[i + 1][j - 1] && jewel === jewels[i + 2][j]) {
+							return [i + 1, j - 1];
+						} else if (jewel === jewels[i + 1][j] && jewel === jewels[i + 2][j - 1]) {
+							return [i + 2, j - 1];
+						} else if (jewel === jewels[i + 1][j - 1] && jewel === jewels[i + 2][j - 1]) {
+							return [i, j];
+						}
+					}
+					if (j < NUM_COLS - 1) {
+						if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i + 2][j]) {
+							return [i + 1, j + 1];
+						} else if (jewel === jewels[i + 1][j] && jewel === jewels[i + 2][j + 1]) {
+							return [i + 2, j + 1];
+						} else if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i + 2][j + 1]) {
+							return [i, j];
+						}
+					}
+					if (i < NUM_ROWS - 3) {
+						if (jewel === jewels[i + 1][j] && jewel === jewels[i + 3][j]) {
+							return [i + 3, j];
+						} else if (jewel === jewels[i + 2][j] && jewel === jewels[i + 3][j]) {
+							return [i, j];
+						}
+					}
 				}
 			}
-			if (i < NUM_ROWS - 2 && j > 0) {
-				if (jewel === jewels[i + 1][j - 1] && jewel === jewels[i + 2][j]) {
-					return [i + 1, j - 1]
-				} else if (jewel === jewels[i + 1][j] && jewel === jewels[i + 2][j - 1]) {
-					return [i + 2, j - 1]
-				} else if (jewel === jewels[i + 1][j - 1] && jewel === jewels[i + 2][j - 1]) {
-					return [i, j]
-				}
-			}
-			if (i < NUM_ROWS - 2 && j < NUM_COLS - 1) {
-				if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i + 2][j]) {
-					return [i + 1, j + 1]
-				} else if (jewel === jewels[i + 1][j] && jewel === jewels[i + 2][j + 1]) {
-					return [i + 2, j + 1]
-				} else if (jewel === jewels[i + 1][j + 1] && jewel === jewels[i + 2][j + 1]) {
-					return [i, j]
-				}
-			}
+			if (is_rainbow(i, j)) return [i, j];
 		}
 	}
 	return []
@@ -551,15 +606,12 @@ function shuffleJewels() {
 			gemSwitch(row, col, row2, col2, false)
 		}
 	}
-	setTimeout(function () {
-		findCombos();
-	}, 250);
-
+	setTimeout(findCombos, 250);
 }
 
 function setMarkerInMovable() {
 	const position = checkingForMoves()
-	if (position) {
+	if (position.length) {
 		$(MARKER).show();
 		$(MARKER).css("top", position[0] * GEM_SIZE).css("left", position[1] * GEM_SIZE);
 		$(MARKER).addClass('blinking-element');
@@ -572,14 +624,12 @@ function setMarkerInMovable() {
 }
 
 function startIdleTimer() {
-	idleTimeout = setInterval(function () {
-		// Выполнение другой функции после 10 секунд бездействия пользователя
-		setMarkerInMovable();
-	}, 15000); // 15 секунд в миллисекундах (1000 миллисекунд = 1 секунда)
+	idleTimeout = setInterval(setMarkerInMovable, 12000);
 }
 
 function resetIdleTimer() {
-	clearInterval(idleTimeout); // Очистка предыдущего таймаута
-	startIdleTimer(); // Запуск таймера заново
+	clearInterval(idleTimeout);
+	startIdleTimer();
 }
 
+document.addEventListener('click', resetIdleTimer);

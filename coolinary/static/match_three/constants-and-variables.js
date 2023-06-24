@@ -51,5 +51,4 @@ function refreshVariables() {
     swiped = false;
     swipeStart = null;
     modalActive = false;
-    idleTimeout = null;
 }

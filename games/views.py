@@ -1,4 +1,3 @@
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -9,12 +8,14 @@ def games(request):
     return render(request, 'games/games.html')
 
 
-@login_required
 def tetris(request):
     if request.GET.get('score') and request.GET.get('lines') and request.GET.get('level'):
-        tetris_score = TetrisScore.create(request)
-        tetris_score.save()
-        return HttpResponse("OK")
+        if request.user.is_authenticated:
+            tetris_score = TetrisScore.create(request)
+            tetris_score.save()
+            return HttpResponse("OK")
+        else:
+            return HttpResponse("Player is not authenticated")
     else:
         return render(request, 'games/tetris.html')
 
@@ -34,7 +35,7 @@ def match_three(request):
             match_three_score.save()
             return HttpResponse("OK")
         else:
-            return HttpResponse("ERROR")
+            return HttpResponse("Player is not authenticated")
     else:
         return render(request, 'games/match_three.html')
 

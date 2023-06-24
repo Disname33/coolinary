@@ -22,7 +22,9 @@ function sendScore() {
             success: function (response) {
                 // Обработка успешного ответа
                 console.log(response)
-                showToast("Ваш результат добавлен в таблицу рекордов")
+                if (response === "OK") {
+                    showToast("Ваш результат добавлен в таблицу рекордов");
+                } else showToast("Войдите, чтобы Ваши результаты попадали в таблицу рекордов");
                 // setTimeout(toastBootstrap.hide(), 5000);
             },
             error: function (error) {
