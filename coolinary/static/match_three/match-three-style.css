@@ -7,6 +7,50 @@
     pointer-events: none;
 }
 
+#game-field {
+    background-image: url("/static/match_three/night-sky.jpg");
+    background-size: cover;
+    background-position: center;
+    border-radius: 10%;
+}
+
+.gem {
+    border-radius: 50%;
+    position: absolute;
+    border: 1px solid white;
+    cursor: pointer;
+}
+
+.rainbow-border {
+    position: absolute;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.rainbow-border::before {
+
+    content: "";
+    position: absolute;
+    top: -22%;
+    left: -22%;
+    width: 150%;
+    height: 150%;
+    background: conic-gradient(from 0, red, yellow, lime, aqua, blue, magenta, red);
+    z-index: 0;
+    animation: rotate 5s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: rotate(360deg);
+        opacity: 1;
+    }
+}
+
 .pointer-events {
     pointer-events: none;
 }
@@ -63,7 +107,10 @@
     0% {
         opacity: 0;
     }
-    50% {
+    40% {
+        opacity: 1;
+    }
+    60% {
         opacity: 1;
     }
     100% {

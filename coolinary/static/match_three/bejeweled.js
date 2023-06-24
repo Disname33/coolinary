@@ -83,18 +83,16 @@ $(document).ready(function () {
 })
 
 function windowsSet() {
-	GEM_SIZE = (window.innerWidth < (96 * NUM_COLS)) ? (window.innerWidth - 10) / NUM_COLS : 96;
+	GEM_SIZE = (window.innerWidth < (96 * NUM_COLS)) ? (window.innerWidth - BORDER) / NUM_COLS : 96;
 	$(GAME_FIELD).css({
-		"background-color": "#000000",
-		"width": (NUM_COLS * GEM_SIZE) + "px",
-		"height": (NUM_ROWS * GEM_SIZE) + "px",
+		// "background-color": "#000000",
+		"width": (NUM_COLS * GEM_SIZE) + BORDER + "px",
+		"height": (NUM_ROWS * GEM_SIZE) + BORDER + "px",
 		"position": "relative"
 	});
 	$(MARKER).css({
-		"width": GEM_SIZE + "px",
-		"height": GEM_SIZE + "px",
-		"border": "5px solid white",
-		"position": "absolute"
+		"width": BORDER + GEM_SIZE + "px",
+		"height": BORDER + GEM_SIZE + "px",
 	}).hide();
 
 }
@@ -125,17 +123,7 @@ function restartGame(firstStart = false) {
 			do {
 				jewels[i][j] = Math.floor(Math.random() * difficultly);
 			} while (isStreak(i, j));
-			$(GAME_FIELD).append('<div class = "' + GEM_CLASS + '" id = "' + getGemID(i, j) + `">` + getImg(jewels[i][j]) + `</div>`);
-			$("#" + getGemID(i, j)).css({
-				"top": (i * GEM_SIZE) + 4 + "px",
-				"left": (j * GEM_SIZE) + 4 + "px",
-				"width": (GEM_SIZE - 10) + "px",
-				"height": (GEM_SIZE - 10) + "px",
-				"position": "absolute",
-				"border": "1px solid white",
-				"cursor": "pointer",
-				"background-color": bgColors[jewels[i][j]]
-			});
+			createGemDiv(i, j);
 		}
 	}
 
@@ -256,22 +244,23 @@ function removeColor(row, col, rainbow_row, rainbow_col) {
 	jewels[rainbow_row][rainbow_col] = -1
 }
 
+function createGemDiv(row, col) {
+	$(GAME_FIELD).append('<div class = "' + GEM_CLASS + '" id = "' + getGemID(row, col) + `">` + getImg(jewels[row][col]) + `</div>`);
+	$("#" + getGemID(row, col)).css({
+		"top": (row * GEM_SIZE) + BORDER + "px",
+		"left": (col * GEM_SIZE) + BORDER + "px",
+		"width": (GEM_SIZE - BORDER) + "px",
+		"height": (GEM_SIZE - BORDER) + "px",
+		"background-color": bgColors[jewels[row][col]]
+	});
+}
+
 function placeNewGems() {
 	let gemsPlaced = 0;
 	for (let i = 0; i < NUM_COLS; i++) {
 		if (jewels[0][i] === -1) {
 			jewels[0][i] = Math.floor(Math.random() * difficultly);
-			$(GAME_FIELD).append('<div class = "' + GEM_CLASS + '" id = "' + getGemID(0, i) + `">` + getImg(jewels[0][i]) + `</div>`);
-			$("#" + getGemID(0, i)).css({
-				"top": 4 + "px",
-				"left": (i * GEM_SIZE) + 4 + "px",
-				"width": (GEM_SIZE - 10) + "px",
-				"height": (GEM_SIZE - 10) + "px",
-				"position": "absolute",
-				"border": "1px solid white",
-				"cursor": "pointer",
-				"background-color": bgColors[jewels[0][i]]
-			});
+			createGemDiv(0, i);
 			gemsPlaced++;
 		}
 	}

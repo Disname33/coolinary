@@ -1,5 +1,6 @@
 const NUM_ROWS = 6;
 const NUM_COLS = 7;
+const BORDER = 4;
 const START_TARGET = 200;
 const MARKER = "#marker";
 const GAME_FIELD = "#game-field";
