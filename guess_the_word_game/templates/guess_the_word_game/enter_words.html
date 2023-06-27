@@ -1,6 +1,6 @@
 {% extends 'guess_the_word_game/game.html' %}
 {% load static %}
-
+{% load group_check %}
 
 {% block start_game %}
 
@@ -25,7 +25,6 @@
 
 
             <script>
-                // Получаем значение из реквеста (здесь предполагается, что значение сохранено в переменной selectedValue)
                 let selectedValue = "{{ dif }}";
                 // Получаем элемент select
                 const selectElement = document.getElementById("inputDifGroupSelect");
@@ -51,6 +50,15 @@
                 Таблица рекордов
             </a>
         </div>
+        {% has_group 'Testers' as is_tester %}
+        {% if is_tester %}
+            <div class="col-lg-3 col-xl-2 pb-2">
+                <a class="btn btn-outline-danger d-flex text-center" href="{% url 'guess_the_word_game_remove' %}"
+                   role="button">
+                    Удалить слово
+                </a>
+            </div>
+        {% endif %}
         <div class="col-lg-3 col-xl-2 pb-2">
             <a class="btn btn-outline-primary d-flex text-center" id="rules_btn" href="#rules" data-bs-toggle="collapse"
                role="button" aria-expanded="true" aria-controls="collapseExample">
@@ -101,7 +109,9 @@
         {% csrf_token %}
         <div class="input-group mb-3">
             <input type="text" name="my_input" class="form-control active" autofocus placeholder="Введите слово"
-                   aria-label="Введите слово" aria-describedby="button-addon2">
+                   aria-label="Введите слово" aria-describedby="button-addon2" minlength="{{ dif }}"
+                   maxlength="{{ dif }}"
+                   pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы" required>
             <button class="btn btn-primary btn-lg" type="submit" id="button-addon2" {{ input_btn }} >Проверить</button>
         </div>
     </form>

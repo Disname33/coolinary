@@ -16,6 +16,7 @@ let posY;
 let GEM_SIZE = 96;
 let selectedRow = -1;
 let selectedCol = -1;
+let board = null;
 let jewels = [];
 let movingItems = 0;
 let gameState = GameStates.PICK;

@@ -7,7 +7,7 @@ colors = {"R": "<div class='col-1 link-danger border border-danger'>{}</div>",
 
 russian_nouns_with_definition_json = "word/russian_nouns_with_definition.json"
 
-notice_wrong_len = "Введите слово длинной {} символов!"
+notice_wrong_len = "Введите слово из {} букв!"
 notice_not_Cyrillic = "Введите только кириллицу"
 notice_not_means_word = "Не знаю такое слово. Пожалуйста, введите другое слово"
 notice_already_entered = 'Вы уже вводили слово "{}". Пожалуйста, введите другое слово'

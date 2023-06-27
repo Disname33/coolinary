@@ -41,7 +41,7 @@ def match_three(request):
 
 
 def match_three_results(request):
-    sorted_game_scores = MatchThreeScore.objects.order_by('-level')[:40]
+    sorted_game_scores = MatchThreeScore.objects.order_by('-level', '-score')[:40]
     context = {
         'match_three_scores': sorted_game_scores,
     }

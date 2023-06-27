@@ -49,5 +49,5 @@ class MatchThreeScore(models.Model):
                f' уровень {self.level}.'
 
     class Meta:
-        verbose_name = 'Игровой счёт тетриса'
-        verbose_name_plural = 'Игровые счета тетриса'
+        verbose_name = 'Игровой счёт "Три в ряд"'
+        verbose_name_plural = 'Игровые счета "Три в ряд"'

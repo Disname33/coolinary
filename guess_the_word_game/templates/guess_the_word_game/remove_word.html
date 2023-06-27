@@ -1,0 +1,65 @@
+{% extends 'guess_the_word_game/game.html' %}
+{% load static %}
+
+
+{% block start_game %}
+
+    <div class="row text-center">
+        <div class="col text-center">
+            <h1>Игра "Отгадай слово"</h1>
+            <h5 class="link-danger">Удаление сложных слов.</h5>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block entered_words %}
+
+    <div class="col col-md-12 mx-auto text-center mx-auto">
+        {% autoescape off %}
+            <b><span>{{ notice|safe }}</span></b>
+            <h4 class="link-danger">Какое слово хотите удалить, {{ name }}?</h4>
+        {% endautoescape %}
+    </div>
+    <br>
+{% endblock %}
+{% block input_word %}
+    <form id="removeWordForm">
+        {% csrf_token %}
+        <div class="input-group focus-ring-danger mb-3">
+
+            <input type="text" name="remove_word" class="form-control active border-danger  text-danger shadow-danger"
+                   id="remove_word" autofocus placeholder="Введите слово"
+                   aria-label="Введите слово" aria-describedby="remove_word_btn" minlength="4" maxlength="7"
+                   pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы" required>
+            <button class="btn btn-danger btn-lg focus-ring-danger" type="submit" id="remove_word_btn">Удалить слово
+            </button>
+        </div>
+    </form>
+    <br>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <div class=" col-xl-2 p-2">
+            <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game' %}" role="button">
+                Назад в игру
+            </a>
+        </div>
+    </div>
+    <div class="toast-container top-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <svg class="bd-placeholder-img rounded me-2" width="20" height="20" xmlns="http://www.w3.org/2000/svg"
+                     aria-hidden="true" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <rect width="100%" height="100%" fill="#007aff"></rect>
+                </svg>
+                <strong class="me-auto toast-title">Системное сообщение</strong>
+                <small>Только что</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Ваш результат добавлен в таблицу рекордов
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="{% static "guess_the_word_game/send_word.js" %}?v=1.1"></script>
+{% endblock %}

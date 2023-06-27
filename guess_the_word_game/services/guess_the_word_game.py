@@ -45,6 +45,29 @@ def _find_next_word(word: str, string: str) -> str | None:
     return None
 
 
+def remove_line_with_word(word: str) -> str:
+    word = word.lower().strip()
+    file_path = f"word/{len(word)}_letter_word.txt"
+    # Открываем файл на чтение и запись
+    with open(file_path, 'r', encoding="utf-8") as file:
+        lines = file.readlines()  # Читаем все строки из файла
+
+    # Находим и удаляем строки, содержащие указанное слово
+    new_lines = [line for line in lines if word not in line]
+
+    # Открываем файл на запись и записываем новые строки
+    with open(file_path, 'w', encoding="utf-8") as file:
+        file.writelines(new_lines)
+
+    with open(file_path + "_deleted", 'w', encoding="utf-8") as file:
+        file.writelines(word)
+
+    if len(lines) > len(new_lines):
+        return f"слово {word} удалено"
+    else:
+        return f"слово {word} не найдено"
+
+
 def get_full_meaning_word(word: str) -> str:
     meaning_word = get_meaning_word(word)
     try:

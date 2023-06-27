@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -44,6 +45,7 @@ def process_input(request):
             context = {
                 'entered_colored_words_list': entered_colored_words_list,
                 'notice': current_session.notice,
+                'dif': current_session.difficulty,
                 'firework': 'none',
                 'remaining_attempts': guess_the_word_game.remaining_attempts(current_session),
             }
@@ -91,3 +93,14 @@ def results(request):
     }
 
     return render(request, 'guess_the_word_game/results.html', context)
+
+
+@user_passes_test(lambda u: u.groups.filter(name='Testers').exists())
+def remove(request):
+    if word := request.GET.get('remove_word'):
+        return HttpResponse(guess_the_word_game.remove_line_with_word(word))
+
+    context = {
+        'name': request.user,
+    }
+    return render(request, 'guess_the_word_game/remove_word.html', context)
