@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
@@ -99,6 +101,11 @@ def results(request):
 def remove(request):
     if word := request.GET.get('remove_word'):
         return HttpResponse(guess_the_word_game.remove_line_with_word(word))
+    elif difficulty := request.GET.get('dif'):
+        random_noun = guess_the_word_game.get_random_noun(int(difficulty))
+        meaning = guess_the_word_game.get_full_meaning_word(random_noun)
+        data = {'noun': random_noun, 'meaning': meaning}
+        return HttpResponse(json.dumps(data), content_type='application/json')
 
     context = {
         'name': request.user,

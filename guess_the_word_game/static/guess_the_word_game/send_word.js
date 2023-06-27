@@ -6,20 +6,18 @@ function showToast(text = 'Ошибка', title = 'Системное сообщ
     toast.show();
 }
 
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
 // Обработчик отправки формы
 document.getElementById("removeWordForm").addEventListener("submit", function (event) {
     event.preventDefault(); // Предотвращение отправки формы по умолчанию
-
-    // Получение значения из input
-    const inputText = document.getElementById("remove_word").value;
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     $.ajax({
         url: window.location.href,
         type: 'GET',
         headers: {'X-CSRFToken': csrftoken},
         data: {
             'csrfmiddlewaretoken': csrftoken,
-            'remove_word': inputText,
+            'remove_word': $('#remove_word').val(),
         },
         success: function (response) {
             // Обработка успешного ответа
@@ -27,6 +25,30 @@ document.getElementById("removeWordForm").addEventListener("submit", function (e
             if (response) {
                 showToast(response);
             }
+            $('#remove_word').val('');
+        },
+        error: function (error) {
+            // Обработка ошибки
+            console.log(error);
+        }
+    });
+
+});
+
+
+document.getElementById("randomWordForm").addEventListener("submit", function (event) {
+    event.preventDefault(); // Предотвращение отправки формы по умолчанию
+    $.ajax({
+        url: window.location.href,
+        type: 'GET',
+        headers: {'X-CSRFToken': csrftoken},
+        data: {
+            'csrfmiddlewaretoken': csrftoken,
+            'dif': $('#inputDifGroupSelect').val()
+        },
+        success: function (response) {
+            $('#random_noun').html(response.noun)
+            $('#meaning').html(response.meaning);
         },
         error: function (error) {
             // Обработка ошибки
@@ -34,4 +56,3 @@ document.getElementById("removeWordForm").addEventListener("submit", function (e
         }
     });
 });
-

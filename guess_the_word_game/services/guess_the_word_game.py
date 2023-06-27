@@ -59,10 +59,9 @@ def remove_line_with_word(word: str) -> str:
     with open(file_path, 'w', encoding="utf-8") as file:
         file.writelines(new_lines)
 
-    with open(file_path + "_deleted", 'w', encoding="utf-8") as file:
-        file.writelines(word)
-
     if len(lines) > len(new_lines):
+        with open(file_path + "_deleted", 'a', encoding="utf-8") as file:
+            file.writelines(word + "\n")
         return f"слово {word} удалено"
     else:
         return f"слово {word} не найдено"
@@ -82,7 +81,7 @@ def get_full_meaning_word(word: str) -> str:
 
 def get_random_line(lines) -> str:
     # Генерируем случайный индекс строки из списка
-    random_index = random.randrange(len(lines))
+    random_index = random.randrange(len(lines)) - 1
     # Получаем случайную строку из списка по сгенерированному индексу и удаляем символ новой строки
     return lines[random_index].strip()
 
