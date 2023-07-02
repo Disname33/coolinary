@@ -14,10 +14,10 @@
                 <div class="input-group justify-content-md-end">
                     <select name="dif" class="form-select" id="inputDifGroupSelect"
                             aria-label="Example select with button addon">
-                        <option value="4">Лёгкий</option>
-                        <option value="5" selected>Средний</option>
-                        <option value="6">Тяжёлый</option>
-                        <option value="7">Нереальный</option>
+                        <option value="4">4 букв</option>
+                        <option value="5" selected>5 букв</option>
+                        <option value="6">6 букв</option>
+                        <option value="7">7 букв</option>
                     </select>
                     <button class="btn btn-primary btn-lg" type="submit">Новая игра</button>
                 </div>
@@ -35,6 +35,19 @@
                         break;
                     }
                 }
+
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                selectElement.addEventListener("change", function () {
+                    const selectedValue = this.value;
+                    const params = {
+                        csrfmiddlewaretoken: csrftoken,
+                        dif: selectedValue,
+                    };
+                    const paramString = Object.keys(params).map(function (key) {
+                        return key + "=" + encodeURIComponent(params[key]);
+                    }).join("&");
+                    window.location.href = window.location.origin + window.location.pathname + "?" + paramString;
+                });
             </script>
         </div>
     </div>
@@ -87,7 +100,7 @@
 
 {% block entered_words %}
 
-    <div class="col col-md-12 mx-auto text-center mx-auto">
+    <div class="col col-md-12 mx-auto text-center mx-auto " id="word-container">
         {% autoescape off %}
             <h2 class="mx-auto">
                 {% for entered_colored_word in entered_colored_words_list %}
@@ -98,8 +111,10 @@
         {% endautoescape %}
     </div>
     <br>
-    <div class="z-n1 position-absolute top-50 start-50 translate-middle {{ firework }}"><span>
-        <canvas width="640" height="480" id="fireworks-canvas"></canvas>
+    <div class="z-3 position-absolute top-50 start-50 translate-middle pe-none {{ firework }}" tabindex="-1"
+         aria-disabled="true"><span>
+        <canvas class="pe-none" width="640" height="480" id="fireworks-canvas" tabindex="-1"
+                aria-disabled="true"></canvas>
     <script src=" {% static "/js/fireworks.js" %} "></script>
     </span>
     </div>

@@ -69,9 +69,15 @@ def process_input(request):
         if len(current_session.entered_words_list) and elapsed_time(current_session.start_time) > 100:
             current_session.start_time = start_timer()
         # guess_the_word_game.start_new_game(current_session)
+        entered_colored_words_list = []
+        if current_session.entered_words_list:
+            entered_colored_words_list = guess_the_word_game.word_list_coloring(
+                current_session.entered_words_list,
+                current_session.coincidences_list)
         context = {'notice': current_session.notice,
                    'dif': current_session.difficulty,
-                   'show_rules': 'show',
+                   'show_rules': ('hide', 'show')[not entered_colored_words_list],
+                   'entered_colored_words_list': entered_colored_words_list,
                    'firework': 'none',
                    'remaining_attempts': guess_the_word_game.remaining_attempts(current_session)
                    }
