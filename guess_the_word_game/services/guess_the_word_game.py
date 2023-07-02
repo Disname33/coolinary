@@ -74,6 +74,10 @@ def get_full_meaning_word(word: str) -> str:
             next_word = _find_next_word("см.", meaning_word)
             if next_word is not None and next_word != 'также' and next_word != '':
                 return meaning_word + str(NounWithDefinition(noun=next_word, definition=get_meaning_word(next_word)))
+        elif " что: " in meaning_word:
+            next_word = _find_next_word("что:", meaning_word)
+            if next_word is not None and next_word != '':
+                return meaning_word + str(NounWithDefinition(noun=next_word, definition=get_meaning_word(next_word)))
     except Exception as e:
         print(e)
     return meaning_word
