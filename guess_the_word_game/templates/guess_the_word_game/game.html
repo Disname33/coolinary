@@ -7,12 +7,13 @@
             display: none;
         }
 
-        code {
-            text-align: center;
-        }
-
         body {
             padding: 0;
+        }
+
+        #game-field {
+            position: relative;
+            overflow: hidden;
         }
 
         .custom-tooltip {
@@ -63,7 +64,7 @@
             padding: 1px !important;
         }
 
-        #remove_button img {
+        #remove_btn img {
             filter: invert(60%);
         }
 
@@ -76,7 +77,7 @@
 {% endblock %}
 
 {% block body_block %}
-    <div class="container-xl">
+    <div class="container-xl" id="game-field">
         {% block start_game %} {% endblock %}
 
 
@@ -86,27 +87,6 @@
         </div>
         {% block input_word %} {% endblock %}
     </div>
-
-
-    <script>
-
-        function checkAnswer() {
-            // Добавьте код для проверки ответа пользователя и обновления отображения введённых слов
-        }
-    </script>
-
-    <pre id="codeBlock" class="hidden none">
-    <code class="align-center">
-<kbd id="Й">Й</kbd> <kbd id="Ц">Ц</kbd> <kbd id="У">У</kbd> <kbd id="К">К</kbd> <kbd id="Е">Е</kbd> <kbd id="Н">Н</kbd> <kbd
-            id="Г">Г</kbd> <kbd id="Ш">Ш</kbd> <kbd id="Щ">Щ</kbd> <kbd id="З">З</kbd> <kbd id="Х">Х</kbd> <kbd
-            id="Ъ">Ъ</kbd>
-  <kbd id="Ф">Ф</kbd> <kbd id="Ы">Ы</kbd> <kbd id="В">В</kbd> <kbd id="А">А</kbd> <kbd id="П">П</kbd> <kbd
-            id="Р">Р</kbd> <kbd id="О">О</kbd> <kbd id="Л">Л</kbd> <kbd id="Д">Д</kbd> <kbd id="Ж">Ж</kbd> <kbd
-            id="Э">Э</kbd>
-    <kbd id="Я">Я</kbd> <kbd id="Ч">Ч</kbd> <kbd id="С">С</kbd> <kbd id="М">М</kbd> <kbd id="И">И</kbd> <kbd
-            id="Т">Т</kbd> <kbd id="Ь">Ь</kbd> <kbd id="Б">Б</kbd> <kbd id="Ю">Ю</kbd>
-    </code>
-</pre>
 
 {% endblock %}
 
