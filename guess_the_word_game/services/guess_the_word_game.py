@@ -76,10 +76,16 @@ def get_full_meaning_word(word: str) -> str:
         elif " То же, что: " in meaning_word:
             next_word = _find_next_word("что:", meaning_word)
         if next_word is not None and next_word != 'также' and next_word != '':
-            return meaning_word + str(NounWithDefinition(noun=next_word, definition=get_meaning_word(next_word)))
+            return meaning_word + " " + str(NounWithDefinition(noun=next_word, definition=get_meaning_word(next_word)))
     except Exception as e:
         print(e)
     return meaning_word
+
+
+def is_there_a_word_meaning(word: str) -> bool:
+    with open(russian_nouns_with_definition_json, "r", encoding="utf-8") as file:
+        meaning = json.load(file)
+    return word in meaning
 
 
 def get_random_line(lines) -> str:

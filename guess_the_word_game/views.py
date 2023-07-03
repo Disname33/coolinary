@@ -112,6 +112,14 @@ def remove(request):
         meaning = guess_the_word_game.get_full_meaning_word(random_noun)
         data = {'noun': random_noun, 'meaning': meaning}
         return HttpResponse(json.dumps(data), content_type='application/json')
+    elif word := request.GET.get('get_mean'):
+        word = word.strip().lower().replace("ё", "е")
+        if guess_the_word_game.is_there_a_word_meaning(word):
+            meaning = guess_the_word_game.get_full_meaning_word(word)
+        else:
+            meaning = f'Значение слова "{word}" не найденов словаре'
+        data = {'noun': word, 'meaning': meaning}
+        return HttpResponse(json.dumps(data), content_type='application/json')
 
     context = {
         'name': request.user,

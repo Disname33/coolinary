@@ -56,3 +56,24 @@ document.getElementById("randomWordForm").addEventListener("submit", function (e
         }
     });
 });
+
+document.getElementById("getMeanForm").addEventListener("submit", function (event) {
+    event.preventDefault(); // Предотвращение отправки формы по умолчанию
+    $.ajax({
+        url: window.location.href,
+        type: 'GET',
+        headers: {'X-CSRFToken': csrftoken},
+        data: {
+            'csrfmiddlewaretoken': csrftoken,
+            'get_mean': $('#get_mean').val()
+        },
+        success: function (response) {
+            $('#get_mean').val('');
+            $('#random_noun').html(response.noun)
+            $('#meaning').html(response.meaning);
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
+});

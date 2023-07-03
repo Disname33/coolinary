@@ -19,7 +19,7 @@
         <form id="randomWordForm">
             {% csrf_token %}
             <div class="input-group justify-content-md-end my-4">
-                <select name="dif" class="form-select" id="inputDifGroupSelect"
+                <select name="dif" class="form-select border-primary" id="inputDifGroupSelect"
                         aria-label="Example select with button addon">
                     <option value="4">Слово из 4 букв</option>
                     <option value="5" selected>Слово из 5 букв</option>
@@ -30,6 +30,17 @@
             </div>
         </form>
     </div>
+    <form id="getMeanForm">
+        {% csrf_token %}
+        <div class="input-group mb-3 my-4">
+            <input type="text" name="get_mean" id="get_mean" autofocus placeholder="Введите слово"
+                   class="form-control border-success text-success focus-ring focus-ring-success"
+                   aria-label="Найти значение слова" aria-describedby="get_mean_btn"
+                   pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы" required>
+            <button class="btn btn-success btn-lg" type="submit" id="get_mean_btn">Найти значение
+            </button>
+        </div>
+    </form>
     <div id="random_noun" class="link-primary"></div>
     <div id="meaning"></div>
     <div class="col col-md-12 mx-auto text-center mx-auto">
@@ -39,12 +50,12 @@
 {% block input_word %}
     <form id="removeWordForm">
         {% csrf_token %}
-        <div class="input-group focus-ring-danger mb-3 my-4">
+        <div class="input-group mb-3 my-4">
             <input type="text" name="remove_word" id="remove_word" autofocus placeholder="Введите слово"
                    class="form-control active border-danger text-danger focus-ring focus-ring-danger"
                    aria-label="Введите слово" aria-describedby="remove_word_btn" minlength="4" maxlength="7"
                    pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы" required>
-            <button class="btn btn-danger btn-lg focus-ring-danger" type="submit" id="remove_word_btn">Удалить слово
+            <button class="btn btn-danger btn-lg" type="submit" id="remove_word_btn">Удалить слово
             </button>
         </div>
     </form>
@@ -73,5 +84,5 @@
             </div>
         </div>
     </div>
-    <script type="text/javascript" src="{% static "guess_the_word_game/send_word.js" %}?v=1.2"></script>
+    <script type="text/javascript" src="{% static "guess_the_word_game/send_word.js" %}?v=1.3"></script>
 {% endblock %}
