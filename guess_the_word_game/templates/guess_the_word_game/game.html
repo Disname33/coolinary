@@ -29,7 +29,7 @@
         }
 
         @media (min-width: 992px) {
-            .border {
+            .colored-word .border {
                 width: 60px;
                 height: 60px;
                 padding-top: 10px;
@@ -41,7 +41,7 @@
         }
 
         @media (max-width: 991px) {
-            .border {
+            .colored-word .border {
                 width: 50px;
                 height: 50px;
                 padding-top: 9px;
@@ -52,6 +52,20 @@
             }
         }
 
+        #keyboard, #keyboard_btn {
+            max-width: 600px;
+
+        }
+
+        #keyboard .border {
+            align-items: center;
+            justify-content: center;
+            padding: 1px !important;
+        }
+
+        #remove_button img {
+            filter: invert(60%);
+        }
 
     </style>
 {% endblock %}

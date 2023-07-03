@@ -102,9 +102,9 @@
 
     <div class="col col-md-12 mx-auto text-center mx-auto " id="word-container">
         {% autoescape off %}
-            <h2 class="mx-auto">
+            <h2 class="mx-auto" id="words">
                 {% for entered_colored_word in entered_colored_words_list %}
-                    <div class="row justify-content-center text-center"> {{ entered_colored_word|safe }}</div>
+                    <div class="row justify-content-center text-center colored-word"> {{ entered_colored_word|safe }}</div>
                 {% endfor %}
             </h2>
             <b><span>{{ notice|safe }}</span></b>
@@ -125,10 +125,85 @@
         <div class="input-group mb-3">
             <input type="text" name="my_input" class="form-control active" autofocus placeholder="Введите слово"
                    aria-label="Введите слово" aria-describedby="button-addon2" minlength="{{ dif }}"
-                   maxlength="{{ dif }}"
+                   maxlength="{{ dif }}" id="my_input"
                    pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы" required>
             <button class="btn btn-primary btn-lg" type="submit" id="button-addon2" {{ input_btn }} >Проверить</button>
         </div>
     </form>
-    <br>
+    <div class="row d-flex mt-2 mx-2 mx-md-auto" id="keyboard_btn">
+        <a class="btn btn-sm btn-outline-secondary d-flex text-center col-9 p-0" href="#keyboard"
+           data-bs-toggle="collapse"
+           role="button" aria-expanded="true" aria-controls="#keyboard #remove_button" data-bs-target=".multi-collapse">
+            Клавиатура
+        </a>
+        <div class="col-3 collapse show collapse-horizontal multi-collapse">
+            <a class="btn btn-sm btn-outline-secondary col-12 ms-2 p-0 " id="remove_button" role="button">
+                <img src="{% static "svg/delete.svg" %}" alt="Delete">
+            </a>
+        </div>
+
+    </div>
+    <div class="collapse show multi-collapse text-center mx-2 mx-md-auto user-select-none" id="keyboard">
+        <div class="row justify-content-center my-2">
+            <div class="col-1 border" id="Й">Й</div>
+            <div class="col-1 border" id="Ц">Ц</div>
+            <div class="col-1 border" id="У">У</div>
+            <div class="col-1 border" id="К">К</div>
+            <div class="col-1 border" id="Е">Е</div>
+            <div class="col-1 border" id="Н">Н</div>
+            <div class="col-1 border" id="Г">Г</div>
+            <div class="col-1 border" id="Ш">Ш</div>
+            <div class="col-1 border" id="Щ">Щ</div>
+            <div class="col-1 border" id="З">З</div>
+            <div class="col-1 border" id="Х">Х</div>
+            <div class="col-1 border" id="Ъ">Ъ</div>
+        </div>
+        <div class="row justify-content-center my-2">
+            <div class="col-1 border" id="Ф">Ф</div>
+            <div class="col-1 border" id="Ы">Ы</div>
+            <div class="col-1 border" id="В">В</div>
+            <div class="col-1 border" id="А">А</div>
+            <div class="col-1 border" id="П">П</div>
+            <div class="col-1 border" id="Р">Р</div>
+            <div class="col-1 border" id="О">О</div>
+            <div class="col-1 border" id="Л">Л</div>
+            <div class="col-1 border" id="Д">Д</div>
+            <div class="col-1 border" id="Ж">Ж</div>
+            <div class="col-1 border" id="Э">Э</div>
+        </div>
+        <div class="row justify-content-center my-2">
+            <div class="col-1 border" id="Я">Я</div>
+            <div class="col-1 border" id="Ч">Ч</div>
+            <div class="col-1 border" id="С">С</div>
+            <div class="col-1 border" id="М">М</div>
+            <div class="col-1 border" id="И">И</div>
+            <div class="col-1 border" id="Т">Т</div>
+            <div class="col-1 border" id="Ь">Ь</div>
+            <div class="col-1 border" id="Б">Б</div>
+            <div class="col-1 border" id="Ю">Ю</div>
+        </div>
+    </div>
+    <script>
+        // Разукрашивает клавиатуру
+        const letters = document.querySelector('#words').querySelectorAll('.border');
+        for (let i = 0; i < letters.length; i++) {
+            document.getElementById(letters[i].textContent).classList.add(...letters[i].classList);
+        }
+
+        const keys = document.querySelector('#keyboard').querySelectorAll('.border');
+        const inputElement = document.getElementById("my_input");
+        for (let i = 0; i < keys.length; i++) {
+            keys[i].addEventListener("click", function () {
+                // Добавить текст из дочернего элемента в поле ввода
+                inputElement.value += this.textContent;
+                // inputElement.focus();
+            });
+        }
+        const removeButton = document.getElementById("remove_button");
+        removeButton.addEventListener("click", function () {
+            inputElement.value = inputElement.value.slice(0, -1);
+            // inputElement.focus();
+        });
+
+    </script>
 {% endblock %}
