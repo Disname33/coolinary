@@ -370,7 +370,7 @@ function flash_explode(row, col, del_self = true) {
     if (gemElement !== null && board.inGame(row, col)) {
         if (Gem.is_rainbow(row, col)) {
             removeGem(row, col)
-            const gemValue = Math.floor(Math.random() * difficultly);
+            const gemValue = Math.floor(Math.random() * difficulty);
             for (let i = 0; i < NUM_ROWS; i++) {
                 for (let j = 0; j < NUM_COLS; j++) {
                     if (board.grid[i][j].value === gemValue) {

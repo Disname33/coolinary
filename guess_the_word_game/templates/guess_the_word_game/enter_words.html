@@ -25,12 +25,12 @@
 
 
             <script>
-                let selectedValue = "{{ dif }}";
+                const difficulty = "{{ dif }}";
                 // Получаем элемент select
                 const selectElement = document.getElementById("inputDifGroupSelect");
                 // Находим нужный option элемент по значению и устанавливаем атрибут selected
                 for (let i = 0; i < selectElement.options.length; i++) {
-                    if (selectElement.options[i].value === selectedValue) {
+                    if (selectElement.options[i].value === difficulty) {
                         selectElement.options[i].selected = true;
                         break;
                     }
@@ -38,10 +38,9 @@
 
                 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 selectElement.addEventListener("change", function () {
-                    const selectedValue = this.value;
                     const params = {
                         csrfmiddlewaretoken: csrftoken,
-                        dif: selectedValue,
+                        dif: this.value,
                     };
                     const paramString = Object.keys(params).map(function (key) {
                         return key + "=" + encodeURIComponent(params[key]);
@@ -130,6 +129,7 @@
             <button class="btn btn-primary btn-lg" type="submit" id="input_btn" {{ input_btn }} >Проверить</button>
         </div>
     </form>
+
     <div class="row d-flex mt-2 mx-2 mx-md-auto" id="keyboard_btn">
         <a class="btn btn-sm btn-outline-secondary d-flex text-center col p-0 mx-auto" href="#keyboard"
            data-bs-toggle="collapse"
@@ -142,66 +142,10 @@
                 <img src="{% static "svg/delete.svg" %}" alt="Delete">
             </a>
         </div>
-
     </div>
+
     <div class="collapse show multi-collapse text-center mx-2 mx-md-auto user-select-none" id="keyboard">
-        <div class="row justify-content-center my-2">
-            <div class="btn col-1 border" id="Й">Й</div>
-            <div class="btn col-1 border" id="Ц">Ц</div>
-            <div class="btn col-1 border" id="У">У</div>
-            <div class="btn col-1 border" id="К">К</div>
-            <div class="btn col-1 border" id="Е">Е</div>
-            <div class="btn col-1 border" id="Н">Н</div>
-            <div class="btn col-1 border" id="Г">Г</div>
-            <div class="btn col-1 border" id="Ш">Ш</div>
-            <div class="btn col-1 border" id="Щ">Щ</div>
-            <div class="btn col-1 border" id="З">З</div>
-            <div class="btn col-1 border" id="Х">Х</div>
-            <div class="btn col-1 border" id="Ъ">Ъ</div>
-        </div>
-        <div class="row justify-content-center my-2">
-            <div class="btn col-1 border" id="Ф">Ф</div>
-            <div class="btn col-1 border" id="Ы">Ы</div>
-            <div class="btn col-1 border" id="В">В</div>
-            <div class="btn col-1 border" id="А">А</div>
-            <div class="btn col-1 border" id="П">П</div>
-            <div class="btn col-1 border" id="Р">Р</div>
-            <div class="btn col-1 border" id="О">О</div>
-            <div class="btn col-1 border" id="Л">Л</div>
-            <div class="btn col-1 border" id="Д">Д</div>
-            <div class="btn col-1 border" id="Ж">Ж</div>
-            <div class="btn col-1 border" id="Э">Э</div>
-        </div>
-        <div class="row justify-content-center my-2">
-            <div class="btn col-1 border" id="Я">Я</div>
-            <div class="btn col-1 border" id="Ч">Ч</div>
-            <div class="btn col-1 border" id="С">С</div>
-            <div class="btn col-1 border" id="М">М</div>
-            <div class="btn col-1 border" id="И">И</div>
-            <div class="btn col-1 border" id="Т">Т</div>
-            <div class="btn col-1 border" id="Ь">Ь</div>
-            <div class="btn col-1 border" id="Б">Б</div>
-            <div class="btn col-1 border" id="Ю">Ю</div>
-        </div>
     </div>
-    <script>
-        // Разукрашивает клавиатуру
-        const letters = document.querySelector('#words').querySelectorAll('.border');
-        letters.forEach(function (letter) {
-            document.getElementById(letter.textContent).classList.add(...letter.classList);
-        });
+    <script type="text/javascript" src="{% static "guess_the_word_game/colored-keyboard.js" %}"></script>
 
-        const keys = document.querySelector('#keyboard').querySelectorAll('.border');
-        const inputElement = document.getElementById("my_input");
-        keys.forEach(function (key) {
-            key.addEventListener("click", function () {
-                if (inputElement.value.length < {{ dif }}) inputElement.value += this.textContent;
-            });
-        });
-
-        function deleteSymbol() {
-            inputElement.value = inputElement.value.slice(0, -1);
-        }
-
-    </script>
 {% endblock %}

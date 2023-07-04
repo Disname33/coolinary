@@ -9,7 +9,7 @@ const Flash = {HORIZONTAL: 'horizontal-flash', VERTICAL: 'vertical-flash', DOUBL
 const GEM_CLASS = "gem";
 const GEM_ID_PREFIX = "gem";
 const bgColors = ["magenta", "mediumblue", "yellow", "lime", "cyan", "orange", "crimson", "gray"];
-let difficultly = 4;
+let difficulty = 4;
 let modalActive = false;
 let posX;
 let posY;
@@ -24,7 +24,7 @@ let swiped = false;
 let swipeStart = null;
 let multiplyScore = 1;
 let idleTimeout = null;
-const levelDifficultly = [3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8];
+const levelDifficulty = [3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8];
 
 
 function getImg(index) {
