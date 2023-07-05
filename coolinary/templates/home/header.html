@@ -23,8 +23,8 @@
                         aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span> <span>
                     <svg class="text-stroke">
-        <text class="text" x="0" y="20">Disname</text>
-    </svg>
+                        <text class="text" x="0" y="20">Disname</text>
+                     </svg>
                 </span>
                 </button>
 
@@ -32,13 +32,16 @@
                     <button class="navbar-toggler d-none d-lg-inline d-0 m-0 " type="button">
                         <span> <img src="{% static "key-d-32.png" %}" width="32" height="32" alt="logo"> </span><span>
                     <svg class="text-stroke">
-        <text class="text" x="0" y="20">Disname</text>
-    </svg>
+                        <text class="text" x="0" y="20">Disname</text>
+                    </svg>
                 </span>
                     </button>
                     <ul class="navbar-nav me-auto mb-2">
                         <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Домашняя страница</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'chat' %}">Чат</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'weather' %}">Погода</a>

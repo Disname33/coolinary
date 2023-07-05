@@ -36,6 +36,8 @@ ALLOWED_HOSTS = ['127.0.0.1',
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'chat',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,7 +48,6 @@ INSTALLED_APPS = [
     'weather',
     'coolinary',
     'games',
-    'chat',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +82,11 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'coolinary.asgi.application'
+CHANNEL_LAYERS = secret.get_channel_layers()
+
 WSGI_APPLICATION = 'coolinary.wsgi.application'
+
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_REDIRECT_URL = '/game/'
 

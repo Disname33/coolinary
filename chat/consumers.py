@@ -1,0 +1,55 @@
+import json
+
+from channels.generic.websocket import AsyncWebsocketConsumer
+
+
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
+        self.room_group_name = "chat_%s" % self.room_name
+        # self.user = self.scope["user"]
+        # Join room group
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+
+        await self.accept()
+        await self.channel_layer.group_send(
+            self.room_group_name, {"type": "chat_message", "message": f"К нам присоединился {self.scope['user']}!"}
+        )
+
+    async def join_room(self, room_name):
+        # Получаем последние 10 сообщений отсортированных по дате создания
+        # messages = Message.objects.order_by('-created_at')[:10]
+
+        # Сериализуем сообщения в JSON
+        # serializer = MessageSerializer(messages, many=True)
+        # serialized_messages = serializer.data
+
+        # Отправляем сообщения пользователю через WebSocket
+        # await self.send(text_data=serialized_messages)
+        await self.send(text_data=json.dumps({"message": "Проверка связи", 'sender': "Предыдущее сообщение"}))
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        await self.channel_layer.group_send(
+            self.room_group_name, {"type": "chat_message", "message": f"{self.scope['user']} покинул комнату!"}
+        )
+
+    # Receive message from WebSocket
+    async def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message = text_data_json["message"]
+        # Send message to room group
+        await self.channel_layer.group_send(
+            self.room_group_name, {"type": "chat_message", "sender": str(self.scope['user']), "message": message}
+        )
+
+    # Receive message from room group
+    async def chat_message(self, event):
+        message = event["message"]
+        if "sender" in event:
+            sender = event["sender"]
+        else:
+            sender = "Системное сообщение"
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({"message": message, 'sender': sender}))

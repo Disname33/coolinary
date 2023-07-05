@@ -29,3 +29,14 @@ def register(request):
     else:
         user_form = UserRegistrationForm()
     return render(request, 'registration/register.html', {'user_form': user_form})
+
+# @login_required
+# def profile(request):
+#     if request.method == 'POST':
+#         form = AvatarUploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('profile')
+#     else:
+#         form = AvatarUploadForm()
+#     return render(request, 'registration/profile.html', {'form': form})

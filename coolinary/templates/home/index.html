@@ -15,6 +15,9 @@
                 <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Домашняя страница</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="{% url 'chat' %}">Чат</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="{% url 'weather' %}">Погода</a>
             </li>
             {% include "games/game_list.html" %}

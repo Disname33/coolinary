@@ -121,7 +121,4 @@ def remove(request):
         data = {'noun': word, 'meaning': meaning}
         return HttpResponse(json.dumps(data), content_type='application/json')
 
-    context = {
-        'name': request.user,
-    }
-    return render(request, 'guess_the_word_game/remove_word.html', context)
+    return render(request, 'guess_the_word_game/remove_word.html')

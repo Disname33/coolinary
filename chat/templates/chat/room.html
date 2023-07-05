@@ -1,0 +1,67 @@
+{% extends 'home/header.html' %}
+{% load static %}
+
+{% block inhead %}
+
+{% endblock %}
+
+{% block title %}
+    Чат комната
+{% endblock %}
+
+{% block body_block %}
+    <div class="container">
+        <h5>Добро пожаловать в комнату "{{ room_name }}"!</h5>
+        <div class="form-floating mb-3">
+            <textarea class="form-control" placeholder="Напишите сообщение" id="chat-log" style="min-height: 50vh"
+                      disabled></textarea>
+            <label for="chat-log">Сообщения</label>
+        </div>
+        <form id="sendMessageForm">
+            {% csrf_token %}
+            <div class="input-group mb-3 my-4">
+                <input type="text" name="chat-message-input" id="chat-message-input" autofocus
+                       placeholder="Введите сообщение"
+                       class="form-control active border-primary focus-ring" aria-label="Введите сообщение"
+                       aria-describedby="chat-message-submit" maxlength="100" required>
+                <button class="btn btn-primary btn-lg" type="submit" id="chat-message-submit">Отправить</button>
+            </div>
+        </form>
+    </div>
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const chatMessageInput = document.querySelector('#chat-message-input');
+        const chatLog = document.querySelector('#chat-log');
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            let sender
+            if (data.sender === "{{ user.get_username }}") {
+                sender = "(Вы): ";
+            } else sender = "(" + data.sender + "): ";
+            chatLog.value += (sender + data.message + '\n');
+        };
+
+        chatSocket.onclose = function () {
+            chatLog.value += ('(Системное сообщение): Соединение разорвано, пожалуйста обновите страницу!\n');
+        };
+
+
+        document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const message = chatMessageInput.value;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+            }));
+            chatMessageInput.value = '';
+        });
+    </script>
+{% endblock %}
