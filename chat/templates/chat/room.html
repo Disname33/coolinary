@@ -58,7 +58,7 @@
             </form>
         </div>
         {{ room_name|json_script:"room-name" }}
-        <script src="{% static "js/local-date.js" %}"></script>
+        <script src="{% static "js/local-date.js" %}?v1.1"></script>
         <script>
             const roomName = JSON.parse(document.getElementById('room-name').textContent);
             const chatMessageInput = document.querySelector('#chat-message-input');
@@ -74,10 +74,8 @@
                 let position;
                 let time;
                 if (data.created_at) {
-                    const dateObject = new Date(data.created_at);
-                    {#const date = dateObject.toISOString().slice(0, 10).replaceAll('-', ' ');#}
                     const date = localeDate(data.created_at);
-                    time = dateObject.toISOString().slice(11, 16);
+                    time = localeTime(data.created_at);
                     if (lastDate !== date) {
                         lastDate = date
                         systemMessage(date);
