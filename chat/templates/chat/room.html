@@ -12,18 +12,17 @@
 {% block body_block %}
     <div class="container">
         <h5>Добро пожаловать в комнату "{{ room_name }}"!</h5>
-        <div class="form-floating mb-3">
-            <textarea class="form-control" placeholder="Напишите сообщение" id="chat-log" style="min-height: 50vh"
-                      disabled></textarea>
-            <label for="chat-log">Сообщения</label>
+        <div class="row align-items-end overflow-y-auto" style="min-height: 60vh">
+            <div class="col mb-3 vstack gap-3 align-self-end" id="chat-log">
+            </div>
         </div>
         <form id="sendMessageForm">
             {% csrf_token %}
-            <div class="input-group mb-3 my-4">
+            <div class="input-group mb-3">
                 <input type="text" name="chat-message-input" id="chat-message-input" autofocus
                        placeholder="Введите сообщение"
                        class="form-control active border-primary focus-ring" aria-label="Введите сообщение"
-                       aria-describedby="chat-message-submit" maxlength="100" required>
+                       aria-describedby="chat-message-submit" maxlength="255" required>
                 <button class="btn btn-primary btn-lg" type="submit" id="chat-message-submit">Отправить</button>
             </div>
         </form>
@@ -33,25 +32,34 @@
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
         const chatMessageInput = document.querySelector('#chat-message-input');
         const chatLog = document.querySelector('#chat-log');
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomName
-            + '/'
-        );
+        const chatSocket = new WebSocket(webSocket());
 
         chatSocket.onmessage = function (e) {
             const data = JSON.parse(e.data);
-            let sender
+            let sender;
+            let divClass;
+            let position;
             if (data.sender === "{{ user.get_username }}") {
                 sender = "(Вы): ";
-            } else sender = "(" + data.sender + "): ";
-            chatLog.value += (sender + data.message + '\n');
+                divClass = "bg-success rounded-start-4";
+                position = "d-flex justify-content-end ";
+            } else if (data.sender === "Системное сообщение") {
+                sender = "";
+                divClass = "bg-secondary text-center mx-auto py-0 rounded-bottom-4";
+                position = "d-flex justify-content-center ";
+            } else {
+                sender = "(" + data.sender + "): ";
+                divClass = "bg-primary rounded-end-4";
+                position = "d-flex justify-content-start ";
+            }
+            chatLog.innerHTML += `<div class="` + position + `"><div class= 'rounded-top-4 text-white ` +
+                divClass + ` px-2' >` + sender + data.message + `</div></div>`;
         };
 
         chatSocket.onclose = function () {
-            chatLog.value += ('(Системное сообщение): Соединение разорвано, пожалуйста обновите страницу!\n');
+            chatLog.innerHTML += `<div class="d-flex justify-content-center">
+<div class= 'rounded-4 text-white bg-secondary text-center mx-auto py-0 px-2' >
+Соединение разорвано, пожалуйста обновите страницу!</div></div>`;
         };
 
 
@@ -63,5 +71,14 @@
             }));
             chatMessageInput.value = '';
         });
+
+
+        function webSocket() {
+            let protocol = 'ws://';
+            if (window.location.protocol === "https:") {
+                protocol = 'wss://';
+            }
+            return protocol + window.location.host + '/ws/chat/' + roomName + '/'
+        }
     </script>
 {% endblock %}

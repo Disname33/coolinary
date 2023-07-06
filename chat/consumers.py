@@ -9,14 +9,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group_name = "chat_%s" % self.room_name
         # self.user = self.scope["user"]
         # Join room group
+
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
         await self.accept()
+        await self.join_room()
         await self.channel_layer.group_send(
             self.room_group_name, {"type": "chat_message", "message": f"К нам присоединился {self.scope['user']}!"}
         )
 
-    async def join_room(self, room_name):
+    async def join_room(self):
         # Получаем последние 10 сообщений отсортированных по дате создания
         # messages = Message.objects.order_by('-created_at')[:10]
 
@@ -26,7 +28,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Отправляем сообщения пользователю через WebSocket
         # await self.send(text_data=serialized_messages)
-        await self.send(text_data=json.dumps({"message": "Проверка связи", 'sender': "Предыдущее сообщение"}))
+        await self.send(text_data=json.dumps({"type": "chat_message",
+                                              "message": f"Проверка связи в комнате",
+                                              "sender": "Предыдущие сообщения"}))
 
     async def disconnect(self, close_code):
         # Leave room group

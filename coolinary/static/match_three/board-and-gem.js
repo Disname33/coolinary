@@ -97,7 +97,7 @@ class Board {
 
 class Gem {
 
-    constructor(value = Math.floor(Math.random() * difficultly), type = GEM_CLASS) {
+    constructor(value = Math.floor(Math.random() * difficulty), type = GEM_CLASS) {
         this.value = value;
         this.type = type;
     }

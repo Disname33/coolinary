@@ -13,38 +13,34 @@
     <div class="container text-center">
         <h1>{{ user.get_username }}, добро пожаловать в чаты!</h1>
         <h3>Какой чат хотите посетить?</h3>
-        {% csrf_token %}
-        <div class="input-group mb-3 my-4">
-            <input type="text" name="room-name-input" id="room-name-input" autofocus placeholder="Введите имя чата"
-                   class="form-control active border-primary focus-ring" aria-label="Введите имя чата"
-                   aria-describedby="room-name-submit" maxlength="100" required>
-            <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="visually-hidden">Toggle Dropdown</span> Выбрать
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end float-end">
-                <li><a class="dropdown-item" href="disname/">Сообщение админу</a></li>
-                <li><a class="dropdown-item" href="moder/">Сообщение модераторам</a></li>
-                <li><a class="dropdown-item" href="lobby/">Главная комната</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-                <li><a class="dropdown-item" href="javascript:history.back()">Назад</a></li>
-            </ul>
-            <button class="btn btn-primary btn-lg" type="button" id="room-name-submit">Войти</button>
-        </div>
+        <form id="findChatRoomForm">
+            {% csrf_token %}
+            <div class="input-group mb-3 my-4">
+                <input type="text" name="room-name-input" id="room-name-input" autofocus placeholder="Введите имя чата"
+                       class="form-control active border-primary focus-ring" aria-label="Введите имя чата"
+                       pattern="[a-zA-Z0-9]+" title="Пожалуйста, введите только латинские буквы и цифры"
+                       aria-describedby="room-name-submit" maxlength="50" required>
+                <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span> Выбрать
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end float-end">
+                    <li><a class="dropdown-item" href="disname/">Сообщение админу</a></li>
+                    <li><a class="dropdown-item" href="moder/">Сообщение модераторам</a></li>
+                    <li><a class="dropdown-item" href="lobby/">Главная комната</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="javascript:history.back()">Назад</a></li>
+                </ul>
+                <button class="btn btn-primary btn-lg" type="submit" id="room-name-submit">Войти</button>
+            </div>
+        </form>
     </div>
     <script>
-        document.querySelector('#room-name-input').focus();
-        document.querySelector('#room-name-input').onkeyup = function (e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#room-name-submit').click();
-            }
-        };
-
-        document.querySelector('#room-name-submit').onclick = function (e) {
-            let roomName = document.querySelector('#room-name-input').value;
-            window.location.pathname = '/chat/' + roomName + '/';
-        };
+        document.getElementById("findChatRoomForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            window.location.pathname = '/chat/' + document.querySelector('#room-name-input').value + '/';
+        });
     </script>
 {% endblock %}
