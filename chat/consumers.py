@@ -1,22 +1,27 @@
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.contrib.auth.models import AnonymousUser
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.user = self.scope['user']
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = "chat_%s" % self.room_name
-        # self.user = self.scope["user"]
-        # Join room group
+        if isinstance(self.user, AnonymousUser):
+            await self.close()
+        elif self.room_name.startswith("pm_") and self.user.username not in self.room_name.split("_")[1:]:
+            await self.close()
+        else:
+            # Join room group
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-
-        await self.accept()
-        await self.join_room()
-        await self.channel_layer.group_send(
-            self.room_group_name, {"type": "chat_message", "message": f"К нам присоединился {self.scope['user']}!"}
-        )
+            await self.accept()
+            await self.join_room()
+            await self.channel_layer.group_send(
+                self.room_group_name, {"type": "chat_message", "message": f"К нам присоединился(ась) {self.user}"}
+            )
 
     async def join_room(self):
         # Получаем последние 10 сообщений отсортированных по дате создания
@@ -36,7 +41,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         await self.channel_layer.group_send(
-            self.room_group_name, {"type": "chat_message", "message": f"{self.scope['user']} покинул комнату!"}
+            self.room_group_name, {"type": "chat_message", "message": f"{self.scope['user']} покинул(а) чат"}
         )
 
     # Receive message from WebSocket
