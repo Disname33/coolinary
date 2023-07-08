@@ -16,6 +16,9 @@ def work_trip(request):
 
 
 def register(request):
+    if request.user.is_authenticated:
+        return render(request, 'home/index.html')
+
     if request.method == 'POST':
         user_form = UserRegistrationForm(request.POST)
         if user_form.is_valid():
@@ -28,6 +31,7 @@ def register(request):
             return render(request, 'registration/register_done.html', {'new_user': new_user})
     else:
         user_form = UserRegistrationForm()
+
     return render(request, 'registration/register.html', {'user_form': user_form})
 
 # @login_required

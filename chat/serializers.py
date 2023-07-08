@@ -3,16 +3,17 @@ from rest_framework import serializers
 from .models import User, Room, Message
 
 
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         exclude = ["password"]
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password"]
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ["id", "username"]
+        # exclude = ["email", "password", "user_permissions"]
+
+    # class UserSerializer(serializers.ModelSerializer):
+    #     class Meta:
+    #         model = User
+    #         fields = ["id", "username", "email", "password"]
+    #         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = User(
@@ -25,7 +26,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    created_at_formatted = serializers.SerializerMethodField()
     user = UserSerializer()
 
     class Meta:
@@ -33,13 +33,13 @@ class MessageSerializer(serializers.ModelSerializer):
         exclude = []
         depth = 1
 
-    def get_created_at_formatted(self, obj: Message):
-        return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
-
 
 class RoomSerializer(serializers.ModelSerializer):
     last_message = serializers.SerializerMethodField()
-    messages = MessageSerializer(many=True, read_only=True)
+    # messages = MessageSerializer(many=True, read_only=True)
+    messages = serializers.SerializerMethodField()
+    host = UserSerializer()
+    current_users = UserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Room
@@ -49,3 +49,9 @@ class RoomSerializer(serializers.ModelSerializer):
 
     def get_last_message(self, obj: Room):
         return MessageSerializer(obj.messages.order_by('created_at').last()).data
+
+    def get_messages(self, obj: Room):
+        # Получение последних 20 сообщений для комнаты
+        latest_messages = obj.messages.order_by('-created_at')[:100:-1]
+        serializer = MessageSerializer(latest_messages, many=True)
+        return serializer.data

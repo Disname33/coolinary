@@ -24,5 +24,6 @@ def room(request, pk):
     chat_room: Room = get_object_or_404(Room, pk=pk)
     return render(request, 'chat/room.html', {
         "room": chat_room,
-        "room_name": chat_room.name
+        "room_name": chat_room.name,
+        "session_key": request.session.session_key,
     })

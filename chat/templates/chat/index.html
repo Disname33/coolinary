@@ -13,7 +13,7 @@
     <div class="container text-center">
         <h1>{{ user.get_username }}, добро пожаловать в чаты!</h1>
         <h3>Какой чат хотите посетить?</h3>
-        <form id="findChatRoomForm" method="POST" action="{% url 'chat' %}">
+        <form id="findChatRoomForm" method="POST">
             {% csrf_token %}
             <div class="input-group mb-3 my-4">
                 <input type="text" name="name" id="room-name-input" autofocus placeholder="Введите имя чата"

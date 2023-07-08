@@ -43,7 +43,7 @@
                 <h5>Добро пожаловать в комнату "{{ room_name }}"!</h5>
             {% endif %}
             <div class="row align-items-end overflow-y-auto" style="min-height: 60vh; max-height: 65vh">
-                <div class="col mb-3 vstack gap-3 align-self-end" id="chat-log">
+                <div class="col mb-3 vstack align-self-end" id="chat-log">
                 </div>
             </div>
             <form id="sendMessageForm">
@@ -62,14 +62,12 @@
             const chatMessageInput = document.querySelector('#chat-message-input');
             const chatLog = document.querySelector('#chat-log');
             const room_pk = "{{ room.pk }}";
-            const request_id = "{{ request.sessions.session_key }}";
+            const request_id = "{{ session_key }}";
+            let lastMessage;
             let lastDate;
             let lastTime;
-            {#const token = ''#}
             console.log("room_pk", room_pk)
             console.log("request_id", request_id)
-            console.log("request", '{{request}}')
-            {#const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/?token=${localStorage.getItem('Token')}`);#}
             const chatSocket = new WebSocket(webSocket());
 
             chatSocket.onopen = function () {
@@ -108,19 +106,11 @@
                 console.log('RealTime', data)
                 switch (data.action) {
                     case "retrieve":
-                    {#document.getElementById('username').innerText = data.data.host.username#}
-                        for (let mess of data.data.messages) {
-                            console.log(mess.text);
-                            createNewMessage(mess);
-                            {#$('#chat-log').val($('#chat-log').val()+"\n"+mess.text)#}
+                        for (let message of data.data.messages) {
+                            createNewMessage(message);
                         }
-
-                        //setRoom(old =>data.data);
-                        //setMessages(old=>data.messages);
                         break;
                     case "create":
-                    {#$('#chat-log').val($('#chat-log').val()+"\n"+data.data.text)#}
-                        //setMessages(old=>[...old, data])
                         createNewMessage(data.data);
                         break;
                     default:
@@ -131,7 +121,7 @@
             function createNewMessage(data) {
                 let sender;
                 let divClass;
-                let position;
+                let position = 'mt-1 ';
                 let time;
                 if (data.created_at) {
                     const date = localeDate(data.created_at);
@@ -143,37 +133,46 @@
                     if (lastTime !== time) {
                         lastTime = time
                     }
+                    if (lastMessage && isLongTime(lastMessage.created_at, data.created_at)) {
+                        position = "mt-3 "
+                    }
                 }
                 if (data.sender === "Системное сообщение") {
                     systemMessage(data.text)
                 } else {
+                    if (lastMessage && lastMessage.user.username !== data.user.username) {
+                        position = "mt-3 "
+                    }
                     if (data.user.username === "{{ user.get_username }}") {
                         sender = "(Вы): ";
                         divClass = "bg-success rounded-start-4";
-                        position = "d-flex justify-content-end ";
+                        position += "justify-content-end ";
 
                     } else {
                         sender = "(" + data.user.username + "): ";
                         divClass = "bg-primary rounded-end-4";
-                        position = "d-flex justify-content-start ";
+                        position += "justify-content-start ";
                     }
-                    chatLog.innerHTML += `<div class="` + position +
+                    chatLog.innerHTML += `<div class="d-flex ` + position + `" id="message_` + data.id +
                         `"><div class= 'position-relative text-break rounded-top-4 text-white ` +
                         divClass + ` px-2' >` + sender + data.text + `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
                         `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">`
                         + time + `</span></div></div>`;
-
+                    chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
+                    lastMessage = data;
                 }
-            };
+
+            }
 
             chatSocket.onclose = function () {
                 systemMessage("Соединение разорвано, пожалуйста обновите страницу!")
             };
 
             function systemMessage(message) {
-                chatLog.innerHTML += `<div class="d-flex justify-content-center">` +
+                chatLog.innerHTML += `<div class="my-3 d-flex justify-content-center">` +
                     `<div class= 'rounded-4 text-white bg-secondary text-center mx-auto py-0 px-2' >` +
                     message + `</div></div>`;
+                chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
             }
 
             document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
@@ -185,12 +184,18 @@
                     request_id: request_id,
                 }));
                 chatMessageInput.value = '';
+                chatMessageInput.focus()
             });
 
 
             function webSocket() {
                 const protocol = window.location.protocol === "http:" ? 'ws://' : 'wss://';
                 return protocol + window.location.host + '/ws/chat/'
+            }
+
+            function isLongTime(date_str1, date_str2) {
+                const diffInMinutes = Math.abs(new Date(date_str2) - new Date(date_str1)) / (1000 * 60);
+                return (diffInMinutes > 10)
             }
         </script>
 
