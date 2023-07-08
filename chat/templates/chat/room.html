@@ -57,18 +57,78 @@
                 </div>
             </form>
         </div>
-        {{ room_name|json_script:"room-name" }}
         <script src="{% static "js/local-date.js" %}?v1.1"></script>
         <script>
-            const roomName = JSON.parse(document.getElementById('room-name').textContent);
             const chatMessageInput = document.querySelector('#chat-message-input');
             const chatLog = document.querySelector('#chat-log');
-            const chatSocket = new WebSocket(webSocket());
+            const room_pk = "{{ room.pk }}";
+            const request_id = "{{ request.sessions.session_key }}";
             let lastDate;
             let lastTime;
+            {#const token = ''#}
+            console.log("room_pk", room_pk)
+            console.log("request_id", request_id)
+            console.log("request", '{{request}}')
+            {#const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/?token=${localStorage.getItem('Token')}`);#}
+            const chatSocket = new WebSocket(webSocket());
+
+            chatSocket.onopen = function () {
+                chatSocket.send(
+                    JSON.stringify({
+                        pk: room_pk,
+                        action: "join_room",
+                        request_id: request_id,
+                    })
+                );
+                chatSocket.send(
+                    JSON.stringify({
+                        pk: room_pk,
+                        action: "retrieve",
+                        request_id: request_id,
+                    })
+                );
+                chatSocket.send(
+                    JSON.stringify({
+                        pk: room_pk,
+                        action: "subscribe_to_messages_in_room",
+                        request_id: request_id,
+                    })
+                );
+                chatSocket.send(
+                    JSON.stringify({
+                        pk: room_pk,
+                        action: "subscribe_instance",
+                        request_id: request_id,
+                    })
+                );
+            };
 
             chatSocket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
+                console.log('RealTime', data)
+                switch (data.action) {
+                    case "retrieve":
+                    {#document.getElementById('username').innerText = data.data.host.username#}
+                        for (let mess of data.data.messages) {
+                            console.log(mess.text);
+                            createNewMessage(mess);
+                            {#$('#chat-log').val($('#chat-log').val()+"\n"+mess.text)#}
+                        }
+
+                        //setRoom(old =>data.data);
+                        //setMessages(old=>data.messages);
+                        break;
+                    case "create":
+                    {#$('#chat-log').val($('#chat-log').val()+"\n"+data.data.text)#}
+                        //setMessages(old=>[...old, data])
+                        createNewMessage(data.data);
+                        break;
+                    default:
+                        break;
+                }
+            };
+
+            function createNewMessage(data) {
                 let sender;
                 let divClass;
                 let position;
@@ -85,21 +145,21 @@
                     }
                 }
                 if (data.sender === "Системное сообщение") {
-                    systemMessage(data.message)
+                    systemMessage(data.text)
                 } else {
-                    if (data.sender === "{{ user.get_username }}") {
+                    if (data.user.username === "{{ user.get_username }}") {
                         sender = "(Вы): ";
                         divClass = "bg-success rounded-start-4";
                         position = "d-flex justify-content-end ";
 
                     } else {
-                        sender = "(" + data.sender + "): ";
+                        sender = "(" + data.user.username + "): ";
                         divClass = "bg-primary rounded-end-4";
                         position = "d-flex justify-content-start ";
                     }
                     chatLog.innerHTML += `<div class="` + position +
                         `"><div class= 'position-relative text-break rounded-top-4 text-white ` +
-                        divClass + ` px-2' >` + sender + data.message + `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
+                        divClass + ` px-2' >` + sender + data.text + `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
                         `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">`
                         + time + `</span></div></div>`;
 
@@ -116,24 +176,23 @@
                     message + `</div></div>`;
             }
 
-
             document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
                 event.preventDefault();
                 const message = chatMessageInput.value;
                 chatSocket.send(JSON.stringify({
-                    'message': message,
+                    message: message,
+                    action: "create_message",
+                    request_id: request_id,
                 }));
                 chatMessageInput.value = '';
             });
 
 
-        function webSocket() {
-            let protocol = 'ws://';
-            if (window.location.protocol === "https:") {
-                protocol = 'wss://';
+            function webSocket() {
+                const protocol = window.location.protocol === "http:" ? 'ws://' : 'wss://';
+                return protocol + window.location.host + '/ws/chat/'
             }
-            return protocol + window.location.host + '/ws/chat/' + roomName + '/'
-        }
-    </script>
+        </script>
+
     {% endif %}
 {% endblock %}

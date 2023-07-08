@@ -1,19 +1,28 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, reverse, get_object_or_404
+
+from .models import Room
 
 
-def chat(request):
-    return render(request, "chat/index.html")
+def index(request):
+    if request.method == "POST":
+        if name := request.POST.get("name"):
+            chat_room = None
+            try:
+                chat_room = Room.objects.get(name=name)
+            except Exception as e:
+                print(e)
+            if not chat_room:
+                chat_room = Room.objects.create(name=name, host=request.user)
+            return HttpResponseRedirect(reverse("room", kwargs={"pk": chat_room.pk}))
+    return render(request, 'chat/index.html')
 
 
 @login_required
-def room(request, room_name):
-    if room_name.startswith("pm_"):
-        user_list = room_name.split("_")[1:]
-        if str(request.user) in user_list:
-            users = ', '.join(user_list[:-1]) + (' и ' if len(user_list) > 1 else '') + user_list[-1]
-            return render(request, "chat/room.html", {"room_name": room_name, "personal_message": True, "users": users})
-        else:
-            return render(request, "chat/room.html", {"alien": True})
-    else:
-        return render(request, "chat/room.html", {"room_name": room_name})
+def room(request, pk):
+    chat_room: Room = get_object_or_404(Room, pk=pk)
+    return render(request, 'chat/room.html', {
+        "room": chat_room,
+        "room_name": chat_room.name
+    })

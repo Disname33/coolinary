@@ -13,10 +13,10 @@
     <div class="container text-center">
         <h1>{{ user.get_username }}, добро пожаловать в чаты!</h1>
         <h3>Какой чат хотите посетить?</h3>
-        <form id="findChatRoomForm">
+        <form id="findChatRoomForm" method="POST" action="{% url 'chat' %}">
             {% csrf_token %}
             <div class="input-group mb-3 my-4">
-                <input type="text" name="room-name-input" id="room-name-input" autofocus placeholder="Введите имя чата"
+                <input type="text" name="name" id="room-name-input" autofocus placeholder="Введите имя чата"
                        class="form-control active border-primary focus-ring" aria-label="Введите имя чата"
                        pattern="[a-zA-Z0-9]+" title="Пожалуйста, введите только латинские буквы и цифры"
                        aria-describedby="room-name-submit" maxlength="50" required>
@@ -25,9 +25,9 @@
                     <span class="visually-hidden">Toggle Dropdown</span> Выбрать
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end float-end">
-                    <li><a class="dropdown-item" href="disname/">Сообщение админу</a></li>
-                    <li><a class="dropdown-item" href="moder/">Сообщение модераторам</a></li>
-                    <li><a class="dropdown-item" href="lobby/">Главная комната</a></li>
+                    {#                    <li><a class="dropdown-item" href="disname/">Сообщение админу</a></li>#}
+                    {#                    <li><a class="dropdown-item" href="moder/">Сообщение модераторам</a></li>#}
+                    <li><a class="dropdown-item" href="room/1/">Главная комната</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -37,10 +37,4 @@
             </div>
         </form>
     </div>
-    <script>
-        document.getElementById("findChatRoomForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-            window.location.pathname = '/chat/' + document.querySelector('#room-name-input').value + '/';
-        });
-    </script>
 {% endblock %}
