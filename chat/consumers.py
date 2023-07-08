@@ -45,6 +45,10 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
     async def subscribe_to_messages_in_room(self, pk, **kwargs):
         await self.message_activity.subscribe(room=pk)
 
+    @action()
+    async def delete_message(self, message_id, **kwargs):
+        await self.delete_message_from_bd(message_id=message_id)
+
     @model_observer(Message)
     async def message_activity(self, message, observer=None, **kwargs):
         await self.send_json(message)
@@ -95,6 +99,15 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         user: User = self.scope["user"]
         if not user.current_rooms.filter(pk=self.room_subscribe).exists():
             user.current_rooms.add(Room.objects.get(pk=pk))
+
+    @database_sync_to_async
+    def delete_message_from_bd(self, message_id):
+        try:
+            message = Message.objects.get(id=message_id)
+        except Message.DoesNotExist:
+            return
+        if message.user == self.scope["user"] or self.scope["user"].is_superuser:
+            message.delete()
 
 
 class UserConsumer(

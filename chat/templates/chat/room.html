@@ -45,6 +45,19 @@
             <div class="row align-items-end overflow-y-auto" style="min-height: 60vh; max-height: 65vh">
                 <div class="col mb-3 vstack align-self-end" id="chat-log">
                 </div>
+                <div class="col card-text placeholder-glow vstack align-self-end gap-3 my-3" id="placeholder">
+                    <div class="placeholder col-7 bg-primary"></div>
+                    <div class="placeholder col-4 bg-primary"></div>
+                    <div class="row">
+                        <div class="col-8"></div>
+                        <div class="placeholder col-4 bg-success"></div>
+                    </div>
+                    <div class="placeholder col-6 bg-primary"></div>
+                    <div class="row">
+                        <div class="col-4"></div>
+                        <div class="placeholder col-8 bg-success"></div>
+                    </div>
+                </div>
             </div>
             <form id="sendMessageForm">
                 {% csrf_token %}
@@ -66,6 +79,9 @@
             let lastMessage;
             let lastDate;
             let lastTime;
+            const deleteMessageBtn = `<span class="col-auto collapse collapse-horizontal" id="delBtn_%id">
+            <a class="btn btn-sm btn-outline-secondary m-0 p-0 bg-danger" onclick="deleteMessageFromBtn(this)"
+               role="button"><img src="{% static "svg/trash-2.svg" %}" alt="Delete"></a></span>`
             console.log("room_pk", room_pk)
             console.log("request_id", request_id)
             const chatSocket = new WebSocket(webSocket());
@@ -106,12 +122,16 @@
                 console.log('RealTime', data)
                 switch (data.action) {
                     case "retrieve":
+                        document.querySelector('#placeholder').remove();
                         for (let message of data.data.messages) {
                             createNewMessage(message);
                         }
                         break;
                     case "create":
                         createNewMessage(data.data);
+                        break;
+                    case "delete":
+                        document.querySelector('#message_' + data.pk).remove();
                         break;
                     default:
                         break;
@@ -143,21 +163,25 @@
                     if (lastMessage && lastMessage.user.username !== data.user.username) {
                         position = "mt-3 "
                     }
+                    let deleteBtn = "";
                     if (data.user.username === "{{ user.get_username }}") {
                         sender = "(Вы): ";
                         divClass = "bg-success rounded-start-4";
                         position += "justify-content-end ";
-
+                        deleteBtn = deleteMessageBtn.replace("%id", data.id);
                     } else {
                         sender = "(" + data.user.username + "): ";
                         divClass = "bg-primary rounded-end-4";
                         position += "justify-content-start ";
+                        {% if user.is_superuser %} deleteBtn = deleteMessageBtn.replace("%id", data.id); {% endif %}
                     }
-                    chatLog.innerHTML += `<div class="d-flex ` + position + `" id="message_` + data.id +
-                        `"><div class= 'position-relative text-break rounded-top-4 text-white ` +
-                        divClass + ` px-2' >` + sender + data.text + `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
-                        `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">`
-                        + time + `</span></div></div>`;
+                    chatLog.innerHTML += `<div class="d-flex ${position}" id="message_${data.id}">` +
+                        `<div class= 'position-relative rounded-top-4 ${divClass}'>` +
+                        `<span class='text-break  text-white  px-2' data-bs-toggle="collapse" data-bs-target="#delBtn_${data.id}" ` +
+                        `aria-expanded="false" aria-controls="delBtn_${data.id}">` + sender + data.text +
+                        `</span>${deleteBtn} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
+                        `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
+                        `${time}</span></div></div>`;
                     chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
                     lastMessage = data;
                 }
@@ -186,6 +210,25 @@
                 chatMessageInput.value = '';
                 chatMessageInput.focus()
             });
+
+            function deleteMessageFromBtn(delBtn_id) {
+                const messageElement = delBtn_id.parentNode.parentNode.parentNode
+                deleteMessage(getMessageID(messageElement))
+                messageElement.classList.add("visually-hidden")
+            }
+
+
+            function getMessageID(messageElement) {
+                return parseInt(messageElement.id.substring(8))
+            }
+
+            function deleteMessage(message_id) {
+                chatSocket.send(JSON.stringify({
+                    message_id: parseInt(message_id),
+                    action: "delete_message",
+                    request_id: request_id,
+                }));
+            }
 
 
             function webSocket() {
