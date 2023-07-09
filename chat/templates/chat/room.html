@@ -2,7 +2,15 @@
 {% load static %}
 
 {% block inhead %}
-
+    <style>
+        .admin-message {
+            position: absolute;
+            background: darkorange !important;
+            box-shadow: 0 0 10px 5px rgba(255, 100, 0, 0.5),
+            0 0 10px 5px rgba(255, 255, 0, 0.3),
+            0 0 10px 5px rgba(0, 255, 0, 0.2) !important;
+        }
+    </style>
 {% endblock %}
 
 {% block title %}
@@ -175,6 +183,8 @@
                         position += "justify-content-start ";
                         {% if user.is_superuser %} deleteBtn = deleteMessageBtn.replace("%id", data.id); {% endif %}
                     }
+                    if (data.user.is_superuser) divClass += " admin-message"
+
                     chatLog.innerHTML += `<div class="d-flex ${position}" id="message_${data.id}">` +
                         `<div class= 'position-relative rounded-top-4 ${divClass}'>` +
                         `<span class='text-break  text-white  px-2' data-bs-toggle="collapse" data-bs-target="#delBtn_${data.id}" ` +
@@ -240,6 +250,7 @@
                 const diffInMinutes = Math.abs(new Date(date_str2) - new Date(date_str1)) / (1000 * 60);
                 return (diffInMinutes > 10)
             }
+
         </script>
 
     {% endif %}

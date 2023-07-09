@@ -6,7 +6,7 @@ from .models import User, Room, Message
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username"]
+        fields = ["id", "username", "is_superuser", "is_staff"]
         # exclude = ["email", "password", "user_permissions"]
 
     # class UserSerializer(serializers.ModelSerializer):
