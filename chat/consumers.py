@@ -31,7 +31,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
     @action()
     async def leave_room(self, pk, **kwargs):
         await self.remove_user_from_room(pk)
-        self.update_users(event["usuarios"])
+        await self.notify_users()
 
     @action()
     async def create_message(self, message, **kwargs):
