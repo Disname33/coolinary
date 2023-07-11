@@ -10,7 +10,7 @@ def get_weather(city: str):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "lxml")
     scripts = soup.find_all('script')
-    print(*scripts, sep="\n")
+    # print(*scripts, sep="\n")
     target_script7 = str(scripts[7])[8:-8]
     target_script8 = str(scripts[8])[8:-8]
     # Извлечение содержимого скрипта

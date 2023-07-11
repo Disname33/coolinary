@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'weather',
     'coolinary',
     'games',
+    'chatGPT',
 ]
 
 MIDDLEWARE = [
@@ -135,6 +136,12 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 STATIC_DIRS = [
+    BASE_DIR / "static",
+]
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_URL = '/media/'
+MEDIA_DIRS = [
     BASE_DIR / "static",
 ]
 # Default primary key field type

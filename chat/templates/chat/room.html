@@ -10,6 +10,15 @@
             0 0 10px 5px rgba(255, 255, 0, 0.3),
             0 0 10px 5px rgba(0, 255, 0, 0.2) !important;
         }
+
+        .svg {
+            filter: invert(100%);
+        }
+
+        textarea {
+            resize: none;
+            overflow: hidden;
+        }
     </style>
 {% endblock %}
 
@@ -17,92 +26,133 @@
     Чат комната
 {% endblock %}
 
-{% block body_block %}
-    {% if alien %}
-        {% include "modules/modal.html" %}
-        <script>
-            const modalBackdrop = document.getElementById('staticBackdrop');
-            const options = {
-                backdrop: 'static',
-                keyboard: false
-            };
-            const modal = new bootstrap.Modal(modalBackdrop);
-            const modalBtn = modalBackdrop.querySelector('.btn');
-            modalBackdrop.querySelector('#staticBackdropLabel').textContent = 'Это закрытый чат';
-            modalBackdrop.querySelector('.modal-body').textContent = "У Вас нет доступа к этому чату!";
-            modalBtn.classList.add("btn-secondary");
-            modalBtn.innerHTML = "Назад";
-            modal.show(options);
 
-            function closeModalAndRestart() {
-                closeModal();
-            }
 
-            function closeModal() {
-                history.back();
-                modal.show(options);
-            }
-        </script>
+{% block nav_bar %}
+    {% include 'home/nav-bar.html' %}
+
+    {% if personal_message %}
+        <h5>Закрытая беседа {{ users }}</h5>
     {% else %}
-        <div class="container">
-            {% if personal_message %}
-                <h5>Закрытая беседа {{ users }}</h5>
-            {% else %}
-                <h5>Добро пожаловать в комнату "{{ room_name }}"!</h5>
-            {% endif %}
-            <div class="row align-items-end overflow-y-auto" style="min-height: 60vh; max-height: 65vh">
-                <div class="col mb-3 vstack align-self-end" id="chat-log">
+        <div class="container" id="room-name">
+            <span class="h5 list-inline-item me-0">Добро пожаловать в комнату "</span>
+            <a class="h5 list-inline-item me-0" data-bs-toggle="dropdown"
+               aria-expanded="false" href="#">{{ room_name }}</a>
+            <ul class="dropdown-menu" id="room-menu">
+                <li><a class="btn dropdown-item" href="">Переименовать</a>
+                </li>
+                <li><a class="btn dropdown-item" href="">Пользователи</a>
+                </li>
+            </ul>
+            <span class="h5 list-inline-item">"!</span>
+        </div>
+    {% endif %}
+
+{% endblock %}
+{% block body_block %}
+    <div class="container position-relative">
+        <div class="row align-items-end overflow-y-auto mb-5" id="content-place">
+            <div class="col mb-3 vstack align-self-end" id="chat-log">
+            </div>
+            <div class="col card-text placeholder-glow vstack align-self-end gap-3 my-3 me-3" id="placeholder">
+                <div class="placeholder col-7 bg-primary"></div>
+                <div class="placeholder col-4 bg-primary"></div>
+                <div class="row">
+                    <div class="placeholder offset-8 col-4 bg-success"></div>
                 </div>
-                <div class="col card-text placeholder-glow vstack align-self-end gap-3 my-3" id="placeholder">
-                    <div class="placeholder col-7 bg-primary"></div>
-                    <div class="placeholder col-4 bg-primary"></div>
-                    <div class="row">
-                        <div class="col-8"></div>
-                        <div class="placeholder col-4 bg-success"></div>
-                    </div>
-                    <div class="placeholder col-6 bg-primary"></div>
-                    <div class="row">
-                        <div class="col-4"></div>
-                        <div class="placeholder col-8 bg-success"></div>
-                    </div>
+                <div class="placeholder col-6 bg-primary"></div>
+                <div class="row">
+                    <div class="placeholder offset-4 col-8 bg-success"></div>
                 </div>
             </div>
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}
+    <div class="fixed-bottom ">
+        <div class="container">
             <form id="sendMessageForm">
                 {% csrf_token %}
-                <div class="input-group mb-3">
-                    <input type="text" name="chat-message-input" id="chat-message-input" autofocus
-                           placeholder="Введите сообщение"
-                           class="form-control active border-primary focus-ring" aria-label="Введите сообщение"
-                           aria-describedby="chat-message-submit" maxlength="255" required>
-                    <button class="btn btn-primary btn-lg" type="submit" id="chat-message-submit">Отправить</button>
+                <div class="input-group">
+                    <textarea type="text" name="chat-message-input" id="chat-message-input" autofocus
+                              placeholder="Введите сообщение"
+                              class="form-control active border-primary focus-ring overflow-y-auto"
+                              aria-label="Введите сообщение"
+                              aria-describedby="chat-message-submit" maxlength="255" required rows="1"
+                              style="max-height: 150px;"></textarea>
+                    <button class="btn btn-primary" type="submit" id="chat-message-submit">
+                        <img class="svg" src="{% static "svg/send.svg" %}" alt="send">
+                    </button>
                 </div>
             </form>
         </div>
-        <script src="{% static "js/local-date.js" %}?v1.1"></script>
-        <script>
-            const chatMessageInput = document.querySelector('#chat-message-input');
-            const chatLog = document.querySelector('#chat-log');
-            const room_pk = "{{ room.pk }}";
-            const request_id = "{{ session_key }}";
-            let lastMessage;
-            let lastDate;
-            let lastTime;
-            const deleteMessageBtn = `<span class="col-auto collapse collapse-horizontal" id="delBtn_%id">
-            <a class="btn btn-sm btn-outline-secondary m-0 p-0 bg-danger" onclick="deleteMessageFromBtn(this)"
-               role="button"><img src="{% static "svg/trash-2.svg" %}" alt="Delete"></a></span>`
-            console.log("room_pk", room_pk)
-            console.log("request_id", request_id)
-            const chatSocket = new WebSocket(webSocket());
+        {% include 'home/footer.html' %}
+    </div>
 
-            chatSocket.onopen = function () {
-                chatSocket.send(
-                    JSON.stringify({
-                        pk: room_pk,
-                        action: "join_room",
-                        request_id: request_id,
-                    })
-                );
-                chatSocket.send(
+    <script src="{% static "js/local-date.js" %}?v1.1"></script>
+    <script>
+        const chatMessageInput = document.querySelector('#chat-message-input');
+        const chatLog = document.querySelector('#chat-log');
+        const chatMessageSubmitBtn = document.querySelector('#chat-message-submit');
+
+
+        function isMobileDevice() {
+            return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1 || (window.innerWidth < 770))
+        }
+
+        if (isMobileDevice()) {
+            chatMessageInput.addEventListener('focus', setChatHeight);
+            chatMessageInput.addEventListener('blur', setChatHeight);
+        } else {
+            chatMessageInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault(); // Отменить перевод строки
+                    chatMessageSubmitBtn.click(); // Имитировать клик по кнопке submit
+                }
+            });
+        }
+
+        function setChatHeight() {
+            document.querySelector('#content-place').style.height = "10hv";
+            const chatHeight = chatMessageInput.getBoundingClientRect().top - document.querySelector('#room-name').getBoundingClientRect().bottom;
+            document.querySelector('#content-place').style.height = chatHeight + "px";
+        }
+
+        setChatHeight();
+
+        window.addEventListener('resize', function () {
+            setChatHeight();
+        });
+
+        chatMessageInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = `${this.scrollHeight}px`;
+            setChatHeight();
+        });
+
+        const room_pk = "{{ room.pk }}";
+        const request_id = "{{ session_key }}";
+        let lastMessage;
+        let lastDate;
+        let lastTime;
+        const deleteMessageBtn = `<span class="col-auto collapse collapse-horizontal pe-2" id="delBtn_%id">
+            <a class="btn btn-sm btn-outline-secondary m-0 p-0 bg-danger" onclick="deleteMessageFromBtn(this)"
+               role="button"><img src="{% static "svg/trash-2.svg" %}" alt="Delete"></a>
+               <a class="btn btn-sm btn-outline-secondary m-0 p-0 bg-primary" onclick="editMessageFromBtn(this)"
+               role="button"><img src="{% static "svg/edit.svg" %}" alt="Edit"></a></span>`
+        console.log("room_pk", room_pk)
+        console.log("request_id", request_id)
+        let chatSocket = new WebSocket(webSocket());
+
+        chatSocket.onopen = function () {
+            chatSocket.send(
+                JSON.stringify({
+                    pk: room_pk,
+                    action: "join_room",
+                    request_id: request_id,
+                })
+            );
+            chatSocket.send(
                     JSON.stringify({
                         pk: room_pk,
                         action: "retrieve",
@@ -165,9 +215,8 @@
                         position = "mt-3 "
                     }
                 }
-                if (data.sender === "Системное сообщение") {
-                    systemMessage(data.text)
-                } else {
+                if (!lastMessage || lastMessage.id < data.id) {
+
                     if (lastMessage && lastMessage.user.username !== data.user.username) {
                         position = "mt-3 "
                     }
@@ -189,7 +238,7 @@
                         `<div class= 'position-relative rounded-top-4 ${divClass}'>` +
                         `<span class='text-break  text-white  px-2' data-bs-toggle="collapse" data-bs-target="#delBtn_${data.id}" ` +
                         `aria-expanded="false" aria-controls="delBtn_${data.id}">` + sender + data.text +
-                        `</span>${deleteBtn} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
+                        `</span>${deleteBtn} &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; ` +
                         `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
                         `${time}</span></div></div>`;
                     chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
@@ -198,18 +247,19 @@
 
             }
 
-            chatSocket.onclose = function () {
-                systemMessage("Соединение разорвано, пожалуйста обновите страницу!")
-            };
+        chatSocket.onclose = function () {
+            systemMessage("Соединение разорвано, пожалуйста обновите страницу!")
+            chatSocket = new WebSocket(webSocket());
+        };
 
-            function systemMessage(message) {
-                chatLog.innerHTML += `<div class="my-3 d-flex justify-content-center">` +
-                    `<div class= 'rounded-4 text-white bg-secondary text-center mx-auto py-0 px-2' >` +
-                    message + `</div></div>`;
-                chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
-            }
+        function systemMessage(message) {
+            chatLog.innerHTML += `<div class="my-3 d-flex justify-content-center">` +
+                `<div class= 'rounded-4 text-white bg-secondary text-center mx-auto py-0 px-2' >` +
+                message + `</div></div>`;
+            chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
+        }
 
-            document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
+        document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
                 event.preventDefault();
                 const message = chatMessageInput.value;
                 chatSocket.send(JSON.stringify({
@@ -217,41 +267,60 @@
                     action: "create_message",
                     request_id: request_id,
                 }));
-                chatMessageInput.value = '';
-                chatMessageInput.focus()
-            });
+            chatMessageInput.value = '';
+            chatMessageInput.focus()
+        });
 
-            function deleteMessageFromBtn(delBtn_id) {
-                const messageElement = delBtn_id.parentNode.parentNode.parentNode
-                deleteMessage(getMessageID(messageElement))
-                messageElement.classList.add("visually-hidden")
-            }
+        function deleteMessageFromBtn(delBtn_id) {
+            const messageElement = delBtn_id.parentNode.parentNode.parentNode
+            deleteMessage(getMessageID(messageElement))
+            messageElement.classList.add("visually-hidden")
+        }
 
+        function editMessageFromBtn(delBtn_id) {
+            const messageElement = delBtn_id.parentNode.parentNode.parentNode
+            editMessage(getMessageID(messageElement))
+        }
 
-            function getMessageID(messageElement) {
-                return parseInt(messageElement.id.substring(8))
-            }
+        function getMessageID(messageElement) {
+            return parseInt(messageElement.id.substring(8))
+        }
 
-            function deleteMessage(message_id) {
-                chatSocket.send(JSON.stringify({
-                    message_id: parseInt(message_id),
-                    action: "delete_message",
-                    request_id: request_id,
-                }));
-            }
+        function deleteMessage(message_id) {
+            chatSocket.send(JSON.stringify({
+                message_id: message_id,
+                action: "delete_message",
+                request_id: request_id,
+            }));
+        }
 
+        function editMessage(message_id, message) {
+            chatSocket.send(JSON.stringify({
+                message_id: message_id,
+                message: message,
+                action: "edit_message",
+                request_id: request_id,
+            }));
+        }
 
-            function webSocket() {
-                const protocol = window.location.protocol === "http:" ? 'ws://' : 'wss://';
-                return protocol + window.location.host + '/ws/chat/'
-            }
+        function update_current_users() {
+            chatSocket.send(JSON.stringify({
+                action: "update_current_users",
+                request_id: request_id,
+            }));
+        }
 
-            function isLongTime(date_str1, date_str2) {
-                const diffInMinutes = Math.abs(new Date(date_str2) - new Date(date_str1)) / (1000 * 60);
-                return (diffInMinutes > 10)
-            }
+        function webSocket() {
+            const protocol = window.location.protocol === "http:" ? 'ws://' : 'wss://';
+            return protocol + window.location.host + '/ws/chat/'
+        }
+
+        function isLongTime(date_str1, date_str2) {
+            const diffInMinutes = Math.abs(new Date(date_str2) - new Date(date_str1)) / (1000 * 60);
+            return (diffInMinutes > 10)
+        }
 
         </script>
 
-    {% endif %}
+
 {% endblock %}

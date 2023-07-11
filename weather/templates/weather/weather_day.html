@@ -6,11 +6,11 @@
                 <div class="temp col-7">
                     <div class="value temp temp_c warm fs-4"> от
                         {% if weather_day.tmin|slice:":1" != "-" or weather_day.tmin|slice:":1" != "0" %}
-                            +{% endif %}{{ weather_day.tmin }}°
+                            +{% endif %}{{ weather_day.tmin }}°C
                     </div>
                     <div class="value temp temp_c warm fs-4"> до
                         {% if weather_day.tmax|slice:":1" != "-" or weather_day.tmax|slice:":1" != "0" %}
-                            +{% endif %}{{ weather_day.tmax }}°
+                            +{% endif %}{{ weather_day.tmax }}°C
                     </div>
                 </div>
                 <div class="symb center col-5">

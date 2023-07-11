@@ -1,5 +1,3 @@
-import json
-
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
 from djangochannelsrestframework import mixins
@@ -16,17 +14,31 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
     serializer_class = RoomSerializer
     lookup_field = "pk"
 
+    async def websocket_connect(self, message):
+        if self.scope['user'].is_authenticated:
+            await super().websocket_connect(message)
+        else:
+            await self.close()
+
+    async def add_group(self, name: str):
+        await super().add_group(name)
+        await self.send_current_users(name)
+
+    async def remove_group(self, name: str):
+        await super().remove_group(name)
+        await self.send_current_users(name)
+
     async def disconnect(self, code):
         if hasattr(self, "room_subscribe"):
             await self.remove_user_from_room(self.room_subscribe)
-            await self.notify_users()
         await super().disconnect(code)
 
     @action()
     async def join_room(self, pk, **kwargs):
-        self.room_subscribe = pk
-        await self.add_user_to_room(pk)
-        await self.notify_users()
+        if self.scope['user'].is_authenticated:
+            self.room_subscribe = pk
+            await self.add_user_to_room(pk)
+            await self.notify_users()
 
     @action()
     async def leave_room(self, pk, **kwargs):
@@ -49,6 +61,12 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
     @action()
     async def delete_message(self, message_id, **kwargs):
         await self.delete_message_from_bd(message_id=message_id)
+
+    @action()
+    async def update_current_users(self, **kwargs):
+        room: Room = await self.get_room(self.room_subscribe)
+        await self.send_json({'current_users': await self.current_users(room)})
+        await self.notify_users()
 
     @model_observer(Message)
     async def message_activity(self, message, observer=None, **kwargs):
@@ -75,12 +93,24 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
                 group,
                 {
                     'type': 'update_users',
+                    'group': group,
                     'usuarios': await self.current_users(room)
                 }
             )
 
+    async def send_current_users(self, group):
+        room: Room = await self.get_room(self.room_subscribe)
+        await self.channel_layer.group_send(
+            group,
+            {
+                'type': 'update_users',
+                'group': group,
+                'usuarios': await self.current_users(room)
+            }
+        )
+
     async def update_users(self, event: dict):
-        await self.send(text_data=json.dumps({'usuarios': event["usuarios"]}))
+        await self.send_json(event)
 
     @database_sync_to_async
     def get_room(self, pk: int) -> Room:

@@ -121,8 +121,8 @@
                     <div class="alert alert-info">
                         <div class="row">
                             <div class="col-9">
-                                <b>Город: </b>{{ info.city }}<br>
-                                <b>Температура:</b>{{ info.temp }} °C <br>
+                                <b class="pe-2">Город: </b>{{ info.city }}<br>
+                                <b class="pe-2">Температура:</b> {{ info.temp|floatformat:0 }} °C <br>
                             </div>
                             <div class="col-2 offset-1">
                                 <img src="https://openweathermap.org/img/w/{{ info.icon }}.png" class="img-thumbnail"

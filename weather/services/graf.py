@@ -13,14 +13,14 @@ def plot_chart(x, y, x_label='X-координаты', y_label='Y-координ
     else:
         plt.plot(x, y, color=color)
     plt.xlabel(x_label)
-    plt.ylabel(y_label)
+    plt.ylabel(y_label).set_position((1, 0.8))
     plt.title(title)
     # Настройка меток оси X
     ax = plt.gca()
     ax.xaxis.set_major_locator(m_dates.DayLocator())
-    ax.xaxis.set_major_formatter(m_dates.DateFormatter("%Y-%m-%d"))
+    ax.xaxis.set_major_formatter(m_dates.DateFormatter("%m.%d"))
     plt.xticks(rotation=90)
-    plt.subplots_adjust(bottom=0.3)
+    plt.subplots_adjust(bottom=0.2)
     plt.grid(True)
 
     # Создание объекта-потока для сохранения изображения графика
