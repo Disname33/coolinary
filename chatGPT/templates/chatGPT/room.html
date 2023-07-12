@@ -172,17 +172,17 @@
             chatMessageInput.style.height = `${this.scrollHeight}px`;
             setChatHeight();
             chatMessageInput.setAttribute('disabled', 'disabled')
+            chatMessageSubmitBtn.setAttribute('disabled', 'disabled')
             $('#placeholder').show()
             createNewMessage("Вы", message)
             addMessageToArchive("user", message)
             const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
             $.ajax({
                 url: window.location.href,
-                type: 'GET',
+                type: 'POST',
                 headers: {'X-CSRFToken': csrftoken2},
                 data: {
                     'csrfmiddlewaretoken': csrftoken2,
-                    {#'chat-message-input':  messageArchive,#}
                     'chat-message-input': JSON.stringify(messageArchive),
                 },
                 success: function (response) {
@@ -191,6 +191,7 @@
                     $('#placeholder').hide()
                     createNewMessage("ChatGPT", response)
                     chatMessageInput.removeAttribute('disabled')
+                    chatMessageSubmitBtn.removeAttribute('disabled')
                     chatMessageInput.focus()
                     addMessageToArchive("assistant", response)
                 },
@@ -199,6 +200,11 @@
                     // Обработка ошибки
                     console.log(error);
                     systemMessage("" + error.status + "(" + error.statusText + ")")
+                    messageArchive = []
+                    chatMessageInput.value = message
+                    chatMessageInput.removeAttribute('disabled')
+                    chatMessageSubmitBtn.removeAttribute('disabled')
+                    chatMessageInput.focus()
                 }
             });
         });

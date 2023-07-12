@@ -239,7 +239,7 @@
                         `<div class='text-break  text-white  px-2' data-bs-toggle="collapse" data-bs-target="#delBtn_${data.id}" ` +
                         `aria-expanded="false" aria-controls="delBtn_${data.id}">` + sender +
                         escapingMessageSpecialCharacters(data.text) +
-                        ` &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;</div>${deleteBtn} ` +
+                        ` ${deleteBtn}&nbsp; &nbsp;&nbsp; &nbsp; &nbsp;</div> ` +
                         `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
                         `${time}</span></div></div>`;
                     chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
