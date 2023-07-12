@@ -53,8 +53,9 @@
                     <div class="d-flex mt-3 justify-content-start ">
                         <div class="position-relative rounded-top-4 bg_darkviolet rounded-end-4">
                             <div class="text-break placeholder-glow vstack gap-1 px-2">
-                                <div class="text-white"> Пожалуйста дождитесь ответа ChatGPT. Это займёт меньше минуты
-                                </div>
+                                <div class="text-white"> Пожалуйста дождитесь ответа ChatGPT.</div>
+                                <div class="text-white"> Это обычно занимает не больше пары минут</div>
+                                <div class="text-white" id="timer">00:00:00</div>
                                 <div class="placeholder col-5 bg-white"></div>
                                 <div class="placeholder col-7 bg-white"></div>
                                 <div class="placeholder col-9 bg-white"></div>
@@ -173,6 +174,7 @@
             setChatHeight();
             chatMessageInput.setAttribute('disabled', 'disabled')
             chatMessageSubmitBtn.setAttribute('disabled', 'disabled')
+            startTimer()
             $('#placeholder').show()
             createNewMessage("Вы", message)
             addMessageToArchive("user", message)
@@ -186,6 +188,7 @@
                     'chat-message-input': JSON.stringify(messageArchive),
                 },
                 success: function (response) {
+                    resetTimer()
                     // Обработка успешного ответа
                     console.log(response)
                     $('#placeholder').hide()
@@ -196,6 +199,7 @@
                     addMessageToArchive("assistant", response)
                 },
                 error: function (error) {
+                    resetTimer()
                     $('#placeholder').hide()
                     // Обработка ошибки
                     console.log(error);
@@ -222,6 +226,44 @@
 
         $('#placeholder').hide()
         createNewMessage("ChatGPT", "{{ welcome }}")
+
+
+        let seconds = 0;
+        let minutes = 0;
+        let hours = 0;
+        let timer;
+
+        function startTimer() {
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            seconds = 0;
+            minutes = 0;
+            hours = 0;
+            document.getElementById('timer').innerText = '00:00:00';
+        }
+
+        function updateTimer() {
+            seconds++;
+
+            if (seconds === 60) {
+                seconds = 0;
+                minutes++;
+
+                if (minutes === 60) {
+                    minutes = 0;
+                    hours++;
+                }
+            }
+
+            document.getElementById('timer').innerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
     </script>
 
 
