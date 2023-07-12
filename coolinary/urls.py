@@ -22,6 +22,7 @@ from . import views
 urlpatterns = [
     path('', views.index, name='home'),
     path('chat/', include('chat.urls')),
+    path('chatGPT/', include('chatGPT.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     # path('profile/', views.profile, name='profile'),
     # path('login/', views.LoginView.as_view(), name='login'),

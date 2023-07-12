@@ -1,0 +1,87 @@
+import openai
+
+from coolinary.secret.secret import openai_api_key
+
+openai.api_key = openai_api_key
+welcome_update_in_process = False
+
+
+def davinci(prompt):
+    # задаем модель и промпт
+    model_engine = "text-davinci-003"
+
+    # генерируем ответ
+    response = openai.Completion.create(
+        engine=model_engine,
+        prompt=prompt,
+        max_tokens=1024,
+        temperature=0.5,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
+    )
+    return response.choices[0].text
+
+
+def turbo_3_5(message):
+    messages = messages_update([], "user", message)
+    return get_last_message_from_response(messages)
+
+
+def messages_update(messages, role, content):
+    messages.append({'role': role, 'content': content})
+    return messages
+
+
+def get_response(messages):
+    model_engine = "gpt-3.5-turbo"
+    response = openai.ChatCompletion.create(
+        model=model_engine,
+        messages=messages
+    )
+    return response
+
+
+def get_last_message_from_response(messages):
+    response = get_response(messages)
+    return response['choices'][0]['message']['content']
+
+
+def get_wellcome_message_and_update():
+    import threading
+    global welcome_update_in_process
+    file_path = "chatGPT/services/welcomeGPT.txt"
+
+    def second_function():
+        global welcome_update_in_process
+        welcome_update_in_process = True
+        temp = turbo_3_5("Напиши приветственную речь пользователю чата от лица искусственного интеллекта на 80 слов")
+        with open(file_path, 'w', encoding="utf-8") as welcome_file:
+            welcome_file.write(temp)
+        welcome_update_in_process = False
+
+    if not welcome_update_in_process:
+        # Создание и запуск отдельного потока для второй функции
+        thread = threading.Thread(target=second_function)
+        thread.start()
+
+    # Открываем файл на чтение и запись
+    with open(file_path, 'r', encoding="utf-8") as file:
+        welcome = file.read()
+    return welcome
+
+
+def test():
+    print(davinci("Напиши приветственную речь пользователям от лица искусственного интеллекта на 100 слов"))
+    print("----------------------gpt-3.5-turbo-------------------------")
+    print(turbo_3_5("Напиши приветственную речь пользователю чата от лица искусственного интеллекта на 80 слов"))
+
+
+if __name__ == '__main__':
+    current_messages = []
+    while True:
+        user_input = input()
+        messages_update(current_messages, "user", user_input)
+        model_response = get_response(current_messages)
+        print(model_response)
+        messages_update(current_messages, "assistant", model_response)

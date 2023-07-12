@@ -1,0 +1,222 @@
+{% extends 'home/header.html' %}
+{% load static %}
+
+{% block inhead %}
+    <style>
+        .admin-message {
+            position: absolute;
+            background: darkorange !important;
+            box-shadow: 0 0 10px 5px rgba(255, 100, 0, 0.5),
+            0 0 10px 5px rgba(255, 255, 0, 0.3),
+            0 0 10px 5px rgba(0, 255, 0, 0.2) !important;
+        }
+
+        .svg {
+            filter: invert(100%);
+        }
+
+        textarea {
+            resize: none;
+            overflow: hidden;
+        }
+
+        .bg_darkviolet {
+            background: darkviolet !important;
+            box-shadow: 0 0 10px 5px rgba(170, 76, 211, 0.5),
+            0 0 10px 5px rgba(186, 113, 217, 0.3) !important;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    Чат комната
+{% endblock %}
+
+
+
+{% block nav_bar %}
+    {% include 'home/nav-bar.html' %}
+
+    <div class="container" id="room-name">
+        <span class="h5 list-inline-item me-0">Задайте вопрос ChatGPT</span>
+    </div>
+
+{% endblock %}
+{% block body_block %}
+    <div class="container position-relative">
+        <div class="row align-items-end overflow-y-auto" id="content-place">
+            <div>
+                <div class="col mb-1 vstack align-self-end" id="chat-log">
+                </div>
+                <div class="col card-text placeholder-glow vstack align-self-end gap-3 my-3 me-3" id="placeholder">
+
+                    <div class="d-flex mt-3 justify-content-start ">
+                        <div class="position-relative rounded-top-4 bg_darkviolet rounded-end-4">
+                            <div class="text-break placeholder-glow vstack gap-1 px-2">
+                                <div class="text-white"> Пожалуйста дождитесь ответа ChatGPT. Это займёт меньше минуты
+                                </div>
+                                <div class="placeholder col-5 bg-white"></div>
+                                <div class="placeholder col-7 bg-white"></div>
+                                <div class="placeholder col-9 bg-white"></div>
+                                <div class="placeholder col-4 bg-white"></div>
+                                <div class="placeholder col-6 bg-white"></div>
+                                <div class="placeholder col-10 bg-white"></div>
+                                <div class="placeholder offset-11 col-1 bg-white"></div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}
+    <div class="fixed-bottom ">
+        <div class="container">
+            <form id="sendMessageForm">
+                {% csrf_token %}
+                <div class="input-group">
+                    <textarea type="text" name="chat-message-input" id="chat-message-input" autofocus
+                              placeholder="Введите сообщение"
+                              class="form-control active border-primary focus-ring overflow-y-auto"
+                              aria-label="Введите сообщение"
+                              aria-describedby="chat-message-submit" minlength="5" maxlength="255" required rows="1"
+                              style="max-height: 150px;"></textarea>
+                    <button class="btn btn-primary" type="submit" id="chat-message-submit">
+                        <img class="svg" src="{% static "svg/send.svg" %}" alt="send">
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% include 'home/footer.html' %}
+    </div>
+
+    <script src="{% static "js/local-date.js" %}?v1.1"></script>
+    <script>
+        const chatMessageInput = document.querySelector('#chat-message-input');
+        const chatLog = document.querySelector('#chat-log');
+        const chatMessageSubmitBtn = document.querySelector('#chat-message-submit');
+        let messageArchive = [];
+
+        function isMobileDevice() {
+            return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1 || (window.innerWidth < 770))
+        }
+
+        if (isMobileDevice()) {
+            chatMessageInput.addEventListener('focus', setChatHeight);
+            chatMessageInput.addEventListener('blur', setChatHeight);
+        } else {
+            chatMessageInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault(); // Отменить перевод строки
+                    chatMessageSubmitBtn.click(); // Имитировать клик по кнопке submit
+                }
+            });
+        }
+
+        function setChatHeight() {
+            document.querySelector('#content-place').style.height = "10hv";
+            const chatHeight = chatMessageInput.getBoundingClientRect().top - document.querySelector('#room-name').getBoundingClientRect().bottom - 20;
+            document.querySelector('#content-place').style.height = chatHeight + "px";
+        }
+
+        setChatHeight();
+
+        window.addEventListener('resize', function () {
+            setChatHeight();
+        });
+
+        chatMessageInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = `${this.scrollHeight}px`;
+            setChatHeight();
+        });
+
+        function createNewMessage(sender = "Вы", message) {
+            const date = new Date();
+            const hours = date.getHours().toString().padStart(2, '0')
+            const minutes = date.getMinutes().toString().padStart(2, '0')
+            const time = `${hours}:${minutes}`
+            let divClass;
+            let position;
+            if (sender === "Вы") {
+                sender = "(Вы): ";
+                divClass = "bg-success rounded-start-4";
+                position = "justify-content-end ";
+            } else {
+                sender = "(ChatGPT): ";
+                divClass = "bg_darkviolet rounded-end-4";
+                position = "justify-content-start ";
+            }
+
+            chatLog.innerHTML += `<div class="d-flex mt-3 ${position}">` +
+                `<div class= 'position-relative rounded-top-4 ${divClass}'>` +
+                `<div class='text-break text-white px-2'>` + sender +
+                escapingMessageSpecialCharacters(message) + ` &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; </div>` +
+                `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
+                `${time}</span></div></div>`;
+            chatLog.parentNode.parentNode.scrollTop = chatLog.parentNode.parentNode.scrollHeight;
+        }
+
+        function escapingMessageSpecialCharacters(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>').replace(/    /g, '&nbsp;&nbsp;&nbsp;&nbsp;').replace(/```/g, '<hr>')
+        }
+
+        document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const message = chatMessageInput.value;
+            chatMessageInput.value = '';
+            chatMessageInput.style.height = 'auto';
+            chatMessageInput.style.height = `${this.scrollHeight}px`;
+            setChatHeight();
+            chatMessageInput.setAttribute('disabled', 'disabled')
+            $('#placeholder').show()
+            createNewMessage("Вы", message)
+            addMessageToArchive("user", message)
+            const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            $.ajax({
+                url: window.location.href,
+                type: 'GET',
+                headers: {'X-CSRFToken': csrftoken2},
+                data: {
+                    'csrfmiddlewaretoken': csrftoken2,
+                    {#'chat-message-input':  messageArchive,#}
+                    'chat-message-input': JSON.stringify(messageArchive),
+                },
+                success: function (response) {
+                    // Обработка успешного ответа
+                    console.log(response)
+                    $('#placeholder').hide()
+                    createNewMessage("ChatGPT", response)
+                    chatMessageInput.removeAttribute('disabled')
+                    chatMessageInput.focus()
+                    addMessageToArchive("assistant", response)
+                },
+                error: function (error) {
+                    $('#placeholder').hide()
+                    // Обработка ошибки
+                    console.log(error);
+                    systemMessage("" + error.status + "(" + error.statusText + ")")
+                }
+            });
+        });
+
+        function systemMessage(message) {
+            chatLog.innerHTML += `<div class="my-3 d-flex justify-content-center">` +
+                `<div class= 'rounded-4 text-white bg-secondary text-center mx-auto py-0 px-2' >` +
+                message + `</div></div>`;
+            chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
+        }
+
+        function addMessageToArchive(role, content) {
+            messageArchive.push({'role': role, 'content': content})
+        }
+
+        $('#placeholder').hide()
+        createNewMessage("ChatGPT", "{{ welcome }}")
+    </script>
+
+
+{% endblock %}

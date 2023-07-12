@@ -10,9 +10,8 @@
 {% endblock %}
 
 {% block body_block %}
-    <div class="container text-center mt-5">
-        <h1 class="mt-5">{{ user.get_username }}, добро пожаловать в чаты!</h1>
-        <hr>
+    <div class="container text-center">
+        <h1>{{ user.get_username }}, добро пожаловать в чаты!</h1>
         <h3>Какой чат хотите посетить?</h3>
         <form id="findChatRoomForm" method="POST">
             {% csrf_token %}
@@ -37,11 +36,5 @@
                 <button class="btn btn-primary btn-lg" type="submit" id="room-name-submit">Войти</button>
             </div>
         </form>
-        <hr>
-        <div class="align-content-center text-center mb-5">
-            <span class="h3 align-middle">Или хотите пообщаться с ChatGPT?</span>
-            <span><a class="btn btn-primary btn" href="{% url 'chat_gpt' %}"> ХОЧУ! </a></span>
-        </div>
-
     </div>
 {% endblock %}
