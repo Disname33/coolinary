@@ -301,7 +301,7 @@
                     document.querySelector('#message_' + data.pk).remove();
                     break;
                 case "update":
-                    if (data.errors) {
+                    if (data.errors.length) {
                         alert(data.errors[0]);
                     } else {
                         if (data.data.name) {
