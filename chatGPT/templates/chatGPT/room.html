@@ -48,7 +48,7 @@
             <div>
                 <div class="col mb-1 vstack align-self-end" id="chat-log">
                 </div>
-                <div class="col card-text placeholder-glow vstack align-self-end gap-3 my-3 me-3" id="placeholder">
+                <div class="col card-text placeholder-glow vstack align-self-end gap-3 mb-3 me-3" id="placeholder">
 
                     <div class="d-flex mt-3 justify-content-start ">
                         <div class="position-relative rounded-top-4 bg_darkviolet rounded-end-4">
@@ -75,7 +75,7 @@
 {% endblock %}
 {% block footer %}
     <div class="fixed-bottom ">
-        <div class="container">
+        <div class="container py-3 bg-dark">
             <form id="sendMessageForm">
                 {% csrf_token %}
                 <div class="input-group">

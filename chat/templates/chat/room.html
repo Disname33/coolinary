@@ -3,6 +3,7 @@
 
 {% block inhead %}
     <style>
+
         .admin-message {
             position: absolute;
             background: darkorange !important;
@@ -39,10 +40,14 @@
             <a class="h5 list-inline-item me-0" data-bs-toggle="dropdown"
                aria-expanded="false" href="#">{{ room_name }}</a>
             <ul class="dropdown-menu" id="room-menu">
-                <li><a class="btn dropdown-item" href="">Переименовать</a>
-                </li>
-                <li><a class="btn dropdown-item" href="">Пользователи</a>
-                </li>
+                <li><a class="btn dropdown-item disabled" href="#">
+                    <img class="svg" src="{% static "svg/edit.svg" %}" alt="rename_room">
+                    <div class="vr mx-2"></div>
+                    Переименовать</a></li>
+                <li><a class="btn dropdown-item disabled" href="#">
+                    <img class="svg" src="{% static "svg/users.svg" %}" alt="users_in_room">
+                    <div class="vr mx-2"></div>
+                    Пользователи</a></li>
             </ul>
             <span class="h5 list-inline-item">"!</span>
         </div>
@@ -69,8 +74,57 @@
     </div>
 {% endblock %}
 {% block footer %}
-    <div class="fixed-bottom ">
-        <div class="container">
+    <div class="fixed-bottom z-1">
+        <div>
+            <div class="btn mx-auto visually-hidden user-select-none" href="#" data-bs-toggle="dropdown"
+                 aria-expanded="false">Сообщение
+            </div>
+            <ul class="dropdown-menu message-menu">
+                <li>
+
+                    <a class="dropdown-item disabled" onclick="replyToMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/reply.svg" %}" alt="reply">
+                        <div class="vr  mx-2"></div>
+                        Ответить</a>
+                </li>
+                <li>
+
+                    <a class="dropdown-item" onclick="copyMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/copy.svg" %}" alt="copy">
+                        <div class="vr mx-2"></div>
+                        Копировать</a>
+                </li>
+                <li>
+
+                    <a class="dropdown-item visually-hidden" onclick="forwardMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/forward.svg" %}" alt="forward">
+                        <div class="vr mx-2"></div>
+                        Переслать</a>
+                </li>
+                <li>
+
+                    <a class="dropdown-item disabled" onclick="pinMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/pin.svg" %}" width="24px" height="24px" alt="pin">
+                        <div class="vr mx-2"></div>
+                        Закрепить</a>
+                </li>
+                <li>
+
+                    <a class="dropdown-item disabled" onclick="editMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/edit.svg" %}" alt="edit">
+                        <div class="vr  mx-2"></div>
+                        Изменить</a>
+                </li>
+                <li>
+                    <a class="dropdown-item" onclick="deleteMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/trash-2.svg" %}" alt="delete">
+                        <div class="vr mx-2"></div>
+                        Удалить</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="container  py-3 bg-dark">
             <form id="sendMessageForm">
                 {% csrf_token %}
                 <div class="input-group">
@@ -113,15 +167,18 @@
         }
 
         function setChatHeight() {
-            document.querySelector('#content-place').style.height = "10hv";
             const chatHeight = chatMessageInput.getBoundingClientRect().top - document.querySelector('#room-name').getBoundingClientRect().bottom - 20;
             document.querySelector('#content-place').style.height = chatHeight + "px";
+
         }
 
-        setChatHeight();
-
+        window.addEventListener('load', function () {
+            setChatHeight();
+            //  document.querySelector('html').style.height = document.querySelector('.footer').getBoundingClientRect().bottom + "px";
+        });
         window.addEventListener('resize', function () {
             setChatHeight();
+            document.querySelector('html').style.height = document.querySelector('.footer').getBoundingClientRect().bottom + "px";
         });
 
         chatMessageInput.addEventListener('input', function () {
@@ -132,16 +189,11 @@
 
         const room_pk = "{{ room.pk }}";
         const request_id = "{{ session_key }}";
+        const current_user = "{{ user.get_username }}"
+        const current_user_is_superuser = "{{ user.is_superuser }}"
         let lastMessage;
         let lastDate;
         let lastTime;
-        const deleteMessageBtn = `<span class="col-auto collapse collapse-horizontal pe-2" id="delBtn_%id">
-            <a class="btn btn-sm btn-outline-secondary m-0 p-0 bg-danger" onclick="deleteMessageFromBtn(this)"
-               role="button"><img src="{% static "svg/trash-2.svg" %}" alt="Delete"></a>
-               <a class="btn btn-sm btn-outline-secondary m-0 p-0 bg-primary" onclick="editMessageFromBtn(this)"
-               role="button"><img src="{% static "svg/edit.svg" %}" alt="Edit"></a></span>`
-        console.log("room_pk", room_pk)
-        console.log("request_id", request_id)
         let chatSocket = new WebSocket(webSocket());
 
         chatSocket.onopen = function () {
@@ -153,99 +205,116 @@
                 })
             );
             chatSocket.send(
-                    JSON.stringify({
-                        pk: room_pk,
-                        action: "retrieve",
-                        request_id: request_id,
-                    })
-                );
-                chatSocket.send(
-                    JSON.stringify({
-                        pk: room_pk,
-                        action: "subscribe_to_messages_in_room",
-                        request_id: request_id,
-                    })
-                );
-                chatSocket.send(
-                    JSON.stringify({
-                        pk: room_pk,
-                        action: "subscribe_instance",
-                        request_id: request_id,
-                    })
-                );
-            };
+                JSON.stringify({
+                    pk: room_pk,
+                    action: "retrieve",
+                    request_id: request_id,
+                })
+            );
+            chatSocket.send(
+                JSON.stringify({
+                    pk: room_pk,
+                    action: "subscribe_to_messages_in_room",
+                    request_id: request_id,
+                })
+            );
+            chatSocket.send(
+                JSON.stringify({
+                    pk: room_pk,
+                    action: "subscribe_instance",
+                    request_id: request_id,
+                })
+            );
+        };
 
-            chatSocket.onmessage = function (e) {
-                const data = JSON.parse(e.data);
-                console.log('RealTime', data)
-                switch (data.action) {
-                    case "retrieve":
-                        document.querySelector('#placeholder').remove();
-                        for (let message of data.data.messages) {
-                            createNewMessage(message);
-                        }
-                        break;
-                    case "create":
-                        createNewMessage(data.data);
-                        break;
-                    case "delete":
-                        document.querySelector('#message_' + data.pk).remove();
-                        break;
-                    default:
-                        break;
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            console.log('RealTime', data)
+            switch (data.action) {
+                case "retrieve":
+                    document.querySelector('#placeholder').remove();
+                    for (let message of data.data.messages) {
+                        createNewMessage(message);
+                    }
+                    break;
+                case "create":
+                    createNewMessage(data.data);
+                    break;
+                case "delete":
+                    document.querySelector('#message_' + data.pk).remove();
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        function createNewMessage(data) {
+            let sender;
+            let divClass;
+            let position = 'mt-1 ';
+            let time;
+            if (data.created_at) {
+                const date = localeDate(data.created_at);
+                time = localeTime(data.created_at);
+                if (lastDate !== date) {
+                    lastDate = date
+                    systemMessage(date);
                 }
-            };
-
-            function createNewMessage(data) {
-                let sender;
-                let divClass;
-                let position = 'mt-1 ';
-                let time;
-                if (data.created_at) {
-                    const date = localeDate(data.created_at);
-                    time = localeTime(data.created_at);
-                    if (lastDate !== date) {
-                        lastDate = date
-                        systemMessage(date);
-                    }
-                    if (lastTime !== time) {
-                        lastTime = time
-                    }
-                    if (lastMessage && isLongTime(lastMessage.created_at, data.created_at)) {
-                        position = "mt-3 "
-                    }
+                if (lastTime !== time) {
+                    lastTime = time
                 }
-                if (!lastMessage || lastMessage.id < data.id) {
-
-                    if (lastMessage && lastMessage.user.username !== data.user.username) {
-                        position = "mt-3 "
-                    }
-                    let deleteBtn = "";
-                    if (data.user.username === "{{ user.get_username }}") {
-                        sender = "(Вы): ";
-                        divClass = "bg-success rounded-start-4";
-                        position += "justify-content-end ";
-                        deleteBtn = deleteMessageBtn.replace("%id", data.id);
-                    } else {
-                        sender = "(" + data.user.username + "): ";
-                        divClass = "bg-primary rounded-end-4";
-                        position += "justify-content-start ";
-                        {% if user.is_superuser %} deleteBtn = deleteMessageBtn.replace("%id", data.id); {% endif %}
-                    }
-                    if (data.user.is_superuser) divClass += " admin-message"
-
-                    chatLog.innerHTML += `<div class="d-flex ${position}" id="message_${data.id}">` +
-                        `<div class= 'position-relative rounded-top-4 ${divClass}'>` +
-                        `<div class='text-break  text-white  px-2' data-bs-toggle="collapse" data-bs-target="#delBtn_${data.id}" ` +
-                        `aria-expanded="false" aria-controls="delBtn_${data.id}">` + sender +
-                        escapingMessageSpecialCharacters(data.text) +
-                        ` ${deleteBtn}&nbsp; &nbsp;&nbsp; &nbsp; &nbsp;</div> ` +
-                        `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
-                        `${time}</span></div></div>`;
-                    chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
-                    lastMessage = data;
+                if (lastMessage && isLongTime(lastMessage.created_at, data.created_at)) {
+                    position = "mt-3 "
                 }
             }
+            if (!lastMessage || lastMessage.id < data.id) {
+
+                if (lastMessage && lastMessage.user.username !== data.user.username) {
+                    position = "mt-3 "
+                }
+                if (data.user.username === current_user) {
+                    sender = "Вы";
+                    divClass = "bg-success rounded-start-4";
+                    position += "justify-content-end ";
+                } else {
+                    sender = data.user.username;
+                    divClass = "bg-primary rounded-end-4";
+                    position += "justify-content-start ";
+                }
+                if (data.user.is_superuser) divClass += " admin-message"
+
+                chatLog.innerHTML += `<div class="d-flex ${position}" id="message_${data.id}">` +
+                    `<div class= 'position-relative rounded-top-4 ${divClass}' href="#" onclick="addMenuAtMessage(this)" ` +
+                    `data-bs-toggle="dropdown" aria-expanded="true"><div class='text-break  text-white  px-2' >(<em>` +
+                    sender + `</em>):<em> ` + escapingMessageSpecialCharacters(data.text) +
+                    `</em> &nbsp;&nbsp; &nbsp; &nbsp;</div> ` +
+                    `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">(` +
+                    `${time}</span></div><ul class="dropdown-menu user-select-none"></ul></div>`;
+
+                chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
+                lastMessage = data;
+            }
+        }
+
+
+        function addMenuAtMessage(element) {
+            const menu = element.nextElementSibling;
+            const dropdown = new bootstrap.Dropdown(element)
+            dropdown.toggle()
+            if (element.querySelector('em').innerText === "Вы" || current_user_is_superuser) {
+                menu.innerHTML = document.querySelector('.message-menu').innerHTML;
+            } else {
+
+                menu.innerHTML = "";
+                const menuChild = document.querySelector('.message-menu').children
+                for (let i = 0; i < 4; i++) {
+                    menu.appendChild(menuChild[i].cloneNode(true));
+                }
+            }
+
+            dropdown.toggle()
+        }
+
 
         function escapingMessageSpecialCharacters(text) {
             return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
@@ -265,25 +334,53 @@
 
         document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
                 event.preventDefault();
-                const message = chatMessageInput.value;
-                chatSocket.send(JSON.stringify({
-                    message: message,
-                    action: "create_message",
-                    request_id: request_id,
-                }));
+            const message = chatMessageInput.value;
+            chatSocket.send(JSON.stringify({
+                message: message,
+                action: "create_message",
+                request_id: request_id,
+            }));
             chatMessageInput.value = '';
             chatMessageInput.focus()
         });
 
-        function deleteMessageFromBtn(delBtn_id) {
-            const messageElement = delBtn_id.parentNode.parentNode.parentNode
+        function replyToMessageFromBtn(btn) {
+            const messageElement = btn.parentNode.parentNode.parentNode
+            console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
+        }
+
+        function copyMessageFromBtn(btn) {
+            const messageElement = btn.parentNode.parentNode.parentNode
+            navigator.clipboard.writeText(messageElement.querySelectorAll('em')[1].innerText)
+                .then(function () {
+                    console.log("Текст скопирован в буфер обмена");
+                })
+                .catch(function (error) {
+                    console.error("Не удалось скопировать текст: ", error);
+                });
+        }
+
+        function forwardMessageFromBtn(btn) {
+            const messageElement = btn.parentNode.parentNode.parentNode
+            console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
+        }
+
+        function pinMessageFromBtn(btn) {
+            const messageElement = btn.parentNode.parentNode.parentNode
+            console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
+        }
+
+        function deleteMessageFromBtn(btn) {
+            const messageElement = btn.parentNode.parentNode.parentNode
             deleteMessage(getMessageID(messageElement))
             messageElement.classList.add("visually-hidden")
         }
 
-        function editMessageFromBtn(delBtn_id) {
-            const messageElement = delBtn_id.parentNode.parentNode.parentNode
-            editMessage(getMessageID(messageElement))
+
+        function editMessageFromBtn(btn) {
+            const messageElement = btn.parentNode.parentNode.parentNode
+            console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
+            {#editMessage(getMessageID(messageElement))#}
         }
 
         function getMessageID(messageElement) {
