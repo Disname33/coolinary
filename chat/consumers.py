@@ -63,6 +63,10 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         await self.delete_message_from_bd(message_id=message_id)
 
     @action()
+    async def edit_message(self, message_id, text, **kwargs):
+        await self.update_message_from_bd(message_id=message_id, text=text)
+
+    @action()
     async def update_current_users(self, **kwargs):
         room: Room = await self.get_room(self.room_subscribe)
         await self.send_json({'current_users': await self.current_users(room)})
@@ -121,9 +125,15 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         return [UserSerializer(user).data for user in room.current_users.all()]
 
     @database_sync_to_async
-    def remove_user_from_room(self, room):
-        user: User = self.scope["user"]
-        user.current_rooms.remove(room)
+    def remove_user_from_room(self, room, user_name=None):
+        if user_name is None:
+            self.scope["user"].current_rooms.remove(room)
+        else:
+            try:
+                user = User.objects.get(user_name=user_name)
+                user.current_rooms.remove(room)
+            except User.DoesNotExist:
+                print("Пользователь не найден")
 
     @database_sync_to_async
     def add_user_to_room(self, pk):
@@ -139,6 +149,17 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
             return
         if message.user == self.scope["user"] or self.scope["user"].is_superuser:
             message.delete()
+
+    @database_sync_to_async
+    def update_message_from_bd(self, message_id, text):
+        try:
+            message = Message.objects.get(id=message_id)
+        except Message.DoesNotExist:
+            return
+        if message.user == self.scope["user"] or self.scope["user"].is_superuser:
+            message.text = text
+            message.is_edited = True
+            message.save()
 
 
 class UserConsumer(

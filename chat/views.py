@@ -8,6 +8,8 @@ from .models import Room
 def index(request):
     if request.method == "POST":
         if name := request.POST.get("name"):
+            name = ' '.join(name.strip().split())
+            name = name[0].upper() + name[1:]
             chat_room = None
             try:
                 chat_room = Room.objects.get(name=name)

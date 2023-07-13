@@ -6,6 +6,9 @@ class Room(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False, unique=True)
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rooms")
     current_users = models.ManyToManyField(User, related_name="current_rooms", blank=True)
+    baned_users = models.ManyToManyField(User, related_name="baned_users", blank=True)
+    is_private = models.BooleanField(default=False)
+    allowed_users = models.ManyToManyField(User, related_name="allowed_users", blank=True)
 
     def __str__(self):
         return f"Room({self.name} {self.host})"
@@ -16,6 +19,7 @@ class Message(models.Model):
     text = models.TextField(max_length=500)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
     created_at = models.DateTimeField(auto_now_add=True)
+    is_edited = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Message({self.user} {self.room})"

@@ -81,36 +81,31 @@
             </div>
             <ul class="dropdown-menu message-menu">
                 <li>
-
                     <a class="dropdown-item disabled" onclick="replyToMessageFromBtn(this)">
                         <img class="svg" src="{% static "svg/reply.svg" %}" alt="reply">
                         <div class="vr  mx-2"></div>
                         Ответить</a>
                 </li>
                 <li>
-
                     <a class="dropdown-item" onclick="copyMessageFromBtn(this)">
                         <img class="svg" src="{% static "svg/copy.svg" %}" alt="copy">
                         <div class="vr mx-2"></div>
                         Копировать</a>
                 </li>
                 <li>
-
                     <a class="dropdown-item visually-hidden" onclick="forwardMessageFromBtn(this)">
                         <img class="svg" src="{% static "svg/forward.svg" %}" alt="forward">
                         <div class="vr mx-2"></div>
                         Переслать</a>
                 </li>
                 <li>
-
                     <a class="dropdown-item disabled" onclick="pinMessageFromBtn(this)">
                         <img class="svg" src="{% static "svg/pin.svg" %}" width="24px" height="24px" alt="pin">
                         <div class="vr mx-2"></div>
                         Закрепить</a>
                 </li>
                 <li>
-
-                    <a class="dropdown-item disabled" onclick="editMessageFromBtn(this)">
+                    <a class="dropdown-item " onclick="editMessageFromBtn(this)">
                         <img class="svg" src="{% static "svg/edit.svg" %}" alt="edit">
                         <div class="vr  mx-2"></div>
                         Изменить</a>
@@ -132,10 +127,35 @@
                               placeholder="Введите сообщение"
                               class="form-control active border-primary focus-ring overflow-y-auto"
                               aria-label="Введите сообщение"
-                              aria-describedby="chat-message-submit" maxlength="255" required rows="1"
+                              aria-describedby="chat-message-submit" maxlength="500" required rows="1"
                               style="max-height: 150px;"></textarea>
                     <button class="btn btn-primary" type="submit" id="chat-message-submit">
                         <img class="svg" src="{% static "svg/send.svg" %}" alt="send">
+                    </button>
+                </div>
+            </form>
+
+            <form id="editMessageForm" class="visually-hidden">
+                {% csrf_token %}
+                <div class="d-flex">
+                    <div class="m-2"><img class="svg" src="{% static "svg/edit-3.svg" %}" alt="send"></div>
+                    <div class="vstack col-8 mx-2" id="editedMessage">
+                        <div id="editedMessageSender" class="text-primary">Имя</div>
+                        <div id="editedMessageText" class="text-truncate">Текст</div>
+                    </div>
+                    <div class="m-2 btn" onclick="closeEdit()"><img class="svg" src="{% static "svg/x.svg" %}"
+                                                                    alt="send"></div>
+                </div>
+                <div class="input-group">
+                    <textarea type="text" name="chat-message-edit-input" id="chat-message-edit-input" autofocus
+                              placeholder="Введите сообщение"
+                              class="form-control active border-primary focus-ring overflow-y-auto"
+                              aria-label="Введите сообщение"
+                              aria-describedby="chat-message-edit-submit" maxlength="500" required rows="1"
+                              style="max-height: 150px;"></textarea>
+                    <input class="visually-hidden" id="chatMessageIDInput">
+                    <button class="btn btn-primary" type="submit" id="chat-message-edit-submit">
+                        <img class="svg" src="{% static "svg/check.svg" %}" alt="send">
                     </button>
                 </div>
             </form>
@@ -146,8 +166,10 @@
     <script src="{% static "js/local-date.js" %}?v1.1"></script>
     <script>
         const chatMessageInput = document.querySelector('#chat-message-input');
+        const chatMessageEditInput = document.querySelector('#chat-message-edit-input');
         const chatLog = document.querySelector('#chat-log');
         const chatMessageSubmitBtn = document.querySelector('#chat-message-submit');
+        const chatMessageEditSubmitBtn = document.querySelector('#chat-message-edit-submit');
 
 
         function isMobileDevice() {
@@ -164,6 +186,12 @@
                     chatMessageSubmitBtn.click(); // Имитировать клик по кнопке submit
                 }
             });
+            chatMessageEditInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault(); // Отменить перевод строки
+                    chatMessageEditSubmitBtn.click(); // Имитировать клик по кнопке submit
+                }
+            });
         }
 
         function setChatHeight() {
@@ -174,18 +202,23 @@
 
         window.addEventListener('load', function () {
             setChatHeight();
-            //  document.querySelector('html').style.height = document.querySelector('.footer').getBoundingClientRect().bottom + "px";
         });
         window.addEventListener('resize', function () {
             setChatHeight();
-            document.querySelector('html').style.height = document.querySelector('.footer').getBoundingClientRect().bottom + "px";
         });
 
         chatMessageInput.addEventListener('input', function () {
-            this.style.height = 'auto';
-            this.style.height = `${this.scrollHeight}px`;
-            setChatHeight();
+            textareaAutoHeight(this)
         });
+        chatMessageEditInput.addEventListener('input', function () {
+            textareaAutoHeight(this)
+        });
+
+        function textareaAutoHeight(element) {
+            element.style.height = 'auto';
+            element.style.height = `${element.scrollHeight}px`;
+            setChatHeight();
+        }
 
         const room_pk = "{{ room.pk }}";
         const request_id = "{{ session_key }}";
@@ -243,6 +276,9 @@
                 case "delete":
                     document.querySelector('#message_' + data.pk).remove();
                     break;
+                case "update":
+                    updateMessage(data.data);
+                    break;
                 default:
                     break;
             }
@@ -282,20 +318,28 @@
                     position += "justify-content-start ";
                 }
                 if (data.user.is_superuser) divClass += " admin-message"
-
+                const edited = data.is_edited ? "изменено" : "";
                 chatLog.innerHTML += `<div class="d-flex ${position}" id="message_${data.id}">` +
                     `<div class= 'position-relative rounded-top-4 ${divClass}' href="#" onclick="addMenuAtMessage(this)" ` +
                     `data-bs-toggle="dropdown" aria-expanded="true"><div class='text-break  text-white  px-2' >(<em>` +
-                    sender + `</em>):<em> ` + escapingMessageSpecialCharacters(data.text) +
-                    `</em> &nbsp;&nbsp; &nbsp; &nbsp;</div> ` +
-                    `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">(` +
-                    `${time}</span></div><ul class="dropdown-menu user-select-none"></ul></div>`;
+                    sender + `</em>): <em>` + escapingMessageSpecialCharacters(data.text) +
+                    `</em> <em class= "badge fw-light text-wrap" style="width: 5rem;">${edited}</em>&nbsp;&nbsp; &nbsp; &nbsp;</div> ` +
+                    `<em class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
+                    `${time}</em></div><ul class="dropdown-menu user-select-none"></ul></div>`;
 
                 chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
                 lastMessage = data;
             }
         }
 
+        function updateMessage(data) {
+            const message = document.getElementById('message_' + data.id);
+            if (message) {
+                const messageEms = message.querySelectorAll('em');
+                messageEms[1].innerHTML = escapingMessageSpecialCharacters(data.text);
+                messageEms[2].innerHTML = "изменено";
+            }
+        }
 
         function addMenuAtMessage(element) {
             const menu = element.nextElementSibling;
@@ -311,8 +355,8 @@
                     menu.appendChild(menuChild[i].cloneNode(true));
                 }
             }
-
             dropdown.toggle()
+            menu.scrollIntoView({behavior: "smooth"});
         }
 
 
@@ -332,8 +376,9 @@
             chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
         }
 
+        //Отправить сообщение
         document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
-                event.preventDefault();
+            event.preventDefault();
             const message = chatMessageInput.value;
             chatSocket.send(JSON.stringify({
                 message: message,
@@ -344,14 +389,33 @@
             chatMessageInput.focus()
         });
 
+        //Отредактировать сообщение
+        document.getElementById("editMessageForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            editMessage(document.getElementById('chatMessageIDInput').value, chatMessageEditInput.value)
+            closeEdit()
+        });
+
+        function closeEdit() {
+            chatMessageEditInput.value = '';
+            document.getElementById('editMessageForm').classList.add('visually-hidden');
+            document.getElementById('sendMessageForm').classList.remove('visually-hidden');
+            setChatHeight();
+            chatMessageInput.focus();
+        }
+
+        function getMessageText(messageElement) {
+            const text = messageElement.querySelectorAll('em')[1].innerText;
+            return text.replace(/<br>/g, '\n').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+        }
+
         function replyToMessageFromBtn(btn) {
             const messageElement = btn.parentNode.parentNode.parentNode
             console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
         }
 
         function copyMessageFromBtn(btn) {
-            const messageElement = btn.parentNode.parentNode.parentNode
-            navigator.clipboard.writeText(messageElement.querySelectorAll('em')[1].innerText)
+            navigator.clipboard.writeText(getMessageText(btn.parentNode.parentNode.parentNode))
                 .then(function () {
                     console.log("Текст скопирован в буфер обмена");
                 })
@@ -379,8 +443,21 @@
 
         function editMessageFromBtn(btn) {
             const messageElement = btn.parentNode.parentNode.parentNode
-            console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
-            {#editMessage(getMessageID(messageElement))#}
+            document.getElementById('editMessageForm').classList.remove('visually-hidden');
+            document.getElementById('sendMessageForm').classList.add('visually-hidden');
+            chatMessageEditInput.value = getMessageText(messageElement);
+            const messageID = getMessageID(messageElement);
+            const messageEms = messageElement.querySelectorAll('em')
+            document.getElementById('chatMessageIDInput').value = messageID;
+            document.getElementById('editedMessageSender').innerHTML = messageEms[0].innerText;
+            document.getElementById('editedMessageText').innerHTML = messageEms[1].innerText;
+            document.getElementById('editedMessage').onclick = () => focusMessageById(messageID);
+            textareaAutoHeight(chatMessageEditInput)
+        }
+
+
+        function focusMessageById(messageID) {
+            document.getElementById('message_' + messageID).scrollIntoView({behavior: 'smooth'});
         }
 
         function getMessageID(messageElement) {
@@ -395,10 +472,10 @@
             }));
         }
 
-        function editMessage(message_id, message) {
+        function editMessage(message_id, text) {
             chatSocket.send(JSON.stringify({
                 message_id: message_id,
-                message: message,
+                text: text,
                 action: "edit_message",
                 request_id: request_id,
             }));

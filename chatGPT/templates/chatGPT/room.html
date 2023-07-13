@@ -75,6 +75,31 @@
 {% endblock %}
 {% block footer %}
     <div class="fixed-bottom ">
+        <div>
+            <div class="btn mx-auto visually-hidden user-select-none" href="#" data-bs-toggle="dropdown"
+                 aria-expanded="false">Сообщение
+            </div>
+            <ul class="dropdown-menu message-menu">
+                <li>
+                    <a class="dropdown-item" onclick="copyMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/copy.svg" %}" alt="copy">
+                        <div class="vr mx-2"></div>
+                        Копировать</a>
+                </li>
+                <li>
+                    <a class="dropdown-item visually-hidden" onclick="editMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/edit.svg" %}" alt="edit">
+                        <div class="vr  mx-2"></div>
+                        Изменить</a>
+                </li>
+                <li>
+                    <a class="dropdown-item visually-hidden" onclick="deleteMessageFromBtn(this)">
+                        <img class="svg" src="{% static "svg/trash-2.svg" %}" alt="delete">
+                        <div class="vr mx-2"></div>
+                        Удалить</a>
+                </li>
+            </ul>
+        </div>
         <div class="container py-3 bg-dark">
             <form id="sendMessageForm">
                 {% csrf_token %}
@@ -83,7 +108,7 @@
                               placeholder="Введите сообщение"
                               class="form-control active border-primary focus-ring overflow-y-auto"
                               aria-label="Введите сообщение"
-                              aria-describedby="chat-message-submit" minlength="5" maxlength="255" required rows="1"
+                              aria-describedby="chat-message-submit" minlength="5" maxlength="500" required rows="1"
                               style="max-height: 150px;"></textarea>
                     <button class="btn btn-primary" type="submit" id="chat-message-submit">
                         <img class="svg" src="{% static "svg/send.svg" %}" alt="send">
@@ -95,11 +120,15 @@
     </div>
 
     <script src="{% static "js/local-date.js" %}?v1.1"></script>
+    <script src="{% static "js/timer.js" %}?v1.1"></script>
     <script>
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
         const chatMessageInput = document.querySelector('#chat-message-input');
         const chatLog = document.querySelector('#chat-log');
         const chatMessageSubmitBtn = document.querySelector('#chat-message-submit');
         let messageArchive = [];
+        let messageID = 0;
 
         function isMobileDevice() {
             return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1 || (window.innerWidth < 770))
@@ -141,28 +170,49 @@
             const minutes = date.getMinutes().toString().padStart(2, '0')
             const time = `${hours}:${minutes}`
             let divClass;
-            let position;
+            let position = 'mt-3 ';
             if (sender === "Вы") {
-                sender = "(Вы): ";
                 divClass = "bg-success rounded-start-4";
-                position = "justify-content-end ";
+                position += "justify-content-end ";
             } else {
-                sender = "(ChatGPT): ";
                 divClass = "bg_darkviolet rounded-end-4";
-                position = "justify-content-start ";
+                position += "justify-content-start ";
             }
 
-            chatLog.innerHTML += `<div class="d-flex mt-3 ${position}">` +
-                `<div class= 'position-relative rounded-top-4 ${divClass}'>` +
-                `<div class='text-break text-white px-2'>` + sender +
-                escapingMessageSpecialCharacters(message) + ` &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; </div>` +
+            chatLog.innerHTML += `<div class="d-flex dropdown-center dropup ${position}" id="message_${messageID++}">` +
+                `<div class= 'position-relative rounded-top-4 ${divClass}' href="#" onclick="addMenuAtMessage(this)" ` +
+                `data-bs-toggle="dropdown" aria-expanded="true"><div class='text-break  text-white  px-2' >(<em>` +
+                sender + `</em>): <em>` + escapingMessageSpecialCharacters(message) +
+                `</em> &nbsp;&nbsp; &nbsp; &nbsp;</div> ` +
                 `<span class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
-                `${time}</span></div></div>`;
+                `${time}</span></div><ul class="dropdown-menu user-select-none"></ul></div>`;
+
             chatLog.parentNode.parentNode.scrollTop = chatLog.parentNode.parentNode.scrollHeight;
         }
 
+        function addMenuAtMessage(element) {
+            const menu = element.nextElementSibling;
+            const dropdown = new bootstrap.Dropdown(element);
+            dropdown.toggle();
+            menu.innerHTML = document.querySelector('.message-menu').innerHTML;
+            dropdown.toggle();
+            menu.scrollIntoView({behavior: "smooth"});
+        }
+
+        function copyMessageFromBtn(btn) {
+            const messageElement = btn.parentNode.parentNode.parentNode;
+            const text = messageElement.querySelectorAll('em')[1].innerText;
+            navigator.clipboard.writeText(text.replace(/<br>/g, '\n').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&'))
+                .then(function () {
+                    console.log("Текст скопирован в буфер обмена");
+                })
+                .catch(function (error) {
+                    console.error("Не удалось скопировать текст: ", error);
+                });
+        }
+
         function escapingMessageSpecialCharacters(text) {
-            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>').replace(/    /g, '&nbsp;&nbsp;&nbsp;&nbsp;').replace(/```/g, '<hr>')
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>').replace(/  /g, '&nbsp;&nbsp;').replace(/```/g, '<hr>')
         }
 
         document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
@@ -178,13 +228,12 @@
             $('#placeholder').show()
             createNewMessage("Вы", message)
             addMessageToArchive("user", message)
-            const csrftoken2 = document.querySelector('[name=csrfmiddlewaretoken]').value;
             $.ajax({
                 url: window.location.href,
                 type: 'POST',
-                headers: {'X-CSRFToken': csrftoken2},
+                headers: {'X-CSRFToken': csrftoken},
                 data: {
-                    'csrfmiddlewaretoken': csrftoken2,
+                    'csrfmiddlewaretoken': csrftoken,
                     'chat-message-input': JSON.stringify(messageArchive),
                 },
                 success: function (response) {
@@ -227,43 +276,6 @@
         $('#placeholder').hide()
         createNewMessage("ChatGPT", "{{ welcome }}")
 
-
-        let seconds = 0;
-        let minutes = 0;
-        let hours = 0;
-        let timer;
-
-        function startTimer() {
-            timer = setInterval(updateTimer, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(timer);
-        }
-
-        function resetTimer() {
-            clearInterval(timer);
-            seconds = 0;
-            minutes = 0;
-            hours = 0;
-            document.getElementById('timer').innerText = '00:00:00';
-        }
-
-        function updateTimer() {
-            seconds++;
-
-            if (seconds === 60) {
-                seconds = 0;
-                minutes++;
-
-                if (minutes === 60) {
-                    minutes = 0;
-                    hours++;
-                }
-            }
-
-            document.getElementById('timer').innerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
     </script>
 
 
