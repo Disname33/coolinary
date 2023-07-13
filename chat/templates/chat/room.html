@@ -35,12 +35,12 @@
     {% if personal_message %}
         <h5>Закрытая беседа {{ users }}</h5>
     {% else %}
-        <div class="container" id="room-name">
+        <div class="container" id="room-name-container">
             <span class="h5 list-inline-item me-0">Добро пожаловать в комнату "</span>
-            <a class="h5 list-inline-item me-0" data-bs-toggle="dropdown"
+            <a class="h5 list-inline-item me-0" data-bs-toggle="dropdown" id='room-name'
                aria-expanded="false" href="#">{{ room_name }}</a>
             <ul class="dropdown-menu" id="room-menu">
-                <li><a class="btn dropdown-item disabled" href="#">
+                <li><a class="btn dropdown-item" href="#" onclick="showRenameRoom()">
                     <img class="svg" src="{% static "svg/edit.svg" %}" alt="rename_room">
                     <div class="vr mx-2"></div>
                     Переименовать</a></li>
@@ -50,6 +50,20 @@
                     Пользователи</a></li>
             </ul>
             <span class="h5 list-inline-item">"!</span>
+            <form id="renameChatRoomForm" method="GET" class="visually-hidden">
+                {% csrf_token %}
+                <div class="input-group mt-1">
+                    <input type="text" name="room-name" id="room-name-input" autofocus
+                           placeholder="Введите новое имя чата"
+                           class="form-control active border-primary focus-ring" aria-label="Введите новое имя чата"
+                           pattern="[а-яёА-ЯЁa-zA-Z0-9\s]+" title="Спецсимволы в названии комнаты запрещены"
+                           aria-describedby="room-name-submit" maxlength="100" required>
+                    <button class="btn btn-primary" type="submit" id="room-name-submit">Переименовать</button>
+                    <button class="btn btn-danger" type="button" id="room-name-cancel" onclick="hideRenameRoom()">
+                        Отмена
+                    </button>
+                </div>
+            </form>
         </div>
     {% endif %}
 
@@ -180,22 +194,30 @@
             chatMessageInput.addEventListener('focus', setChatHeight);
             chatMessageInput.addEventListener('blur', setChatHeight);
         } else {
-            chatMessageInput.addEventListener('keydown', function (event) {
+            addEnterListener(chatMessageInput);
+            addEnterListener(chatMessageEditInput);
+        }
+
+        addEnterListener(document.getElementById('room-name-input'));
+
+        function addEnterListener(element) {
+            element.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault(); // Отменить перевод строки
-                    chatMessageSubmitBtn.click(); // Имитировать клик по кнопке submit
-                }
-            });
-            chatMessageEditInput.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault(); // Отменить перевод строки
-                    chatMessageEditSubmitBtn.click(); // Имитировать клик по кнопке submit
+                    getNextBtn(element).click(); // Имитировать клик по кнопке submit
                 }
             });
         }
 
+        function getNextBtn(element) {
+            while (element !== null) {
+                element = element.nextElementSibling;
+                if (element.classList.contains('btn')) return element
+            }
+        }
+
         function setChatHeight() {
-            const chatHeight = chatMessageInput.getBoundingClientRect().top - document.querySelector('#room-name').getBoundingClientRect().bottom - 20;
+            const chatHeight = chatMessageInput.getBoundingClientRect().top - document.querySelector('#room-name-container').getBoundingClientRect().bottom - 20;
             document.querySelector('#content-place').style.height = chatHeight + "px";
 
         }
@@ -207,12 +229,14 @@
             setChatHeight();
         });
 
-        chatMessageInput.addEventListener('input', function () {
-            textareaAutoHeight(this)
-        });
-        chatMessageEditInput.addEventListener('input', function () {
-            textareaAutoHeight(this)
-        });
+        addAutoHeightInputListener(chatMessageInput);
+        addAutoHeightInputListener(chatMessageEditInput);
+
+        function addAutoHeightInputListener(element) {
+            element.addEventListener('input', function () {
+                textareaAutoHeight(this)
+            });
+        }
 
         function textareaAutoHeight(element) {
             element.style.height = 'auto';
@@ -277,7 +301,13 @@
                     document.querySelector('#message_' + data.pk).remove();
                     break;
                 case "update":
-                    updateMessage(data.data);
+                    if (data.errors) {
+                        alert(data.errors[0]);
+                    } else {
+                        if (data.data.name) {
+                            document.getElementById('room-name').innerHTML = data.data.name
+                        } else updateMessage(data.data);
+                    }
                     break;
                 default:
                     break;
@@ -395,6 +425,34 @@
             editMessage(document.getElementById('chatMessageIDInput').value, chatMessageEditInput.value)
             closeEdit()
         });
+
+        //Переименовывание комнаты
+        const renameForm = document.getElementById("renameChatRoomForm");
+        renameForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            renameRoom(document.getElementById('room-name-input').value.replace(/[^а-яёА-ЯЁa-zA-Z\d\s]/g, ''));
+            hideRenameRoom()
+        });
+
+        function showRenameRoom() {
+            renameForm.classList.remove('visually-hidden');
+            setChatHeight();
+            document.getElementById('room-name-input').focus()
+        }
+
+        function hideRenameRoom() {
+            renameForm.classList.add('visually-hidden');
+            setChatHeight();
+            chatMessageInput.focus()
+        }
+
+        function renameRoom(room_name) {
+            chatSocket.send(JSON.stringify({
+                room_name: room_name,
+                action: "rename_room",
+                request_id: request_id,
+            }));
+        }
 
         function closeEdit() {
             chatMessageEditInput.value = '';

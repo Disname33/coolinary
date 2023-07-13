@@ -55,6 +55,18 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         )
 
     @action()
+    async def rename_room(self, room_name, **kwargs):
+        room_name = ' '.join(room_name.strip().split())
+        room_name = room_name[0].upper() + room_name[1:]
+        room_exist = await database_sync_to_async(Room.objects.filter(name=room_name).exists)()
+        if room_exist:
+            await self.send_json({
+                "action": "update",
+                "errors": ["Комната с таким именем уже существует"]})
+        else:
+            await self.rename_room_at_bd(room_name)
+
+    @action()
     async def subscribe_to_messages_in_room(self, pk, **kwargs):
         await self.message_activity.subscribe(room=pk)
 
@@ -64,7 +76,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
 
     @action()
     async def edit_message(self, message_id, text, **kwargs):
-        await self.update_message_from_bd(message_id=message_id, text=text)
+        await self.update_message_at_bd(message_id=message_id, text=text)
 
     @action()
     async def update_current_users(self, **kwargs):
@@ -151,7 +163,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
             message.delete()
 
     @database_sync_to_async
-    def update_message_from_bd(self, message_id, text):
+    def update_message_at_bd(self, message_id, text):
         try:
             message = Message.objects.get(id=message_id)
         except Message.DoesNotExist:
@@ -160,6 +172,18 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
             message.text = text
             message.is_edited = True
             message.save()
+
+    @database_sync_to_async
+    def rename_room_at_bd(self, room_name):
+        try:
+            room = Room.objects.get(pk=self.room_subscribe)
+            if room.host == self.scope["user"] or self.scope["user"].is_superuser:
+                room.name = room_name
+                room.save()
+            else:
+                self.send_json({"rename_room_error": "Ошибка доступа"})
+        except Room.DoesNotExist:
+            return
 
 
 class UserConsumer(

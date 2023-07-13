@@ -19,8 +19,8 @@
             <div class="input-group mb-3 my-4">
                 <input type="text" name="name" id="room-name-input" autofocus placeholder="Введите имя чата"
                        class="form-control active border-primary focus-ring" aria-label="Введите имя чата"
-                       pattern="[a-zA-Z0-9]+" title="Пожалуйста, введите только латинские буквы и цифры"
-                       aria-describedby="room-name-submit" maxlength="50" required>
+                       pattern="[а-яёА-ЯЁa-zA-Z0-9\s]+" title="Спецсимволы в названии комнаты запрещены"
+                       aria-describedby="room-name-submit" maxlength="100" required>
                 <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                         data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="visually-hidden">Toggle Dropdown</span> Выбрать
@@ -29,6 +29,7 @@
                     {#                    <li><a class="dropdown-item" href="disname/">Сообщение админу</a></li>#}
                     {#                    <li><a class="dropdown-item" href="moder/">Сообщение модераторам</a></li>#}
                     <li><a class="dropdown-item" href="room/1/">Главная комната</a></li>
+                    <li><a class="dropdown-item" href="room/2/">Вопросы и предложения</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
