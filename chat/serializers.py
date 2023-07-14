@@ -27,23 +27,30 @@ class UserSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    reply_to = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
         exclude = []
         depth = 1
 
+    def get_reply_to(self, obj):
+        if obj.reply_to is None:
+            return None
+        else:
+            return MessageSerializer(obj.reply_to.only('id', 'text', 'user')).data
+
 
 class RoomSerializer(serializers.ModelSerializer):
     last_message = serializers.SerializerMethodField()
-    # messages = MessageSerializer(many=True, read_only=True)
     messages = serializers.SerializerMethodField()
     host = UserSerializer()
     current_users = UserSerializer(many=True, read_only=True)
+    pinned_message = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
-        fields = ["pk", "name", "host", "messages", "current_users", "last_message"]
+        fields = ["pk", "name", "host", "messages", "current_users", "last_message", "pinned_message"]
         depth = 1
         read_only_fields = ["messages", "last_message"]
 
@@ -55,3 +62,9 @@ class RoomSerializer(serializers.ModelSerializer):
         latest_messages = obj.messages.order_by('-created_at')[:100:-1]
         serializer = MessageSerializer(latest_messages, many=True)
         return serializer.data
+
+    def get_pinned_message(self, obj: Room):
+        if obj.pinned_message is None:
+            return None
+        else:
+            return MessageSerializer(obj.pinned_message).data

@@ -9,6 +9,8 @@ class Room(models.Model):
     baned_users = models.ManyToManyField(User, related_name="baned_users", blank=True)
     is_private = models.BooleanField(default=False)
     allowed_users = models.ManyToManyField(User, related_name="allowed_users", blank=True)
+    pinned_message = models.OneToOneField("Message", on_delete=models.SET_NULL,
+                                          null=True, blank=True, related_name="pinned_to_room")
 
     def __str__(self):
         return f"Room({self.name} {self.host})"
@@ -20,6 +22,7 @@ class Message(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
     created_at = models.DateTimeField(auto_now_add=True)
     is_edited = models.BooleanField(default=False)
+    reply_to = models.ForeignKey("Message", on_delete=models.SET_NULL, blank=True, null=True, related_name="replies")
 
     def __str__(self):
         return f"Message({self.user} {self.room})"

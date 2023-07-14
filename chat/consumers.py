@@ -67,6 +67,10 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
             await self.rename_room_at_bd(room_name)
 
     @action()
+    async def set_pinned_message(self, pinned_message_id, **kwargs):
+        await self.set_pinned_message_room_at_bd(pinned_message_id)
+
+    @action()
     async def subscribe_to_messages_in_room(self, pk, **kwargs):
         await self.message_activity.subscribe(room=pk)
 
@@ -108,9 +112,10 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
             await self.channel_layer.group_send(
                 group,
                 {
+                    'action': 'update_users',
                     'type': 'update_users',
                     'group': group,
-                    'usuarios': await self.current_users(room)
+                    'current_users': await self.current_users(room)
                 }
             )
 
@@ -119,9 +124,10 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         await self.channel_layer.group_send(
             group,
             {
+                'action': 'update_users',
                 'type': 'update_users',
                 'group': group,
-                'usuarios': await self.current_users(room)
+                'current_users': await self.current_users(room)
             }
         )
 
@@ -145,7 +151,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
                 user = User.objects.get(user_name=user_name)
                 user.current_rooms.remove(room)
             except User.DoesNotExist:
-                print("Пользователь не найден")
+                self.send_json({"errors": ["Пользователь не найден"]})
 
     @database_sync_to_async
     def add_user_to_room(self, pk):
@@ -181,8 +187,29 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
                 room.name = room_name
                 room.save()
             else:
-                self.send_json({"rename_room_error": "Ошибка доступа"})
+                self.send_json({"errors": ["Ошибка доступа"]})
         except Room.DoesNotExist:
+            return
+
+    @database_sync_to_async
+    def set_pinned_message_room_at_bd(self, pinned_message_id):
+        try:
+            room = Room.objects.get(pk=self.room_subscribe)
+            if pinned_message_id is None:
+                room.pinned_message = None
+            else:
+                message = Message.objects.get(id=int(pinned_message_id))
+                if message.room == room:
+                    room.pinned_message = message
+                else:
+                    self.send_json({"errors": ["Сообщение не из этого чата"]})
+                    return
+            room.save()
+        except Room.DoesNotExist:
+            print('Room.DoesNotExist')
+            return
+        except Message.DoesNotExist:
+            self.send_json({"errors": ["Сообщение отсутствует на сервере"]})
             return
 
 

@@ -1,0 +1,431 @@
+<script>
+    const chatMessageInput = document.querySelector('#chat-message-input');
+    const chatMessageEditInput = document.querySelector('#chat-message-edit-input');
+    const chatLog = document.querySelector('#chat-log');
+    const chatMessageSubmitBtn = document.querySelector('#chat-message-submit');
+    const chatMessageEditSubmitBtn = document.querySelector('#chat-message-edit-submit');
+
+
+    function isMobileDevice() {
+        return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1 || (window.innerWidth < 770))
+    }
+
+    if (isMobileDevice()) {
+        chatMessageInput.addEventListener('focus', setChatHeight);
+        chatMessageInput.addEventListener('blur', setChatHeight);
+    } else {
+        addEnterListener(chatMessageInput);
+        addEnterListener(chatMessageEditInput);
+    }
+
+    function toggleDisplay(element) {
+        if (element.classList.contains('visually-hidden')) {
+            element.classList.remove('visually-hidden');
+        } else {
+            element.classList.add('visually-hidden');
+        }
+    }
+
+    addEnterListener(document.getElementById('room-name-input'));
+
+    function addEnterListener(element) {
+        element.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // Отменить перевод строки
+                getNextBtn(element).click(); // Имитировать клик по кнопке submit
+            }
+        });
+    }
+
+    function getNextBtn(element) {
+        while (element !== null) {
+            element = element.nextElementSibling;
+            if (element.classList.contains('btn')) return element
+        }
+    }
+
+    function setChatHeight() {
+        const chatHeight = chatMessageInput.getBoundingClientRect().top - document.querySelector('#room-name-container').getBoundingClientRect().bottom - 20;
+        document.querySelector('#content-place').style.height = chatHeight + "px";
+
+    }
+
+    window.addEventListener('load', function () {
+        setChatHeight();
+    });
+    window.addEventListener('resize', function () {
+        setChatHeight();
+    });
+
+    addAutoHeightInputListener(chatMessageInput);
+    addAutoHeightInputListener(chatMessageEditInput);
+
+    function addAutoHeightInputListener(element) {
+        element.addEventListener('input', function () {
+            textareaAutoHeight(this)
+        });
+    }
+
+    function textareaAutoHeight(element) {
+        element.style.height = 'auto';
+        element.style.height = `${element.scrollHeight}px`;
+        setChatHeight();
+    }
+
+    const room_pk = "{{ room.pk }}";
+    const request_id = "{{ session_key }}";
+    const current_user = "{{ user.get_username }}"
+    const current_user_is_superuser = "{{ user.is_superuser }}"
+    let lastMessage;
+    let lastDate;
+    let lastTime;
+    let chatSocket = new WebSocket(webSocket());
+
+    chatSocket.onopen = function () {
+        chatSocket.send(
+            JSON.stringify({
+                pk: room_pk,
+                action: "join_room",
+                request_id: request_id,
+            })
+        );
+        chatSocket.send(
+            JSON.stringify({
+                pk: room_pk,
+                action: "retrieve",
+                request_id: request_id,
+            })
+        );
+        chatSocket.send(
+            JSON.stringify({
+                pk: room_pk,
+                action: "subscribe_to_messages_in_room",
+                request_id: request_id,
+            })
+        );
+        chatSocket.send(
+            JSON.stringify({
+                pk: room_pk,
+                action: "subscribe_instance",
+                request_id: request_id,
+            })
+        );
+    };
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log('RealTime', data)
+        if ("errors" in data && data.errors.length) {
+            alert(data.errors[0]);
+        } else {
+            switch (data.action) {
+                case "retrieve":
+                    console.log(data.data.pinned_message)
+                    showPinMessage(data.data.pinned_message)
+                    document.getElementById('users-count').innerHTML = data.data.current_users.length
+                    document.querySelector('#placeholder').remove();
+                    for (let message of data.data.messages) {
+                        createNewMessage(message);
+                    }
+                    break;
+                case "create":
+                    createNewMessage(data.data);
+                    break;
+                case "delete":
+                    document.querySelector('#message_' + data.pk).remove();
+                    break;
+                case "update":
+                    if (data.data.name) {
+                        // Room update
+                        document.getElementById('room-name').innerHTML = data.data.name
+                        document.getElementById('users-count').innerHTML = data.data.current_users.length
+                        if (data.data.pinned_message !== null) showPinMessage(data.data.pinned_message)
+                    } else {
+                        // Message update
+                        updateMessage(data.data);
+                        if (document.getElementById('pined-message-id').innerText !== "" && data.data.id === parseInt(document.getElementById('pined-message-id').innerText)) {
+                            showPinMessage(data.data)
+                        }
+                    }
+                    break;
+                case "update_users":
+                    document.getElementById('users-count').innerHTML = data.current_users.length
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    function createNewMessage(data) {
+        let sender;
+        let divClass;
+        let position = 'mt-1 ';
+        let time;
+        if (data.created_at) {
+            const date = localeDate(data.created_at);
+            time = localeTime(data.created_at);
+            if (lastDate !== date) {
+                lastDate = date
+                systemMessage(date);
+            }
+            if (lastTime !== time) {
+                lastTime = time
+            }
+            if (lastMessage && isLongTime(lastMessage.created_at, data.created_at)) {
+                position = "mt-3 "
+            }
+        }
+        if (!lastMessage || lastMessage.id < data.id) {
+
+            if (lastMessage && lastMessage.user.username !== data.user.username) {
+                position = "mt-3 "
+            }
+            if (data.user.username === current_user) {
+                sender = "Вы";
+                divClass = "bg-success rounded-start-4";
+                position += "justify-content-end ";
+            } else {
+                sender = data.user.username;
+                divClass = "bg-primary rounded-end-4";
+                position += "justify-content-start ";
+            }
+            if (data.user.is_superuser) divClass += " admin-message"
+            const edited = data.is_edited ? "изменено" : "";
+            chatLog.innerHTML += `<div class="d-flex ${position}" id="message_${data.id}">` +
+                `<div class= 'position-relative rounded-top-4 ${divClass}' href="#" onclick="addMenuAtMessage(this)" ` +
+                `data-bs-toggle="dropdown" aria-expanded="true"><div class='text-break  text-white  px-2' >(<em>` +
+                sender + `</em>): <em>` + escapingMessageSpecialCharacters(data.text) +
+                `</em> <em class= "badge fw-light text-wrap" style="width: 5rem;">${edited}</em>&nbsp;&nbsp; &nbsp; &nbsp;</div> ` +
+                `<em class= "position-absolute bottom-0 end-0 badge fw-light text-wrap pe-0 pb-1" style="width: 3rem;">` +
+                `${time}</em></div><ul class="dropdown-menu user-select-none"></ul></div>`;
+
+            chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
+            lastMessage = data;
+        }
+    }
+
+    function updateMessage(data) {
+        const message = document.getElementById('message_' + data.id);
+        if (message) {
+            const messageEms = message.querySelectorAll('em');
+            messageEms[1].innerHTML = escapingMessageSpecialCharacters(data.text);
+            messageEms[2].innerHTML = "изменено";
+        }
+    }
+
+    function addMenuAtMessage(element) {
+        const menu = element.nextElementSibling;
+        const dropdown = new bootstrap.Dropdown(element)
+        dropdown.toggle()
+        if (element.querySelector('em').innerText === "Вы" || current_user_is_superuser) {
+            menu.innerHTML = document.querySelector('.message-menu').innerHTML;
+        } else {
+
+            menu.innerHTML = "";
+            const menuChild = document.querySelector('.message-menu').children
+            for (let i = 0; i < 4; i++) {
+                menu.appendChild(menuChild[i].cloneNode(true));
+            }
+        }
+        dropdown.toggle()
+        menu.scrollIntoView({behavior: "smooth"});
+    }
+
+
+    function escapingMessageSpecialCharacters(text) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
+    }
+
+    chatSocket.onclose = function () {
+        systemMessage("Соединение разорвано, пожалуйста обновите страницу!")
+        // chatSocket = new WebSocket(webSocket());
+    };
+
+    function systemMessage(message) {
+        chatLog.innerHTML += `<div class="my-3 d-flex justify-content-center">` +
+            `<div class= 'rounded-4 text-white bg-secondary text-center mx-auto py-0 px-2' >` +
+            message + `</div></div>`;
+        chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
+    }
+
+    //Отправить сообщение
+    document.getElementById("sendMessageForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const message = chatMessageInput.value;
+        chatSocket.send(JSON.stringify({
+            message: message,
+            action: "create_message",
+            request_id: request_id,
+        }));
+        chatMessageInput.value = '';
+        chatMessageInput.focus()
+    });
+
+    //Отредактировать сообщение
+    document.getElementById("editMessageForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        editMessage(document.getElementById('chatMessageIDInput').value, chatMessageEditInput.value)
+        closeEdit()
+    });
+
+    //Переименовывание комнаты
+    const renameForm = document.getElementById("renameChatRoomForm");
+    renameForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        renameRoom(document.getElementById('room-name-input').value.replace(/[^а-яёА-ЯЁa-zA-Z\d\s]/g, ''));
+        hideRenameRoom()
+    });
+
+    function showRenameRoom() {
+        renameForm.classList.remove('visually-hidden');
+        setChatHeight();
+        document.getElementById('room-name-input').focus()
+    }
+
+    function hideRenameRoom() {
+        renameForm.classList.add('visually-hidden');
+        setChatHeight();
+        chatMessageInput.focus()
+    }
+
+    function renameRoom(room_name) {
+        chatSocket.send(JSON.stringify({
+            room_name: room_name,
+            action: "rename_room",
+            request_id: request_id,
+        }));
+    }
+
+    function setPinnedMessage(message_id) {
+        chatSocket.send(JSON.stringify({
+            pinned_message_id: message_id,
+            action: "set_pinned_message",
+            request_id: request_id,
+        }));
+    }
+
+    function closePinMessage() {
+        document.getElementById('pined-message-bar').classList.add('visually-hidden');
+        document.getElementById('pined-message-id').innerHTML = "";
+        setChatHeight();
+        chatMessageInput.focus();
+        setPinnedMessage(null)
+    }
+
+    function showPinMessage(message) {
+        if (message !== null && message !== undefined) {
+            document.getElementById('pined-message-bar').classList.remove('visually-hidden');
+            document.getElementById('pined-message-sender').innerHTML = message.user.username;
+            document.getElementById('pined-message-text').innerHTML = message.text;
+            document.getElementById('pined-message-id').innerHTML = message.id;
+            document.getElementById('pined-message').onclick = () => focusMessageById(message.id);
+            setChatHeight();
+            chatMessageInput.focus();
+        }
+    }
+
+    function closeEdit() {
+        chatMessageEditInput.value = '';
+        document.getElementById('editMessageForm').classList.add('visually-hidden');
+        document.getElementById('sendMessageForm').classList.remove('visually-hidden');
+        setChatHeight();
+        chatMessageInput.focus();
+    }
+
+    function getMessageText(messageElement) {
+        const text = messageElement.querySelectorAll('em')[1].innerText;
+        return text.replace(/<br>/g, '\n').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+    }
+
+    // Message menu
+    function replyToMessageFromBtn(btn) {
+        const messageElement = btn.parentNode.parentNode.parentNode
+        console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
+    }
+
+    function copyMessageFromBtn(btn) {
+        navigator.clipboard.writeText(getMessageText(btn.parentNode.parentNode.parentNode))
+            .then(function () {
+                console.log("Текст скопирован в буфер обмена");
+            })
+            .catch(function (error) {
+                console.error("Не удалось скопировать текст: ", error);
+            });
+    }
+
+    function forwardMessageFromBtn(btn) {
+        const messageElement = btn.parentNode.parentNode.parentNode
+        console.log(getMessageID(messageElement) + " " + messageElement.querySelectorAll('em')[1].innerText)
+    }
+
+    function pinMessageFromBtn(btn) {
+        const messageElement = btn.parentNode.parentNode.parentNode
+        setPinnedMessage(getMessageID(messageElement))
+    }
+
+    function deleteMessageFromBtn(btn) {
+        const messageElement = btn.parentNode.parentNode.parentNode
+        deleteMessage(getMessageID(messageElement))
+        messageElement.classList.add("visually-hidden")
+    }
+
+
+    function editMessageFromBtn(btn) {
+        const messageElement = btn.parentNode.parentNode.parentNode
+        document.getElementById('editMessageForm').classList.remove('visually-hidden');
+        document.getElementById('sendMessageForm').classList.add('visually-hidden');
+        chatMessageEditInput.value = getMessageText(messageElement);
+        const messageID = getMessageID(messageElement);
+        const messageEms = messageElement.querySelectorAll('em')
+        document.getElementById('chatMessageIDInput').value = messageID;
+        document.getElementById('editedMessageSender').innerHTML = messageEms[0].innerText;
+        document.getElementById('editedMessageText').innerHTML = messageEms[1].innerText;
+        document.getElementById('editedMessage').onclick = () => focusMessageById(messageID);
+        textareaAutoHeight(chatMessageEditInput)
+    }
+
+
+    function focusMessageById(messageID) {
+        document.getElementById('message_' + messageID).scrollIntoView({behavior: 'smooth'});
+    }
+
+    function getMessageID(messageElement) {
+        return parseInt(messageElement.id.substring(8))
+    }
+
+    function deleteMessage(message_id) {
+        chatSocket.send(JSON.stringify({
+            message_id: message_id,
+            action: "delete_message",
+            request_id: request_id,
+        }));
+    }
+
+    function editMessage(message_id, text) {
+        chatSocket.send(JSON.stringify({
+            message_id: message_id,
+            text: text,
+            action: "edit_message",
+            request_id: request_id,
+        }));
+    }
+
+    function update_current_users() {
+        chatSocket.send(JSON.stringify({
+            action: "update_current_users",
+            request_id: request_id,
+        }));
+    }
+
+    function webSocket() {
+        const protocol = window.location.protocol === "http:" ? 'ws://' : 'wss://';
+        return protocol + window.location.host + '/ws/chat/'
+    }
+
+    function isLongTime(date_str1, date_str2) {
+        const diffInMinutes = Math.abs(new Date(date_str2) - new Date(date_str1)) / (1000 * 60);
+        return (diffInMinutes > 10)
+    }
+
+</script>
