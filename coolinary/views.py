@@ -39,7 +39,11 @@ def register(request):
 
 @login_required
 def profile(request):
-    user_profile = UserProfile.objects.get(user=request.user)
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        # Создание объекта UserProfile, если он не существует
+        user_profile = UserProfile.objects.create(user=request.user)
     if request.method == 'POST':
         form = AvatarUploadForm(request.POST, request.FILES)
         if form.is_valid():
