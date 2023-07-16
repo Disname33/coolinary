@@ -24,7 +24,7 @@ urlpatterns = [
     path('chat/', include('chat.urls')),
     path('chatGPT/', include('chatGPT.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    # path('profile/', views.profile, name='profile'),
+    path('profile/', views.profile, name='profile'),
     # path('login/', views.LoginView.as_view(), name='login'),
     # path('logout/', views.LogoutView.as_view(), name='logout'),
     # path('change-password/', views.PasswordChangeView.as_view(), name='change_password'),

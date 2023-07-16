@@ -169,14 +169,12 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         return [UserSerializer(user).data for user in room.current_users.all()]
 
     @database_sync_to_async
-    def remove_user_from_room(self, room, user=None):
+    def remove_user_from_room(self, pk, user=None):
         if user is None:
-            self.scope["user"].current_rooms.remove(room)
-        else:
-            try:
-                user.current_rooms.remove(room)
-            except User.DoesNotExist:
-                self.send_json({"errors": ["Пользователь не найден"]})
+            user = self.scope["user"]
+        room: Room = self.get_room(pk)
+        room.current_users.remove(user)
+        room.save()
 
     @database_sync_to_async
     def add_user_to_room(self, pk):
@@ -184,31 +182,10 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         if not user.current_rooms.filter(pk=self.room_subscribe).exists():
             user.current_rooms.add(Room.objects.get(pk=pk))
 
-    # @database_sync_to_async
-    # def delete_message_from_bd(self, message_id):
-    #     try:
-    #         message = Message.objects.get(id=message_id)
-    #     except Message.DoesNotExist:
-    #         return
-    #     if message.user == self.scope["user"] or self.scope["user"].is_superuser:
-    #         message.delete()
-
-    # @database_sync_to_async
-    # def update_message_at_bd(self, message_id, text):
-    #     try:
-    #         message = Message.objects.get(id=message_id)
-    #     except Message.DoesNotExist:
-    #         return
-    #     if message.user == self.scope["user"] or self.scope["user"].is_superuser:
-    #         message.text = text
-    #         message.is_edited = True
-    #         message.save()
-    #     else:
-    #         "Отказано в доступе"
-
     async def send_if_errors(self, action, errors):
         if errors:
             await self.send_json({"action": action, "errors": errors})
+
 
 class UserConsumer(
     mixins.ListModelMixin,

@@ -59,6 +59,7 @@
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}">Административная
                                     панель</a></li>
                             {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a>
                             <li><a class="dropdown-item" href="{% url 'logout' %}?next={{ request.path }}">Выйти</a>
                             </li>
                         </ul>

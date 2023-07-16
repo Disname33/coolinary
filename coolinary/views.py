@@ -1,6 +1,8 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, AvatarUploadForm
+from .models import UserProfile
 
 
 def index(request):
@@ -34,13 +36,19 @@ def register(request):
 
     return render(request, 'registration/register.html', {'user_form': user_form})
 
-# @login_required
-# def profile(request):
-#     if request.method == 'POST':
-#         form = AvatarUploadForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('profile')
-#     else:
-#         form = AvatarUploadForm()
-#     return render(request, 'registration/profile.html', {'form': form})
+
+@login_required
+def profile(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+    if request.method == 'POST':
+        form = AvatarUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save(commit=False)  # Не сохраняем форму пока
+            form.instance.user = request.user  # Присваиваем пользователю
+            form.save()  # Теперь сохраняем форму вместе с пользователем
+    else:
+        initial_data = {
+            'avatar': user_profile.avatar,
+        }
+        form = AvatarUploadForm(initial=initial_data)
+    return render(request, 'registration/profile.html', {'form': form, "profile": user_profile})
