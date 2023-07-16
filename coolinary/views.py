@@ -39,20 +39,12 @@ def register(request):
 
 @login_required
 def profile(request):
-    try:
-        user_profile = UserProfile.objects.get(user=request.user)
-    except UserProfile.DoesNotExist:
-        # Создание объекта UserProfile, если он не существует
-        user_profile = UserProfile.objects.create(user=request.user)
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
     if request.method == 'POST':
-        form = AvatarUploadForm(request.POST, request.FILES)
+        form = AvatarUploadForm(request.POST, request.FILES, instance=user_profile)
         if form.is_valid():
-            form.save(commit=False)  # Не сохраняем форму пока
-            form.instance.user = request.user  # Присваиваем пользователю
-            form.save()  # Теперь сохраняем форму вместе с пользователем
+            form.save()
     else:
-        initial_data = {
-            'avatar': user_profile.avatar,
-        }
-        form = AvatarUploadForm(initial=initial_data)
+        form = AvatarUploadForm(instance=user_profile)
     return render(request, 'registration/profile.html', {'form': form, "profile": user_profile})
