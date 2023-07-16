@@ -43,7 +43,7 @@
                         <div class="edit-btn" onclick="goTo('/my_photo')" title="Изменить"></div>
                         <div class="del-btn" onclick="delAvatar()" title="Удалить"></div>
                         <div style="height:220px;width:220px;" class="mx-auto">
-                            {% if profile.avatar.url %}
+                            {% if profile.avatar %}
                                 <img src="{{ profile.avatar.url }}" class="avatar" alt="avatar">
                             {% else %}
                                 <img src="{% static 'default_avatar.png' %}" class="avatar" alt="default avatar">
