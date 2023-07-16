@@ -45,7 +45,7 @@
                     <div class="vr mx-2"></div>
                     Переименовать</a></li>
                 <li>
-                    <a class="btn dropdown-item" href="#">
+                    <a class="btn dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#userModal">
                         <img class="svg" src="{% static "svg/users.svg" %}" alt="users_in_room">
                         <div class="vr mx-2"></div>
                         Пользователи
@@ -61,9 +61,11 @@
                            class="form-control active border-primary focus-ring" aria-label="Введите новое имя чата"
                            pattern="[а-яёА-ЯЁa-zA-Z0-9\s]+" title="Спецсимволы в названии комнаты запрещены"
                            aria-describedby="room-name-submit" maxlength="100" required>
-                    <button class="btn btn-primary" type="submit" id="room-name-submit">Переименовать</button>
+                    <button class="btn btn-primary" type="submit" id="room-name-submit">
+                        <img class="svg" src="{% static "svg/check.svg" %}" alt="rename">
+                    </button>
                     <button class="btn btn-danger" type="button" id="room-name-cancel" onclick="hideRenameRoom()">
-                        Отмена
+                        <img class="svg" src="{% static "svg/x.svg" %}" alt="send">
                     </button>
                 </div>
             </form>
@@ -128,14 +130,14 @@
                 </li>
                 <li>
                     <a class="dropdown-item" onclick="pinMessageFromBtn(this)">
-                        <img class="svg" src="{% static "svg/pin.svg" %}" width="24px" height="24px" alt="pin">
+                        <img class="svg" src="{% static "svg/pin.svg" %}?v2" alt="pin">
                         <div class="vr mx-2"></div>
                         Закрепить</a>
                 </li>
                 <li>
                     <a class="dropdown-item " onclick="editMessageFromBtn(this)">
                         <img class="svg" src="{% static "svg/edit.svg" %}" alt="edit">
-                        <div class="vr  mx-2"></div>
+                        <div class="vr mx-2"></div>
                         Изменить</a>
                 </li>
                 <li>
@@ -189,6 +191,29 @@
         </div>
         {% include 'home/footer.html' %}
     </div>
+
+    <!-- Modal -->
+    <!-- data-bs-backdrop="static" data-bs-keyboard="false"  -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="Пользователи" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Пользователи</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body list-group" id="current-user-list">
+                    <a class="list-group-item list-group-item-action" href="#">{{ user.get_username }}</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="sendBanList()">
+                        Применить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="{% static "js/local-date.js" %}?v1.1"></script>
     {% include 'chat/room-script.html' %}

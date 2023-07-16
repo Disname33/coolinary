@@ -47,10 +47,13 @@ class RoomSerializer(serializers.ModelSerializer):
     host = UserSerializer()
     current_users = UserSerializer(many=True, read_only=True)
     pinned_message = serializers.SerializerMethodField()
+    banned_users = UserSerializer(many=True, read_only=True)
+    allowed_users = UserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Room
-        fields = ["pk", "name", "host", "messages", "current_users", "last_message", "pinned_message"]
+        fields = ["pk", "name", "host", "messages", "current_users", "last_message", "pinned_message", "is_private",
+                  "banned_users", "allowed_users"]
         depth = 1
         read_only_fields = ["messages", "last_message"]
 

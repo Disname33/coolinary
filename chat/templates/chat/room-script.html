@@ -79,6 +79,7 @@
     let lastMessage;
     let lastDate;
     let lastTime;
+    let banList = new Set();
     let chatSocket = new WebSocket(webSocket());
 
     chatSocket.onopen = function () {
@@ -120,9 +121,8 @@
         } else {
             switch (data.action) {
                 case "retrieve":
-                    console.log(data.data.pinned_message)
-                    showPinMessage(data.data.pinned_message)
-                    document.getElementById('users-count').innerHTML = data.data.current_users.length
+                    showPinMessage(data.data.pinned_message);
+                    updateCurrentUsers(data.data.current_users);
                     document.querySelector('#placeholder').remove();
                     for (let message of data.data.messages) {
                         createNewMessage(message);
@@ -133,23 +133,32 @@
                     break;
                 case "delete":
                     document.querySelector('#message_' + data.pk).remove();
+                    if (data.pk === parseInt(document.getElementById('pined-message-id').innerText)) {
+                        hidePinMessage()
+                    }
                     break;
                 case "update":
                     if (data.data.name) {
                         // Room update
                         document.getElementById('room-name').innerHTML = data.data.name
-                        document.getElementById('users-count').innerHTML = data.data.current_users.length
+                        updateCurrentUsers(data.data.current_users);
                         if (data.data.pinned_message !== null) showPinMessage(data.data.pinned_message)
+                        for (let user of data.data.banned_users) {
+                            if (user.username === current_user) {
+                                systemMessage("Вас добавили в бан-лист");
+                                chatSocket.close();
+                            }
+                        }
                     } else {
                         // Message update
                         updateMessage(data.data);
-                        if (document.getElementById('pined-message-id').innerText !== "" && data.data.id === parseInt(document.getElementById('pined-message-id').innerText)) {
+                        if (data.data.id === parseInt(document.getElementById('pined-message-id').innerText)) {
                             showPinMessage(data.data)
                         }
                     }
                     break;
                 case "update_users":
-                    document.getElementById('users-count').innerHTML = data.current_users.length
+                    updateCurrentUsers(data.current_users);
                     break;
                 default:
                     break;
@@ -214,6 +223,42 @@
         }
     }
 
+    function updateCurrentUsers(users) {
+        document.getElementById('users-count').innerHTML = users.length;
+        const currentUserList = document.getElementById('current-user-list');
+        if (users.length) currentUserList.innerHTML = "";
+        for (let user of users) {
+            let banUserBtn = "";
+            if (user.username !== current_user) {
+                banUserBtn = `<div class="px-2" onclick="addToBanListFromBtn(this)"><div class='visually-hidden'>${user.id}</div><img class="svg" src="/static/svg/user-x.svg" alt="ban"></div>`;
+            }
+            const user_at_ban_list = (banList.has(user.id)) ? "bg-danger" : ""
+            const userElement = `<div class="col ">${user.username}</div>`;
+            const listGroupItem = `<div class="list-group-item list-group-item-action ${user_at_ban_list} d-flex">${userElement} ${banUserBtn}</div>`;
+            currentUserList.innerHTML += listGroupItem;
+        }
+    }
+
+    function addToBanListFromBtn(element) {
+        const banned_user_id = parseInt(element.firstChild.innerText);
+        if (banList.has(banned_user_id)) {
+            banList.delete(banned_user_id);
+            element.parentNode.classList.remove("bg-danger");
+        } else {
+            banList.add(banned_user_id);
+            element.parentNode.classList.add("bg-danger");
+        }
+
+    }
+
+    function sendBanList() {
+        chatSocket.send(JSON.stringify({
+            ban_list: [...banList],
+            action: "ban_users",
+            request_id: request_id,
+        }));
+    }
+
     function addMenuAtMessage(element) {
         const menu = element.nextElementSibling;
         const dropdown = new bootstrap.Dropdown(element)
@@ -259,6 +304,7 @@
             request_id: request_id,
         }));
         chatMessageInput.value = '';
+        textareaAutoHeight(chatMessageInput)
         chatMessageInput.focus()
     });
 
@@ -305,10 +351,14 @@
         }));
     }
 
-    function closePinMessage() {
+    function hidePinMessage() {
         document.getElementById('pined-message-bar').classList.add('visually-hidden');
         document.getElementById('pined-message-id').innerHTML = "";
         setChatHeight();
+    }
+
+    function closePinMessage() {
+        hidePinMessage()
         chatMessageInput.focus();
         setPinnedMessage(null)
     }
