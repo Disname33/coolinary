@@ -3,6 +3,7 @@ from django.shortcuts import render
 
 from .forms import UserRegistrationForm, AvatarUploadForm
 from .models import UserProfile
+from .sevices.image_crop import base64_to_bd
 
 
 def index(request):
@@ -39,13 +40,14 @@ def register(request):
 
 @login_required
 def profile(request):
-    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-
     if request.method == 'POST':
-        form = AvatarUploadForm(request.POST, request.FILES, instance=user_profile)
-        if form.is_valid():
-            form.save()
-    else:
-
-        form = AvatarUploadForm()
+        if image64 := request.POST.get('file'):
+            base64_to_bd(image64, request.user)
+        else:
+            user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+            form = AvatarUploadForm(request.POST, request.FILES, instance=user_profile)
+            if form.is_valid():
+                form.save()
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    form = AvatarUploadForm(instance=user_profile)
     return render(request, 'registration/profile.html', {'form': form, "profile": user_profile})

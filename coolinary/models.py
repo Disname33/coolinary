@@ -31,7 +31,7 @@ def get_avatar_filename(instance, filename):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    avatar = models.ImageField(upload_to=get_avatar_filename, null=True, blank=True,
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True,
                                validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'bmp'])])
     birthday = models.DateField(null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
