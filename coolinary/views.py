@@ -46,5 +46,6 @@ def profile(request):
         if form.is_valid():
             form.save()
     else:
-        form = AvatarUploadForm(instance=user_profile)
+
+        form = AvatarUploadForm()
     return render(request, 'registration/profile.html', {'form': form, "profile": user_profile})
