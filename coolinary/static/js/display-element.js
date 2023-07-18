@@ -26,3 +26,15 @@ function showElByID(id) {
     const el = document.getElementById(id)
     showEl(el);
 }
+
+function showElements(...elements) {
+    for (let el in elements) {
+        showEl(document.querySelector(el))
+    }
+}
+
+function hideElements(...elements) {
+    for (let el in elements) {
+        hideEl(document.querySelector(el))
+    }
+}

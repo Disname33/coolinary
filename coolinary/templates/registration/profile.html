@@ -28,14 +28,66 @@
             float: left;
         }
 
-        a {
-            padding-left: 10px;
+        .btn.btn-edit {
+            position: relative;
+            min-width: 38px;
+            min-height: 38px;
+        }
+
+        .btn.btn-edit::after {
+            content: "";
+            position: absolute;
+            margin: 5px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        {#filter: invert(100%);#} background-image: url('/static/svg/edit.svg');
+            background-repeat: no-repeat;
+            background-size: 70%;
+        }
+
+        .btn.btn-delete {
+            position: relative;
+            min-width: 38px;
+            min-height: 38px;
+        }
+
+        .btn.btn-delete::after {
+            content: "";
+            position: absolute;
+            margin: 5px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        {#filter: invert(100%);#} background-image: url('/static/svg/trash-2.svg');
+            background-repeat: no-repeat;
+            background-size: 70%;
+        }
+
+
+        @media (max-width: 767px) {
+            #image-crop {
+                max-width: 90vw;
+            }
         }
 
         @media (min-width: 768px) {
             #image-crop {
                 max-width: 500px;
             }
+        }
+
+        .avatar {
+            height: 220px;
+            width: 220px;
+        }
+
+        .btn-opacity {
+            opacity: 50%;
         }
 
     </style>
@@ -53,13 +105,14 @@
         <div class="row">
             <div class="col col-md-3 offset-md-1">
                 <div class="user-block">
-                    <div class="avatar-box">
-                        <div style="height:220px;width:220px;" class="mx-auto">
-                            <img src="
-                                    {% if profile.avatar %}{{ profile.avatar.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}"
-                                 class="avatar object-fit-scale border rounded" alt="avatar"
-                                 style="height:220px;width:220px;">
-                        </div>
+                    <div id="avatar-box" class="mx-auto avatar position-relative">
+                        <img src="
+                                {% if profile.avatar %}{{ profile.avatar.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}"
+                             class="avatar object-fit-scale border rounded" alt="avatar" id="avatar">
+                        <div class="btn btn-edit btn-light position-absolute bottom-0 end-0 m-2 btn-opacity"
+                             onclick="imageUpload.click()"></div>
+                        <div class="btn btn-delete btn-light position-absolute top-0 end-0 m-2 btn-opacity"
+                             onclick="deleteAvatar()"></div>
                     </div>
                     <hr>
                     <div class="photo-settings-block">
@@ -67,49 +120,40 @@
                         <br>
                         <form method="post" enctype="multipart/form-data" id="avatar-form">
                             {% csrf_token %}
-                            {{ form.as_p }}
-                            <button type="button" onclick="sendAvatar()" class="btn btn-primary">Загрузить</button>
+                            <input type="file" class="form-control visually-hidden" id="avatar_file_upload"
+                                   aria-label="Upload">
                         </form>
-
+                        <button type="button" onclick="sendAvatar()"
+                                class="btn btn-primary col-10 mx-auto visually-hidden" id="btn-load1">Загрузить
+                            <span class="spinner-border spinner-border-sm visually-hidden" role="status"
+                                  aria-hidden="true" id="spiner"></span>
+                        </button>
                         <script type="text/javascript"
                                 src="{% static '/js/crop/jquery.imgareaselect.pack.js' %}"></script>
-                        {#                        <script src="/static/js/upload/jquery.ui.widget.min.js"></script>#}
-                        {#                        <script src="/static/js/upload/jquery.iframe-transport.min.js"></script>#}
-                        {#                        <script src="/static/js/upload/jquery.fileupload.min.js"></script>#}
-                        {#                        <script src="/static/js/upload/script.min.js"></script>#}
-                        {#                        <div class="photos-box hide">#}
-                        {#                            <div class="big-photo-box" id="cropper"></div>#}
-                        {##}
-                        {#                        </div>#}
-                        {#                        <div class="btn-pane">#}
-                        {#                            <form id="crop_avatar">#}
-                        {#                                <input type="hidden" name="crop_img" value="">#}
-                        {#                                <input type="hidden" name="crop_orig" value="">#}
-                        {#                                <input type="hidden" name="crop_ratio" value="">#}
-                        {#                                <input type="hidden" name="crop_x1" value="">#}
-                        {#                                <input type="hidden" name="crop_x2" value="">#}
-                        {#                                <input type="hidden" name="crop_y1" value="">#}
-                        {#                                <input type="hidden" name="crop_y2" value="">#}
-                        {#                                <input type="hidden" name="crop_y2" value="">#}
-                        {#                                <div class="btn btn-primary hide" id="submit_button">Сохранить</div>#}
-                        {#                            </form>#}
-                        {#                        </div>#}
                     </div>
                 </div>
             </div>
 
             <div class="col col-md-auto">
                 <div class="settings-pane vstack gap-2 position-relative">
-                    <div id="image-preview">
-                        <img class="avatar object-fit-scale border rounded visually-hidden" id="image-crop"
-                             alt="crop_avatar">
+                    <div id="image-preview" class="visually-hidden">
+                        <img class="object-fit-contain border rounded" id="image-crop" alt="crop_avatar">
                     </div>
+                    <button type="button" onclick="sendAvatar()" class="col btn btn-primary mt-2 visually-hidden"
+                            id="btn-load2">
+                        Загрузить
+                    </button>
                     <div class="row mail_sett">
                         <div class="left-part">E-mail:</div>
                         <div class="right-part">
-                            <input class="form-control inactive" type="text" name="mail"
-                                   placeholder="{{ user.email|hide_email }}" value="" disabled="disabled"><a
-                                href="javascript:{}" class="edit-link" onclick="changeEmail()">Изменить</a>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">@</span>
+                                <input type="text" class="form-control" placeholder="email"
+                                       value="{{ user.email|hide_email }}" disabled="disabled"
+                                       aria-label="Recipient's username" aria-describedby="email">
+                                <button class="btn btn-secondary btn-edit" type="button"
+                                        onclick="changeEmail()"></button>
+                            </div>
                         </div>
                     </div>
                     <div class="hor-spacer mail_sett"></div>
@@ -140,9 +184,16 @@
                     <div class="hor-spacer mail_change by_pass visually-hidden"></div>
                     <div class="row pass_sett">
                         <div class="left-part">Пароль:</div>
-                        <div class="right-part"><input class="form-control inactive" type="password" name="pass"
-                                                       disabled="disabled" placeholder="******" value="">
-                            <a href="javascript:{}" class="edit-link" onclick="changePassword()">Изменить</a></div>
+                        <div class="right-part">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">#</span>
+                                <input type="text" class="form-control inactive" placeholder="******"
+                                       value="" disabled="disabled"
+                                       aria-label="Recipient's username" aria-describedby="email">
+                                <button class="btn btn-secondary btn-edit" type="button"
+                                        onclick="changePassword()"></button>
+                            </div>
+                        </div>
                     </div>
                     <div class="hor-spacer pass_sett"></div>
                     <div class="row pass_change visually-hidden">
@@ -378,15 +429,13 @@
                         <div class="left-part">Пол:</div>
                         <div class="right-part">
                             <div class="left-block">
-                                <div class="radio-box">
-                                    <input type="radio" id="sex1" name="sex" value="1" checked="">
-                                    <label for="sex1">Мужской</label>
-                                </div>
-                            </div>
-                            <div class="right-block">
-                                <div class="radio-box">
-                                    <input type="radio" id="sex2" name="sex" value="2">
-                                    <label for="sex2">Женский</label>
+                                <div class="btn-group" role="group" aria-label="sex">
+                                    <input type="radio" class="btn-check" name="sex" value="m" id="sex1"
+                                           autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="sex1">Мужской</label>
+                                    <input type="radio" class="btn-check" id="sex2" name="sex" value="f"
+                                           autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="sex2">Женский</label>
                                 </div>
                             </div>
                         </div>
@@ -410,15 +459,13 @@
                         <div class="left-part">Показывать:</div>
                         <div class="right-part">
                             <div class="left-block">
-                                <div class="radio-box">
-                                    <input type="radio" id="radio03" name="show_name" value="1">
-                                    <label for="radio03">Имя и фамилию</label>
-                                </div>
-                            </div>
-                            <div class="right-block">
-                                <div class="radio-box">
-                                    <input type="radio" id="radio04" name="show_name" value="0" checked="">
-                                    <label for="radio04">Никнейм</label>
+                                <div class="btn-group" role="group" aria-label="sex">
+                                    <input type="radio" class="btn-check" name="show_name" value="fullname"
+                                           id="show_fullname" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="show_fullname">Имя и фамилию</label>
+                                    <input type="radio" class="btn-check" name="show_name" value="nickname"
+                                           id="show_nickname" autocomplete="off" checked>
+                                    <label class="btn btn-outline-primary" for="show_nickname">Никнейм</label>
                                 </div>
                             </div>
                         </div>
@@ -426,7 +473,7 @@
                     <hr>
                     <div class="row">
                         <div class="left-part">Мой ID:</div>
-                        <div class="right-part"><input class="form-control inactive" type="text" name="myid"
+                        <div class="right-part"><input class="form-control inactive" type="text" name="my_id"
                                                        disabled="disabled" value="{{ user.id }}"></div>
                     </div>
                     <hr>
@@ -446,7 +493,8 @@
     <script>
         // Получаем элементы формы и области предпросмотра
         const form = document.getElementById('avatar-form');
-        const imageUpload = document.getElementById('id_avatar');
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const imageUpload = document.getElementById('avatar_file_upload');
         const imagePreview = document.getElementById('image-preview');
         let cropData;
 
@@ -455,9 +503,11 @@
         $(document).ready(function () {
             // Обработчик загрузки файла изображения
             imageUpload.addEventListener('change', function (event) {
-                var input = $('#id_avatar')[0];
+                var input = $('#avatar_file_upload')[0];
                 if (input.files && input.files[0]) {
-                    showElByID('image-crop');
+                    showElByID('image-preview');
+                    showElByID('btn-load1');
+                    showElByID('btn-load2');
                     var reader = new FileReader();
                     reader.onload = function (e) {
                         $('#image-crop').attr('src', e.target.result);
@@ -504,14 +554,10 @@
 
 
         function sendAvatar() {
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            const sizes = get_dimensions(document.getElementById('image-crop'));
-
+            showElByID("spiner")
             // Создаем новый Canvas элемент
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-
-            // Загружаем выбранную картинку в предпросмотр
             const file = imageUpload.files[0];
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -533,19 +579,35 @@
                             'file': croppedImageData,
                         },
                         success: function (response) {
-                            // Обработка успешного ответа
                             console.log(response)
+                            location.reload();
                         },
                         error: function (error) {
-                            // Обработка ошибки
                             console.log(error);
+                            alert(error.statusText)
                         }
                     });
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
 
+        function deleteAvatar() {
+            $.ajax({
+                url: window.location.href,
+                type: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                data: {
+                    'csrfmiddlewaretoken': csrftoken,
+                    'file': null,
+                },
+                success: () => location.reload(),
+                error: function (error) {
+                    console.log(error);
+                    alert(error.statusText)
+                }
+            });
         }
 
         function get_dimensions(el) {
@@ -574,6 +636,19 @@
                 return false;
             }
         }
+
+        const opacityButtons = document.querySelectorAll(".btn-opacity");
+
+        opacityButtons.forEach(function (opacityButton) {
+                opacityButton.addEventListener("mouseenter", function () {
+                    opacityButton.style.opacity = "1";
+                });
+                opacityButton.addEventListener("mouseleave", function () {
+                    opacityButton.style.opacity = "0.5";
+                });
+            }
+        )
+
     </script>
 
 {% endblock %}

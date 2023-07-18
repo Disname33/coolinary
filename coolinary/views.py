@@ -1,7 +1,10 @@
+import json
+
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import render
 
-from .forms import UserRegistrationForm, AvatarUploadForm
+from .forms import UserRegistrationForm
 from .models import UserProfile
 from .sevices.image_crop import base64_to_bd
 
@@ -43,11 +46,12 @@ def profile(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
         if image64 := request.POST.get('file'):
-            base64_to_bd(image64, user_profile)
-        else:
-            user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-            form = AvatarUploadForm(request.POST, request.FILES, instance=user_profile)
-            if form.is_valid():
-                form.save()
-    form = AvatarUploadForm(instance=user_profile)
-    return render(request, 'registration/profile.html', {'form': form, "profile": user_profile})
+            if image64 is None:
+                user_profile.avatar = None
+                content = {"avatar": "/static/default_avatar.png"}
+            else:
+                base64_to_bd(image64, user_profile)
+                content = {"avatar": user_profile.avatar.url}
+            user_profile.save()
+            return HttpResponse(json.dumps(content), content_type='application/json')
+    return render(request, 'registration/profile.html', {"profile": user_profile})

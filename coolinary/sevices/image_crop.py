@@ -22,7 +22,7 @@ def decode64(base64_image):
 def base64_to_bd(base64_image, profile):
     user = profile.user
     image_stream = decode64(base64_image)
-    filename = f"{user.id}_{time_ns()}.jpg"
+    filename = f"{user.id}_{time_ns() / 100}.jpg"
     previous_path = 'media/' + profile.avatar.name
     if os.path.isfile(previous_path):
         os.remove(previous_path)
@@ -36,4 +36,3 @@ def base64_to_bd(base64_image, profile):
     )
     profile.avatar = processed_image
     profile.avatar.name = filename
-    profile.save()
