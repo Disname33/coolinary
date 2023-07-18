@@ -13,24 +13,26 @@
     <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
     <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
     <style>
+        @media (min-width: 768px) {
+            .left-part {
+                text-align: right;
+                width: 150px;
+                float: left;
+                font-size: 14px;
+                padding-right: 10px;
+                padding-top: 10px;
+            }
 
-        .left-part {
-            text-align: right;
-            width: 150px;
-            float: left;
-            font-size: 14px;
-            padding-right: 10px;
-            padding-top: 10px;
+            .right-part {
+                width: 350px;
+                float: left;
+            }
         }
 
         .hide {
             display: none;
         }
 
-        .right-part {
-            width: 350px;
-            float: left;
-        }
 
         .btn.btn-edit {
             position: relative;
@@ -75,7 +77,7 @@
 
         @media (max-width: 767px) {
             #image-crop {
-                max-width: 90vw;
+                max-width: calc(100vw - 24px);
             }
         }
 
@@ -125,7 +127,7 @@
                         <form method="post" enctype="multipart/form-data" id="avatar-form">
                             {% csrf_token %}
                             <input type="file" class="form-control visually-hidden" id="avatar_file_upload"
-                                   aria-label="Upload">
+                                   aria-label="Upload" accept="image/*">
                         </form>
                         <button type="button" onclick="sendAvatar()"
                                 class="btn btn-primary col-10 mx-auto visually-hidden" id="btn-load1">Загрузить
@@ -137,7 +139,7 @@
                 </div>
             </div>
 
-            <div class="col col-md-auto">
+            <div class="col col-md-auto mt-2">
                 <div class="settings-pane vstack gap-2 position-relative">
                     <div id="image-preview" class="visually-hidden">
                         <img class="object-fit-contain border rounded" id="image-crop" alt="crop_avatar">
@@ -145,6 +147,8 @@
                     <button type="button" onclick="sendAvatar()" class="col btn btn-primary mt-2 visually-hidden"
                             id="btn-load2">
                         Загрузить
+                        <span class="spinner-border spinner-border-sm visually-hidden" role="status"
+                              aria-hidden="true" id="spiner2"></span>
                     </button>
                     <div class="row mail_sett">
                         <div class="left-part">E-mail:</div>
@@ -509,7 +513,7 @@
                 var input = $('#avatar_file_upload')[0];
                 if (input.files && input.files[0]) {
                     showElByID('image-preview');
-                    showElByID('btn-load1');
+                    if (window.innerWidth > 770) showElByID('btn-load1');
                     showElByID('btn-load2');
                     var reader = new FileReader();
                     reader.onload = function (e) {
@@ -523,11 +527,7 @@
 
             function initCroper() {
                 var image = document.getElementById('image-crop');
-                {#var areaSize = Math.min(imageWidth, imageHeight) * 0.8;#}
-                {#var areaX = (imageWidth - areaSize) / 2;#}
-                {#var areaY = (imageHeight - areaSize) / 2;#}
-                {#const sizes = get_dimensions(document.getElementById('image-crop'));#}
-                {#const ratio = sizes.real_width / sizes.client_width;#}
+                image.scrollIntoView({behavior: "smooth"});
                 var cropper = new Cropper(image, {
                     aspectRatio: 1, // Соотношение сторон для области
                     viewMode: 1,
@@ -540,41 +540,7 @@
                 });
             }
 
-            // Функция для инициализации плагина ImageAreaSelect
-            function initImageAreaSelect() {
-                // Получите ссылку на изображение
-                var image = $('#image-crop');
-                // Получите размеры изображения
-                var imageWidth = image.width();
-                var imageHeight = image.height();
-                console.log(imageWidth, imageHeight)
-                // Вычислите размеры и позицию изначально выбранной области
-                var areaSize = Math.min(imageWidth, imageHeight) * 0.8;
-                var areaX = (imageWidth - areaSize) / 2;
-                var areaY = (imageHeight - areaSize) / 2;
-                const sizes = get_dimensions(document.getElementById('image-crop'));
-                const ratio = sizes.real_width / sizes.client_width;
-                // Инициализируйте плагин ImageAreaSelect
-                image.imgAreaSelect({
-                    aspectRatio: '1:1', // Соотношение сторон для области
-                    x1: areaX,
-                    y1: areaY,
-                    x2: areaX + areaSize,
-                    y2: areaY + areaSize,
-                    handles: true, // Отображение ручек изменения размера области
-                    onSelectEnd: function (img, selection) {
-                        cropData = {
-                            'x1': selection.x1 * ratio,
-                            'y1': selection.y1 * ratio,
-                            'width': selection.width * ratio,
-                            'height': selection.height * ratio
-                        }
-                        console.log(cropData)
-                    }
-                });
-            }
         });
-
 
         function sendAvatar() {
             showElByID("spiner")

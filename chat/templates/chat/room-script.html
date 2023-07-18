@@ -7,7 +7,7 @@
 
 
     function isMobileDevice() {
-        return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1 || (window.innerWidth < 770))
+        return (navigator.userAgent.indexOf('IEMobile') !== -1 || (window.innerWidth < 770))
     }
 
     if (isMobileDevice()) {
