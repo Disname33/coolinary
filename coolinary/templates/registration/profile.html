@@ -113,7 +113,8 @@
                 <div class="user-block">
                     <div id="avatar-box" class="mx-auto avatar position-relative">
                         <img src="
-                                {% if profile.avatar %}{{ profile.avatar.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}"
+
+                                {% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'default_avatar_q.png' %}{% endif %}"
                              class="avatar object-fit-scale border rounded" alt="avatar" id="avatar">
                         <div class="btn btn-edit btn-light position-absolute bottom-0 end-0 m-2 btn-opacity"
                              onclick="imageUpload.click()"></div>
@@ -129,6 +130,7 @@
                             <input type="file" class="form-control visually-hidden" id="avatar_file_upload"
                                    aria-label="Upload" accept="image/*">
                         </form>
+
                         <button type="button" onclick="sendAvatar()"
                                 class="btn btn-primary col-10 mx-auto visually-hidden" id="btn-load1">Загрузить
                             <span class="spinner-border spinner-border-sm visually-hidden" role="status"
@@ -143,6 +145,16 @@
                 <div class="settings-pane vstack gap-2 position-relative">
                     <div id="image-preview" class="visually-hidden">
                         <img class="object-fit-contain border rounded" id="image-crop" alt="crop_avatar">
+                    </div>
+                    <div class="input-group visually-hidden" role="group" id="edit-img">
+                        <button type="button" onclick="cropper.rotate(90)" class="btn btn-outline-primary">+90</button>
+                        <button type="button" onclick="cropper.rotate(-90)" class="btn btn-outline-primary">-90</button>
+                        <button type="button" onclick="cropper.scaleX(-1*cropper.getData().scaleX)"
+                                class="btn btn-outline-primary">Отразить Х
+                        </button>
+                        <button type="button" onclick="cropper.scaleY(-1*cropper.getData().scaleY)"
+                                class="btn btn-outline-primary">Отразить Y
+                        </button>
                     </div>
                     <button type="button" onclick="sendAvatar()" class="col btn btn-primary mt-2 visually-hidden"
                             id="btn-load2">
@@ -193,7 +205,7 @@
                         <div class="left-part">Пароль:</div>
                         <div class="right-part">
                             <div class="input-group mb-3">
-                                <span class="input-group-text">#</span>
+                                <span class="input-group-text px-3">#</span>
                                 <input type="text" class="form-control inactive" placeholder="******"
                                        value="" disabled="disabled"
                                        aria-label="Recipient's username" aria-describedby="email">
@@ -504,21 +516,24 @@
         const imageUpload = document.getElementById('avatar_file_upload');
         const imagePreview = document.getElementById('image-preview');
         let cropData;
-
+        let cropper;
         console.log("%cDen", "border: 1px solid red; border-radius: 50%; font-size: 40px; padding: 25px; color: white; background: red; font-weight: bold")
 
         $(document).ready(function () {
             // Обработчик загрузки файла изображения
             imageUpload.addEventListener('change', function (event) {
-                var input = $('#avatar_file_upload')[0];
+                const input = $('#avatar_file_upload')[0];
                 if (input.files && input.files[0]) {
-                    showElByID('image-preview');
-                    if (window.innerWidth > 770) showElByID('btn-load1');
-                    showElByID('btn-load2');
-                    var reader = new FileReader();
+                    const reader = new FileReader();
                     reader.onload = function (e) {
                         $('#image-crop').attr('src', e.target.result);
-                        $('#image-crop').ready(initCroper);
+                        $('#image-crop').ready(function () {
+                            showElByID('image-preview');
+                            if (window.innerWidth > 770) showElByID('btn-load1');
+                            showElByID('btn-load2');
+                            showElByID('edit-img');
+                            initCroper()
+                        });
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
@@ -526,11 +541,11 @@
 
 
             function initCroper() {
-                var image = document.getElementById('image-crop');
+                const image = document.getElementById('image-crop');
                 image.scrollIntoView({behavior: "smooth"});
-                var cropper = new Cropper(image, {
+                cropper = new Cropper(image, {
                     aspectRatio: 1, // Соотношение сторон для области
-                    viewMode: 1,
+                    viewMode: 2,
                     dragMode: 'move', // Режим перетаскивания
                     cropBoxResizable: true, // Возможность изменения размера области
                     crop: function (event) {
@@ -545,41 +560,25 @@
         function sendAvatar() {
             showElByID("spiner")
             // Создаем новый Canvas элемент
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const file = imageUpload.files[0];
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const img = new Image();
-                img.onload = function () {
-                    // Устанавливаем размеры Canvas, соответствующие выбранной картинке
-                    canvas.width = cropData.width;
-                    canvas.height = cropData.height;
-                    // Рисуем картинку на Canvas
-                    ctx.drawImage(img, cropData.x, cropData.y, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
-                    // Получаем обрезанную картинку в формате base64
-                    const croppedImageData = canvas.toDataURL('image/jpeg');
-                    $.ajax({
-                        url: window.location.href,
-                        type: 'POST',
-                        headers: {'X-CSRFToken': csrftoken},
-                        data: {
-                            'csrfmiddlewaretoken': csrftoken,
-                            'file': croppedImageData,
-                        },
-                        success: function (response) {
-                            console.log(response)
+            const croppedCanvas = cropper.getCroppedCanvas({maxWidth: 800, maxHeight: 800})
+            const croppedImageData = croppedCanvas.toDataURL('image/png');
+            $.ajax({
+                url: window.location.href,
+                type: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                data: {
+                    'csrfmiddlewaretoken': csrftoken,
+                    'file': croppedImageData,
+                },
+                success: function (response) {
+                    console.log(response)
                             location.reload();
                         },
                         error: function (error) {
                             console.log(error);
                             alert(error.statusText)
                         }
-                    });
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+            });
         }
 
         function deleteAvatar() {
@@ -589,7 +588,7 @@
                 headers: {'X-CSRFToken': csrftoken},
                 data: {
                     'csrfmiddlewaretoken': csrftoken,
-                    'file': null,
+                    'delete_avatar': "x",
                 },
                 success: () => location.reload(),
                 error: function (error) {
@@ -597,33 +596,6 @@
                     alert(error.statusText)
                 }
             });
-        }
-
-        function get_dimensions(el) {
-            // Браузер с поддержкой naturalWidth/naturalHeight
-            if (el.naturalWidth !== undefined) {
-                return {
-                    'real_width': el.naturalWidth,
-                    'real_height': el.naturalHeight,
-                    'client_width': el.width,
-                    'client_height': el.height
-                };
-            }
-            // Устаревший браузер
-            else if (el.tagName.toLowerCase() === 'img') {
-                var img = new Image();
-                img.src = el.src;
-                var real_w = img.width;
-                var real_h = img.height;
-                return {
-                    'real_width': real_w,
-                    'real_height': real_h,
-                    'client_width': el.width,
-                    'client_height': el.height
-                };
-            } else {
-                return false;
-            }
         }
 
         const opacityButtons = document.querySelectorAll(".btn-opacity");

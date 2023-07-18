@@ -55,8 +55,9 @@
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
                            aria-expanded="false">
                             <img src="
-                                    {% if profile.avatar %}{{ profile.avatar.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}"
-                                 class="object-fit-scale border rounded me-2" alt="avatar" height="42px" width="42px"
+
+                                    {% if user.userprofile and user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'default_avatar_q.png' %}{% endif %}"
+                                 class="object-fit-scale rounded me-2" alt="avatar" height="42px" width="42px"
                                  id="login-avatar">
                             {#                            <em class="my-auto">{{ user.get_username }}</em>#}
                         </a>

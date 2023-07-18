@@ -6,7 +6,7 @@ from django.shortcuts import render
 
 from .forms import UserRegistrationForm
 from .models import UserProfile
-from .sevices.image_crop import base64_to_bd
+from .sevices.image_crop import base64_to_bd, delete_previous_avatar
 
 
 def index(request):
@@ -45,13 +45,13 @@ def register(request):
 def profile(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
+        content = {"avatar": "/static/default_avatar.png"}
+        if request.POST.get('delete_avatar'):
+            delete_previous_avatar(user_profile)
+            user_profile.avatar.delete()
         if image64 := request.POST.get('file'):
-            if image64 is None:
-                user_profile.avatar = None
-                content = {"avatar": "/static/default_avatar.png"}
-            else:
-                base64_to_bd(image64, user_profile)
-                content = {"avatar": user_profile.avatar.url}
-            user_profile.save()
-            return HttpResponse(json.dumps(content), content_type='application/json')
-    return render(request, 'registration/profile.html', {"profile": user_profile})
+            base64_to_bd(image64, user_profile)
+            content = {"avatar": user_profile.avatar.url}
+        user_profile.save()
+        return HttpResponse(json.dumps(content), content_type='application/json')
+    return render(request, 'registration/profile.html')
