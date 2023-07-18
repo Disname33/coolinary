@@ -3,11 +3,15 @@
 {% load hide_email %}
 {% block inhead %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/imgareaselect/0.9.10/css/imgareaselect-animated.css"
-          integrity="sha512-VOWGVItJ5anAaHwRzNFPo8YGbAGDl34AkUq0/Dkn4UJxK0ag95IZQWoitH6xM7Bq6C3i2VW5oFzkL1+wYkLdmQ=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    {#    <link rel="stylesheet"#}
+    {#          href="https://cdnjs.cloudflare.com/ajax/libs/imgareaselect/0.9.10/css/imgareaselect-animated.css"#}
+    {#          integrity="sha512-VOWGVItJ5anAaHwRzNFPo8YGbAGDl34AkUq0/Dkn4UJxK0ag95IZQWoitH6xM7Bq6C3i2VW5oFzkL1+wYkLdmQ=="#}
+    {#          crossorigin="anonymous" referrerpolicy="no-referrer"/>#}
+    {#    <script type="text/javascript"#}
+    {#            src="{% static '/js/crop/jquery.imgareaselect.pack.js' %}"></script>#}
 
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
+    <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
     <style>
 
         .left-part {
@@ -128,8 +132,7 @@
                             <span class="spinner-border spinner-border-sm visually-hidden" role="status"
                                   aria-hidden="true" id="spiner"></span>
                         </button>
-                        <script type="text/javascript"
-                                src="{% static '/js/crop/jquery.imgareaselect.pack.js' %}"></script>
+
                     </div>
                 </div>
             </div>
@@ -511,11 +514,31 @@
                     var reader = new FileReader();
                     reader.onload = function (e) {
                         $('#image-crop').attr('src', e.target.result);
-                        $('#image-crop').ready(initImageAreaSelect);
+                        $('#image-crop').ready(initCroper);
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
             });
+
+
+            function initCroper() {
+                var image = document.getElementById('image-crop');
+                {#var areaSize = Math.min(imageWidth, imageHeight) * 0.8;#}
+                {#var areaX = (imageWidth - areaSize) / 2;#}
+                {#var areaY = (imageHeight - areaSize) / 2;#}
+                {#const sizes = get_dimensions(document.getElementById('image-crop'));#}
+                {#const ratio = sizes.real_width / sizes.client_width;#}
+                var cropper = new Cropper(image, {
+                    aspectRatio: 1, // Соотношение сторон для области
+                    viewMode: 1,
+                    dragMode: 'move', // Режим перетаскивания
+                    cropBoxResizable: true, // Возможность изменения размера области
+                    crop: function (event) {
+                        cropData = cropper.getData();
+                        console.log(cropData);
+                    }
+                });
+            }
 
             // Функция для инициализации плагина ImageAreaSelect
             function initImageAreaSelect() {
@@ -567,7 +590,7 @@
                     canvas.width = cropData.width;
                     canvas.height = cropData.height;
                     // Рисуем картинку на Canvas
-                    ctx.drawImage(img, cropData.x1, cropData.y1, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
+                    ctx.drawImage(img, cropData.x, cropData.y, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
                     // Получаем обрезанную картинку в формате base64
                     const croppedImageData = canvas.toDataURL('image/jpeg');
                     $.ajax({
