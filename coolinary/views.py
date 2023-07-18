@@ -40,14 +40,14 @@ def register(request):
 
 @login_required
 def profile(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
         if image64 := request.POST.get('file'):
-            base64_to_bd(image64, request.user)
+            base64_to_bd(image64, user_profile)
         else:
             user_profile, created = UserProfile.objects.get_or_create(user=request.user)
             form = AvatarUploadForm(request.POST, request.FILES, instance=user_profile)
             if form.is_valid():
                 form.save()
-    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     form = AvatarUploadForm(instance=user_profile)
     return render(request, 'registration/profile.html', {'form': form, "profile": user_profile})

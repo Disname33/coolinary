@@ -450,19 +450,19 @@
         const imagePreview = document.getElementById('image-preview');
         let cropData;
 
+        console.log("%cDen", "border: 1px solid red; border-radius: 50%; font-size: 40px; padding: 25px; color: white; background: red; font-weight: bold")
+
         $(document).ready(function () {
             // Обработчик загрузки файла изображения
             imageUpload.addEventListener('change', function (event) {
                 var input = $('#id_avatar')[0];
                 if (input.files && input.files[0]) {
+                    showElByID('image-crop');
                     var reader = new FileReader();
                     reader.onload = function (e) {
                         $('#image-crop').attr('src', e.target.result);
-                        showElByID('image-crop');
-                        // После загрузки изображения инициализируйте плагин ImageAreaSelect
-                        initImageAreaSelect();
+                        $('#image-crop').ready(initImageAreaSelect);
                     };
-
                     reader.readAsDataURL(input.files[0]);
                 }
             });
@@ -471,24 +471,25 @@
             function initImageAreaSelect() {
                 // Получите ссылку на изображение
                 var image = $('#image-crop');
+                // Получите размеры изображения
                 var imageWidth = image.width();
                 var imageHeight = image.height();
-
+                console.log(imageWidth, imageHeight)
                 // Вычислите размеры и позицию изначально выбранной области
                 var areaSize = Math.min(imageWidth, imageHeight) * 0.8;
                 var areaX = (imageWidth - areaSize) / 2;
                 var areaY = (imageHeight - areaSize) / 2;
+                const sizes = get_dimensions(document.getElementById('image-crop'));
+                const ratio = sizes.real_width / sizes.client_width;
                 // Инициализируйте плагин ImageAreaSelect
                 image.imgAreaSelect({
+                    aspectRatio: '1:1', // Соотношение сторон для области
                     x1: areaX,
                     y1: areaY,
                     x2: areaX + areaSize,
                     y2: areaY + areaSize,
-                    aspectRatio: '1:1', // Соотношение сторон для области
                     handles: true, // Отображение ручек изменения размера области
                     onSelectEnd: function (img, selection) {
-                        const sizes = get_dimensions(document.getElementById('image-crop'));
-                        const ratio = sizes.real_width / sizes.client_width;
                         cropData = {
                             'x1': selection.x1 * ratio,
                             'y1': selection.y1 * ratio,
@@ -500,33 +501,6 @@
                 });
             }
         });
-
-
-        // Функция для преобразования base64 в Blob
-        function dataURLtoBlob(dataURL) {
-            var arr = dataURL.split(',');
-            var mime = arr[0].match(/:(.*?);/)[1];
-            var bstr = atob(arr[1]);
-            var n = bstr.length;
-            var u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            return new Blob([u8arr], {type: mime});
-        }
-
-        // Функция для преобразования base64 в файл Blob
-        function convertToBlob(croppedImageData) {
-            var blob = dataURLtoBlob(croppedImageData);
-            var file = new File([blob], 'cropped-image.jpg', {type: blob.type});
-
-            // Создание объекта FileList с единственным файлом
-            var fileList = new DataTransfer().files;
-            fileList.add(file);
-
-            // Присваивание объекта FileList элементу <input>
-            imageUpload.files = fileList;
-        }
 
 
         function sendAvatar() {
@@ -547,12 +521,9 @@
                     canvas.width = cropData.width;
                     canvas.height = cropData.height;
                     // Рисуем картинку на Canvas
-                    {#ctx.drawImage(img, cropData.x1, cropData.y1);#}
-                    {#ctx.clearRect(0, 0, cropData.width, cropData.height);#}
                     ctx.drawImage(img, cropData.x1, cropData.y1, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
                     // Получаем обрезанную картинку в формате base64
                     const croppedImageData = canvas.toDataURL('image/jpeg');
-                    console.log(croppedImageData)
                     $.ajax({
                         url: window.location.href,
                         type: 'POST',
@@ -562,7 +533,6 @@
                             'file': croppedImageData,
                         },
                         success: function (response) {
-
                             // Обработка успешного ответа
                             console.log(response)
                         },
