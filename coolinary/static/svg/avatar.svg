@@ -1,0 +1,6 @@
+<svg width="880" height="880" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="880" height="880" fill="gray"/>
+    <circle stroke="white" stroke-width="50" cx="440" cy="810" r="330" fill="none"/>
+    <circle stroke="white" stroke-width="50" cx="440" cy="280" r="200" fill="none"/>
+    <rect x="0" y="820" width="880" height="880" fill="gray"/>
+</svg>

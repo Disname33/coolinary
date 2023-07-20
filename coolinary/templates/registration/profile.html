@@ -2,17 +2,14 @@
 {% load static %}
 {% load hide_email %}
 {% block inhead %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    {#    <link rel="stylesheet"#}
-    {#          href="https://cdnjs.cloudflare.com/ajax/libs/imgareaselect/0.9.10/css/imgareaselect-animated.css"#}
-    {#          integrity="sha512-VOWGVItJ5anAaHwRzNFPo8YGbAGDl34AkUq0/Dkn4UJxK0ag95IZQWoitH6xM7Bq6C3i2VW5oFzkL1+wYkLdmQ=="#}
-    {#          crossorigin="anonymous" referrerpolicy="no-referrer"/>#}
-    {#    <script type="text/javascript"#}
-    {#            src="{% static '/js/crop/jquery.imgareaselect.pack.js' %}"></script>#}
-
     <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
     <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
     <style>
+
+        .mail_change, .pass_change {
+            padding-top: 1rem;
+        }
+
         @media (min-width: 768px) {
             .left-part {
                 text-align: right;
@@ -29,52 +26,6 @@
             }
         }
 
-        .hide {
-            display: none;
-        }
-
-
-        .btn.btn-edit {
-            position: relative;
-            min-width: 38px;
-            min-height: 38px;
-        }
-
-        .btn.btn-edit::after {
-            content: "";
-            position: absolute;
-            margin: 5px;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        {#filter: invert(100%);#} background-image: url('/static/svg/edit.svg');
-            background-repeat: no-repeat;
-            background-size: 70%;
-        }
-
-        .btn.btn-delete {
-            position: relative;
-            min-width: 38px;
-            min-height: 38px;
-        }
-
-        .btn.btn-delete::after {
-            content: "";
-            position: absolute;
-            margin: 5px;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        {#filter: invert(100%);#} background-image: url('/static/svg/trash-2.svg');
-            background-repeat: no-repeat;
-            background-size: 70%;
-        }
-
-
         @media (max-width: 767px) {
             #image-crop {
                 max-width: calc(100vw - 24px);
@@ -88,12 +39,14 @@
         }
 
         .avatar {
-            height: 220px;
-            width: 220px;
+            height: 330px;
+            width: 330px;
         }
 
-        .btn-opacity {
-            opacity: 50%;
+
+        hr {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
         }
 
     </style>
@@ -109,21 +62,23 @@
     <div class="container">
         <h1 class="text-center">Личный кабинет</h1>
         <div class="row">
-            <div class="col col-md-3 offset-md-1">
+            <div class="col col-lg-auto offset-xl-1">
                 <div class="user-block">
                     <div id="avatar-box" class="mx-auto avatar position-relative">
-                        <img src="
-
-                                {% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'default_avatar_q.png' %}{% endif %}"
-                             class="avatar object-fit-scale border rounded" alt="avatar" id="avatar">
-                        <div class="btn btn-edit btn-light position-absolute bottom-0 end-0 m-2 btn-opacity"
-                             onclick="imageUpload.click()"></div>
-                        <div class="btn btn-delete btn-light position-absolute top-0 end-0 m-2 btn-opacity"
+                        <img src="{% if user.userprofile.avatar %}
+                                        {{ user.userprofile.avatar.url }}
+                                    {% else %}
+                                         {% static 'svg/avatar.svg' %}
+                                    {% endif %}"
+                             class="avatar object-fit-cover border rounded" alt="avatar" id="avatar">
+                        <div class="btn btn-edit btn-light position-absolute bottom-0 end-0 m-2 opacity-50"
+                             onclick="loadFileImage()"></div>
+                        <div class="btn btn-delete btn-light position-absolute top-0 end-0 m-2 opacity-50"
                              onclick="deleteAvatar()"></div>
                     </div>
                     <hr>
-                    <div class="photo-settings-block">
-                        <div class="text-block">Формат загружаемого файла: JPEG или PNG</div>
+                    <div class="photo-settings-block text-center">
+                        <div class="text-block text-center mx-auto">Формат загружаемого файла: JPEG или PNG</div>
                         <br>
                         <form method="post" enctype="multipart/form-data" id="avatar-form">
                             {% csrf_token %}
@@ -146,106 +101,132 @@
                     <div id="image-preview" class="visually-hidden">
                         <img class="object-fit-contain border rounded" id="image-crop" alt="crop_avatar">
                     </div>
-                    <div class="input-group visually-hidden" role="group" id="edit-img">
-                        <button type="button" onclick="cropper.rotate(90)" class="btn btn-outline-primary">+90</button>
-                        <button type="button" onclick="cropper.rotate(-90)" class="btn btn-outline-primary">-90</button>
-                        <button type="button" onclick="cropper.scaleX(-1*cropper.getData().scaleX)"
-                                class="btn btn-outline-primary">Отразить Х
+                    <div class="hstack gap-3 btn-toolbar visually-hidden" id="edit-img">
+                        <div class="input-group" role="group">
+                            <button type="button" onclick="cropper.rotate(90)" class="btn btn-outline-primary">
+                                <img class="svg" src="{% static 'svg/rotate-cw.svg' %}"
+                                     aria-label="Повернуть по часовой" alt="Повернуть по часовой">
+                            </button>
+                            <button type="button" onclick="cropper.rotate(-90)" class="btn btn-outline-primary">
+                                <img class="svg mirror-X" src="{% static 'svg/rotate-cw.svg' %}"
+                                     aria-label="Повернуть против часовой" alt="Повернуть против часовой">
+                            </button>
+                            <button type="button" onclick="cropper.scaleX(-1*cropper.getData().scaleX)"
+                                    class="btn btn-outline-primary">
+                                <img class="svg rotate-270 " src="{% static 'svg/mirror-horizontally.svg' %}"
+                                     alt="Отразить по горизонтали">
+                            </button>
+                            <button type="button" onclick="cropper.scaleY(-1*cropper.getData().scaleY)"
+                                    class="btn btn-outline-primary">
+                                <img class="svg " src="{% static 'svg/mirror-horizontally.svg' %}"
+                                     alt="Отразить по вертикали">
+                            </button>
+                            <button type="button" onclick='maximizeCrop()' class="btn btn-outline-primary">
+                                <img class="svg " src="{% static 'svg/maximize-4.svg' %}"
+                                     alt="Область обрезки на максимум">
+                            </button>
+                        </div>
+                        <button type="button" onclick="sendAvatar()" class="col btn btn-primary"
+                                id="btn-load2">
+                            Загрузить
+                            <span class="spinner-border spinner-border-sm visually-hidden" role="status"
+                                  aria-hidden="true" id="spiner2"></span>
                         </button>
-                        <button type="button" onclick="cropper.scaleY(-1*cropper.getData().scaleY)"
-                                class="btn btn-outline-primary">Отразить Y
-                        </button>
+                        <hr>
                     </div>
-                    <button type="button" onclick="sendAvatar()" class="col btn btn-primary mt-2 visually-hidden"
-                            id="btn-load2">
-                        Загрузить
-                        <span class="spinner-border spinner-border-sm visually-hidden" role="status"
-                              aria-hidden="true" id="spiner2"></span>
-                    </button>
                     <div class="row mail_sett">
                         <div class="left-part">E-mail:</div>
                         <div class="right-part">
-                            <div class="input-group mb-3">
+                            <div class="input-group">
                                 <span class="input-group-text">@</span>
                                 <input type="text" class="form-control" placeholder="email"
                                        value="{{ user.email|hide_email }}" disabled="disabled"
                                        aria-label="Recipient's username" aria-describedby="email">
-                                <button class="btn btn-secondary btn-edit" type="button"
+                                <button class="btn btn-secondary btn-edit" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseEmail" aria-expanded="false"
+                                        aria-controls="collapseEmail"
                                         onclick="changeEmail()"></button>
                             </div>
                         </div>
                     </div>
-                    <div class="hor-spacer mail_sett"></div>
-                    <div class="row mail_change visually-hidden">
-                        <div class="left-part">Новый адрес:</div>
-                        <div class="right-part">
-                            <input class="form-control edit-link" type="text" name="new_mail" placeholder="" value=""><a
-                                href="javascript:{}" onclick="changeEmail()">Отмена</a>
+                    <div class="collapse mx-0" id="collapseEmail">
+                        <div class="row mail_change">
+                            <div class="left-part">Новый адрес:</div>
+                            <div class="right-part">
+                                <input class="form-control edit-link" type="text" name="new_mail" placeholder=""
+                                       value="">
+                            </div>
+                        </div>
+                        <div class="row mail_change by_mail">
+                            <div class="left-part">Старый адрес:</div>
+                            <div class="right-part">
+                                <input class="form-control edit-link" type="text" name="cur_mail" value="">
+                                <a href="javascript:{}" class="visually-hidden"
+                                   onclick="$('div.mail_change.by_mail').toggle();$('div.mail_change.by_pass').toggle();">
+                                    Не помню</a>
+                            </div>
+                        </div>
+                        <div class="hor-spacer mail_change by_mail "></div>
+                        <div class="row mail_change by_pass visually-hidden">
+                            <div class="left-part">Введите пароль:</div>
+                            <div class="right-part">
+                                <input class="form-control" type="password" name="cur_pass" value="">
+                            </div>
                         </div>
                     </div>
-                    <div class="hor-spacer mail_change visually-hidden"></div>
-                    <div class="row mail_change by_mail visually-hidden">
-                        <div class="left-part">Старый адрес:</div>
-                        <div class="right-part">
-                            <input class="form-control edit-link" type="text" name="cur_mail" value="">
-                            <a href="javascript:{}"
-                               onclick="$('div.mail_change.by_mail').toggle();$('div.mail_change.by_pass').toggle();">Не
-                                помню</a>
-                        </div>
-                    </div>
-                    <div class="hor-spacer mail_change by_mail  visually-hidden"></div>
-                    <div class="row mail_change by_pass visually-hidden">
-                        <div class="left-part">Введите пароль:</div>
-                        <div class="right-part">
-                            <input class="form-control" type="password" name="cur_pass" value="">
-                        </div>
-                    </div>
-                    <div class="hor-spacer mail_change by_pass visually-hidden"></div>
+                    <hr>
                     <div class="row pass_sett">
                         <div class="left-part">Пароль:</div>
                         <div class="right-part">
-                            <div class="input-group mb-3">
+                            <div class="input-group">
                                 <span class="input-group-text px-3">#</span>
                                 <input type="text" class="form-control inactive" placeholder="******"
                                        value="" disabled="disabled"
                                        aria-label="Recipient's username" aria-describedby="email">
-                                <button class="btn btn-secondary btn-edit" type="button"
+                                <button class="btn btn-secondary btn-edit" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapsePassword" aria-expanded="false"
+                                        aria-controls="collapsePassword"
                                         onclick="changePassword()"></button>
                             </div>
                         </div>
                     </div>
-                    <div class="hor-spacer pass_sett"></div>
-                    <div class="row pass_change visually-hidden">
-                        <div class="left-part">Новый пароль:</div>
-                        <div class="right-part"><input class="form-control edit-link" type="password" name="new_pass"
-                                                       value="">
-                            <a href="javascript:{}" onclick="changePassword()">Отмена</a></div>
-                    </div>
-                    <div class="hor-spacer pass_change visually-hidden"></div>
-                    <div class="row pass_change visually-hidden">
-                        <div class="left-part">Повтор пароля:</div>
-                        <div class="right-part"><input class="form-control" type="password" name="new_pass_check"
-                                                       value=""></div>
-                    </div>
-                    <div class="hor-spacer pass_change visually-hidden"></div>
-                    <div class="row pass_change visually-hidden">
-                        <div class="left-part">Старый пароль:</div>
-                        <div class="right-part"><input class="form-control edit-link" type="password" name="old_pass"
-                                                       value="">
-                            <a href="javascript:{}" onclick="goTo('/reminder')">Забыл?</a></div>
-                    </div>
-                    <div class="row pass_change visually-hidden">
-                        <div class="left-part"></div>
-                        <div class="right-part">
-                            <div class="checkbox-box">
-                                <br>
-                                <input class="form-control" type="checkbox" id="global_logout" name="global_logout"
-                                       value="1">
-                                <label for="global_logout">Разлогинить на других устройствах</label>
+                    <div class="collapse mx-0" id="collapsePassword">
+                        <div class="row pass_change">
+                            <div class="left-part">Новый пароль:</div>
+                            <div class="right-part"><input class="form-control edit-link" type="password"
+                                                           name="new_pass" value=""></div>
+                        </div>
+                        <div class="row pass_change">
+                            <div class="left-part">Повтор пароля:</div>
+                            <div class="right-part"><input class="form-control" type="password" name="new_pass_check"
+                                                           value=""></div>
+                        </div>
+                        <div class="row pass_change">
+                            <div class="left-part">Старый пароль:</div>
+                            <div class="right-part"><input class="form-control edit-link" type="password"
+                                                           name="old_pass" value=""></div>
+                        </div>
+                        <div class="row pass_change">
+                            <div class="left-part"></div>
+                            <div class="right-part">
+                                <button class="btn btn-outline-primary col-12" onclick="goTo('/reminder')">Забыли
+                                    пароль?
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row pass_change visually-hidden">
+                            <div class="left-part"></div>
+                            <div class="right-part">
+                                <div class="checkbox-box">
+                                    <br>
+                                    <input class="form-control" type="checkbox" id="global_logout" name="global_logout"
+                                           value="1">
+                                    <label for="global_logout">Выйти на других устройствах</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="hor-spacer pass_change visually-hidden"></div>
+                    <hr>
                     <div class="row">
                         <div class="left-part">Имя:</div>
                         <div class="right-part"><input class="form-control" type="text" name="first_name"
@@ -267,195 +248,23 @@
                     <div class="row">
                         <div class="left-part">Дата рождения:</div>
                         <div class="right-part">
-                            <script type="text/javascript">
-                                const lf_config = {
-                                    "months": [
-                                        "январь",
-                                        "февраль",
-                                        "март",
-                                        "апрель",
-                                        "май",
-                                        "июнь",
-                                        "июль",
-                                        "август",
-                                        "сентябрь",
-                                        "октябрь",
-                                        "ноябрь",
-                                        "декабрь"
-                                    ],
-                                    "pm_block_user": {
-                                        "title": "Вы уверены, что хотите заблокировать этого пользователя?",
-                                        "message": "",
-                                        "button1": {
-                                            "title": "Да"
-                                        },
-                                        "button2": {
-                                            "title": "Нет"
-                                        }
-                                    },
-                                    "pm_unblock_user": {
-                                        "title": "Вы уверены, что хотите разблокировать этого пользователя?",
-                                        "message": "",
-                                        "button1": {
-                                            "title": "Да"
-                                        },
-                                        "button2": {
-                                            "title": "Нет"
-                                        }
-                                    },
-                                    "pm_delete_dialog": {
-                                        "title": "Вы уверены, что хотите удалить всю переписку с этим пользователем?",
-                                        "message": "Восстановление невозможно!",
-                                        "button1": {
-                                            "title": "Да"
-                                        },
-                                        "button2": {
-                                            "title": "Нет"
-                                        }
-                                    },
-                                    "pm": {
-                                        "session": "Ошибка сессии. Перегрузите страницу и попробуйте заново.",
-                                        "uid": "Ошибочный ID пользователя",
-                                        "class": "Нельзя заблокировать пользователя этого класса",
-                                        "too_short": "Сообщение слишком короткое",
-                                        "guest": "E-mail пользователя не подтвержден. Сожалеем, но ему нельзя написать."
-                                    },
-                                    "user": {
-                                        "default": "Возникла какая-то ошибка",
-                                        "avatar_upload_4": "Неверный формат изображения",
-                                        "avatar_upload_3": "Изображения слишком маленькое",
-                                        "avatar_upload_2": "Ошибка загрузки изображения",
-                                        "avatar_upload_1": "Только для залогиненных пользователей",
-                                        "user_error": "Пользователь не найден. Возможно устарела сессия",
-                                        "settings_password": "Пароль некорректен",
-                                        "duplicate_mail": "Пользователь с таким E-mail уже зарегистрирован",
-                                        "duplicate_username": "Пользователь с таким Никнеймом уже зарегистрирован",
-                                        "mail_error": "Старый e-mail адрес введен неверно. E-mail не изменен",
-                                        "mail_incorrect": "Новый e-mail адрес введен несколько некорректно.",
-                                        "pass_error2": "Текущий пароль введен неверно. E-mail не изменен.",
-                                        "pass_error": "Текущий пароль неверен. Пароль не изменен",
-                                        "bdate_error": "Дата рождения указана неверно",
-                                        "mail_change": "Повторный запрос. Завершите или отмените предыдущий",
-                                        "resend_error": "Письмо было выслано недавно. Подождите немного.",
-                                        "resend_code_activated": "Код использован. Профиль должен быть активен.",
-                                        "resend_time": "Письмо уже отправлено, попробуйте через час.",
-                                        "profile_enabled": "Не нужно ничего делать. Профиль уже активен.",
-                                        "fname_too_long": "Длина имени не должна превышать 16 знаков",
-                                        "lname_too_long": "Длина фамилии не должна превышать 24 знака",
-                                        "forbidden_char": "Недопустимый символ в имени или фамилии",
-                                        "login_error": "E-mail или пароль указан неверно",
-                                        "captcha_error": "Код с картинки указан неверно"
-                                    },
-                                    "monthNames": [
-                                        "Январь",
-                                        "Февраль",
-                                        "Март",
-                                        "Апрель",
-                                        "Май",
-                                        "Июнь",
-                                        "Июль",
-                                        "Август",
-                                        "Сентябрь",
-                                        "Октябрь",
-                                        "Ноябрь",
-                                        "Декабрь"
-                                    ],
-                                    "monthNames2": [
-                                        "января",
-                                        "февраля",
-                                        "марта",
-                                        "апреля",
-                                        "мая",
-                                        "июня",
-                                        "июля",
-                                        "августа",
-                                        "сентября",
-                                        "октября",
-                                        "ноября",
-                                        "декабря"
-                                    ],
-                                    "monthNamesShort": [
-                                        "Янв",
-                                        "Фев",
-                                        "Мар",
-                                        "Апр",
-                                        "Май",
-                                        "Июн",
-                                        "Июл",
-                                        "Авг",
-                                        "Сен",
-                                        "Окт",
-                                        "Ноя",
-                                        "Дек"
-                                    ],
-                                    "dayNames": [
-                                        "воскресенье",
-                                        "понедельник",
-                                        "вторник",
-                                        "среда",
-                                        "четверг",
-                                        "пятница",
-                                        "суббота"
-                                    ],
-                                    "dayNamesShort": [
-                                        "Вс",
-                                        "Пн",
-                                        "Вт",
-                                        "Ср",
-                                        "Чт",
-                                        "Пт",
-                                        "Сб"
-                                    ]
-                                }
-                                let s_bday = 11;
-                                let tmpl = '<select class="form-select d-inline " name="bday" rel="nosearch" style="width:fit-content;">';
-                                tmpl += '<option value="0"> -- </option>';
-                                for (let i = 1; i <= 31; ++i) {
-                                    tmpl += '<option value="' + i + '"' + (i === s_bday ? 'selected="selected"' : '') + '>' + i + '</option>';
-                                }
-                                tmpl += '</select>';
-                                document.write(tmpl);
-                            </script>
-                            <script type="text/javascript">
-                                let s_bmonth = 1;
-                                tmpl = '<select class="form-select  d-inline" name="bmonth" rel="nosearch"  style="width:fit-content;">';
-                                tmpl += '<option value="0"> -- </option>';
-                                let t_month;
-                                for (let i = 1; i <= 12; ++i) {
-                                    t_month = lf_config.months[i - 1];
-                                    t_month = t_month[0].toUpperCase() + t_month.slice(1);
-                                    tmpl += '<option value="' + i + '"' + (i === s_bmonth ? 'selected="selected"' : '') + '>' + t_month + '</option>';
-                                }
-                                tmpl += '</select>';
-                                document.write(tmpl);
-                            </script>
-                            <script type="text/javascript">
-                                let s_byear = 1992;
-                                tmpl = '<select class="form-select  d-inline" name="byear" rel="nosearch" style="width:fit-content;">';
-                                tmpl += '<option value="0"> -- </option>';
-                                const dateObj = new Date();
-                                const year = dateObj.getFullYear();
-                                for (let i = year - 13; i >= year - 100; --i) {
-                                    tmpl += '<option value="' + i + '"' + (i === s_byear ? 'selected="selected"' : '') + '>' + i + '</option>';
-                                }
-                                tmpl += '</select>';
-                                document.write(tmpl);
-                            </script>
+                            <div class="input-group date">
+                                <input type="date" class="form-control" value="" min="1900-01-01"
+                                       max="{% now "Y-m-d" %}">
+                            </div>
                         </div>
                     </div>
                     <hr>
                     <div class="row">
                         <div class="left-part">Пол:</div>
-                        <div class="right-part">
-                            <div class="left-block">
-                                <div class="btn-group" role="group" aria-label="sex">
-                                    <input type="radio" class="btn-check" name="sex" value="m" id="sex1"
-                                           autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="sex1">Мужской</label>
-                                    <input type="radio" class="btn-check" id="sex2" name="sex" value="f"
-                                           autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="sex2">Женский</label>
-                                </div>
+                        <div class="right-part row pe-0 ">
+                            <div class="btn-group pe-0" role="group" aria-label="sex">
+                                <input type="radio" class="btn-check" name="sex" value="m" id="sex1"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-primary col-6" for="sex1">Мужской</label>
+                                <input type="radio" class="btn-check" id="sex2" name="sex" value="f"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-primary col-6" for="sex2">Женский</label>
                             </div>
                         </div>
                     </div>
@@ -476,16 +285,14 @@
                     <hr>
                     <div class="row">
                         <div class="left-part">Показывать:</div>
-                        <div class="right-part">
-                            <div class="left-block">
-                                <div class="btn-group" role="group" aria-label="sex">
-                                    <input type="radio" class="btn-check" name="show_name" value="fullname"
-                                           id="show_fullname" autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="show_fullname">Имя и фамилию</label>
-                                    <input type="radio" class="btn-check" name="show_name" value="nickname"
-                                           id="show_nickname" autocomplete="off" checked>
-                                    <label class="btn btn-outline-primary" for="show_nickname">Никнейм</label>
-                                </div>
+                        <div class="right-part row pe-0">
+                            <div class="btn-group pe-0" role="group" aria-label="sex">
+                                <input type="radio" class="btn-check" name="show_name" value="fullname"
+                                       id="show_fullname" autocomplete="off">
+                                <label class="btn btn-outline-primary  col-6" for="show_fullname">Имя и фамилию</label>
+                                <input type="radio" class="btn-check" name="show_name" value="nickname"
+                                       id="show_nickname" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary  col-6" for="show_nickname">Никнейм</label>
                             </div>
                         </div>
                     </div>
@@ -517,8 +324,7 @@
         const imagePreview = document.getElementById('image-preview');
         let cropData;
         let cropper;
-        console.log("%cDen", "border: 1px solid red; border-radius: 50%; font-size: 40px; padding: 25px; color: white; background: red; font-weight: bold")
-
+        console.info("%cDisname", "border: 5px solid orange; border-radius: 50%; font-size: 40px; padding: 25px; color: white; background: red; font-weight: bold")
         $(document).ready(function () {
             // Обработчик загрузки файла изображения
             imageUpload.addEventListener('change', function (event) {
@@ -528,9 +334,8 @@
                     reader.onload = function (e) {
                         $('#image-crop').attr('src', e.target.result);
                         $('#image-crop').ready(function () {
-                            showElByID('image-preview');
+                            showEl(imagePreview);
                             if (window.innerWidth > 770) showElByID('btn-load1');
-                            showElByID('btn-load2');
                             showElByID('edit-img');
                             initCroper()
                         });
@@ -542,7 +347,7 @@
 
             function initCroper() {
                 const image = document.getElementById('image-crop');
-                image.scrollIntoView({behavior: "smooth"});
+                image.scrollIntoView({behavior: "smooth", block: "center"});
                 cropper = new Cropper(image, {
                     aspectRatio: 1, // Соотношение сторон для области
                     viewMode: 2,
@@ -550,7 +355,7 @@
                     cropBoxResizable: true, // Возможность изменения размера области
                     crop: function (event) {
                         cropData = cropper.getData();
-                        console.log(cropData);
+                        console.info(cropData);
                     }
                 });
             }
@@ -560,8 +365,10 @@
         function sendAvatar() {
             showElByID("spiner")
             // Создаем новый Canvas элемент
+            const imageExt = $('#avatar_file_upload')[0].files[0].name.split(".");
+            const imageFormat = (imageExt.length > 1 && imageExt[imageExt.length - 1].toLowerCase() === 'png') ? 'png' : 'jpeg';
             const croppedCanvas = cropper.getCroppedCanvas({maxWidth: 800, maxHeight: 800})
-            const croppedImageData = croppedCanvas.toDataURL('image/png');
+            const croppedImageData = croppedCanvas.toDataURL('image/' + imageFormat);
             $.ajax({
                 url: window.location.href,
                 type: 'POST',
@@ -569,15 +376,16 @@
                 data: {
                     'csrfmiddlewaretoken': csrftoken,
                     'file': croppedImageData,
+                    'image_format': imageFormat,
                 },
                 success: function (response) {
                     console.log(response)
-                            location.reload();
-                        },
-                        error: function (error) {
-                            console.log(error);
-                            alert(error.statusText)
-                        }
+                    location.reload();
+                },
+                error: function (error) {
+                    console.error(error);
+                    alert(error.statusText)
+                }
             });
         }
 
@@ -609,6 +417,22 @@
                 });
             }
         )
+
+        function loadFileImage() {
+            if (typeof cropper !== "undefined") {
+                cropper.destroy();
+                hideEl(imagePreview);
+            }
+            imageUpload.click()
+        }
+
+        function maximizeCrop() {
+            const canvasData = cropper.getCanvasData();
+            const minSize = Math.min(canvasData.width, canvasData.height)
+            const left = (canvasData.width - minSize) / 2
+            const top = (canvasData.height - minSize) / 2
+            cropper.setCropBoxData({"left": left, "top": top, "width": minSize, "height": minSize})
+        }
 
     </script>
 

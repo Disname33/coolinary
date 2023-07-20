@@ -56,7 +56,8 @@
                            aria-expanded="false">
                             <img src="
 
-                                    {% if user.userprofile and user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'default_avatar_q.png' %}{% endif %}"
+
+                                    {% if user.userprofile and user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'svg/avatar.svg' %}{% endif %}"
                                  class="object-fit-scale rounded me-2" alt="avatar" height="42px" width="42px"
                                  id="login-avatar">
                             {#                            <em class="my-auto">{{ user.get_username }}</em>#}

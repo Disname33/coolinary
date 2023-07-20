@@ -1,0 +1,12 @@
+<svg width="880" height="880" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <clipPath id="circle-clip">
+            <circle cx="440" cy="440" r="440"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#circle-clip)">
+        <rect x="0" y="0" width="880" height="880" fill="gray"/>
+        <circle stroke="white" stroke-width="50" cx="440" cy="810" r="330" fill="none"/>
+        <circle stroke="white" stroke-width="50" cx="440" cy="280" r="200" fill="none"/>
+    </g>
+</svg>
