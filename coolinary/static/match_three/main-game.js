@@ -183,11 +183,12 @@ function afterAction() {
 
 function removeColor(row, col, rainbow_row, rainbow_col) {
     const gemClass = Gem.getElementByID(row, col).classList[1];
-    const gem = board.grid[row][col];
+    const gem = new Gem(board.grid[row][col].value);
     for (let i = 0; i < NUM_ROWS; i++) {
         for (let j = 0; j < NUM_COLS; j++) {
             if (board.grid[i][j].equals(gem)) {
                 Gem.getElementByID(i, j).classList.add(gemClass);
+
                 flash_explode(i, j);
                 board.grid[i][j].forDel();
             }

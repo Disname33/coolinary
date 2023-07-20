@@ -51,12 +51,12 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-lg-3 col-xl-2 pb-2">
+        <div class="col-lg pb-2">
             <a class="btn btn-secondary d-flex text-center" type="button" id="attempt">
                 Осталось попыток: {{ remaining_attempts }}.
             </a>
         </div>
-        <div class="col-lg-3 col-xl-2 pb-2">
+        <div class="col-lg pb-2">
             <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game_results' %}"
                role="button">
                 Таблица рекордов
@@ -64,14 +64,14 @@
         </div>
         {% has_group 'Testers' as is_tester %}
         {% if is_tester %}
-            <div class="col-lg-3 col-xl-2 pb-2">
+            <div class="col-lg pb-2">
                 <a class="btn btn-outline-danger d-flex text-center" href="{% url 'guess_the_word_game_remove' %}"
                    role="button">
                     Удалить слово
                 </a>
             </div>
         {% endif %}
-        <div class="col-lg-3 col-xl-2 pb-2">
+        <div class="col-lg pb-2">
             <a class="btn btn-outline-primary d-flex text-center" id="rules_btn" href="#rules" data-bs-toggle="collapse"
                role="button" aria-expanded="true" aria-controls="collapseExample">
                 Напомнить правила

@@ -72,7 +72,7 @@ function gameOver(text = 'Ошибка.',
     }
 
     waitForCondition(function () {
-        modal.show(options)
+        modal.show(modalOptions)
     });
 }
 
@@ -120,15 +120,6 @@ function waitForCondition(callback) {
 function endFall() {
     return $(".remove").length === 0 && $(".switch").length === 0 && $(".fall").length === 0
 }
-
-const modalBackdrop = document.getElementById('staticBackdrop');
-const options = {
-    backdrop: 'static', // Запретить закрытие модального окна при нажатии на фон
-    keyboard: false // Запретить закрытие модального окна при нажатии на клавишу Esc
-};
-const modal = new bootstrap.Modal(modalBackdrop);
-const modalBtn = modalBackdrop.querySelector('.btn');
-const modalBtnCancel = modalBackdrop.querySelector('.btn-cancel');
 
 function sendScore(score, level) {
     if (level > 7) {

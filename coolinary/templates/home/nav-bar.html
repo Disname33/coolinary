@@ -1,19 +1,14 @@
 {% load static %}
 
-<nav class="navbar navbar-dark bg-gradient container-fluid user-select-none" aria-label="navbar">
-    <div class="row container-fluid px-2">
+<nav class="navbar navbar-dark bg-gradient user-select-none" aria-label="navbar">
+    <div class="row col mx-2">
 
         <div class="col-auto d-none d-lg-block" id="navbarsExample01">
             <button class="navbar-toggler d-none d-lg-block d-0 m-0 " type="button">
                 <span> <img src="{% static "key-d-32.png" %}" width="32" height="32" alt="logo"> </span><span>
-                    <svg class="text-stroke">
-                        <text class="text" x="0" y="20">Disname</text>
-                    </svg>
+                    <svg class="text-stroke"><text class="text" x="0" y="20">Disname</text></svg>
                 </span>
             </button>
-            {#            <form role="search" class="hidden">#}
-            {#                <input class="form-control" type="search" placeholder="Search" aria-label="Search">#}
-            {#            </form>#}
         </div>
 
         <button class="col-auto navbar-toggler collapsed ms-2" type="button" data-bs-toggle="offcanvas"
@@ -33,10 +28,10 @@
                 <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">Меню</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
-            <div class="offcanvas-body  z-3">
-                <ul class="navbar-nav me-auto">
+            <div class="offcanvas-body z-3">
+                <ul class="nav nav-tabs navbar-nav col" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Домашняя страница</a>
+                        <a class="nav-link " href="{% url 'home' %}" aria-current="page">Домашняя страница</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'chat' %}">Чат</a>
@@ -48,26 +43,39 @@
                 </ul>
             </div>
         </div>
-        <div class="col-auto">
-            <ul class="d-flex justify-content-end me-1 mb-0 ms-0">
-                <li class="nav-item dropdown d-flex">
-                    {% if user.is_authenticated %}
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
-                           aria-expanded="false">
-                            <img src="
+        <script>
+            if (window.innerWidth > 770) {
+                document.querySelector('.offcanvas-body').querySelectorAll('.nav-link').forEach(link => {
+                    if (link.classList.contains('dropdown-toggle')) {
+                        link.parentNode.querySelectorAll('.dropdown-item').forEach(subLink => {
+                            if (subLink.href === window.location.href) link.classList.add("active");
+                        });
+                    } else if (link.href === window.location.href) link.classList.add("active");
+                });
+            }
 
-
-                                    {% if user.userprofile and user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'svg/avatar.svg' %}{% endif %}"
-                                 class="object-fit-scale rounded me-2" alt="avatar" height="42px" width="42px"
-                                 id="login-avatar">
-                            {#                            <em class="my-auto">{{ user.get_username }}</em>#}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end float-end">
-                            {% if user.is_superuser %}
-                                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Административная
-                                    панель</a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a>
+        </script>
+        <div class="ms-auto col-auto">
+            <div class="nav-item dropdown">
+                {% if user.is_authenticated %}
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        <img src="
+                                    {% if user.userprofile and user.userprofile.avatar %}
+{{ user.userprofile.avatar.url }}
+{% else %}
+{% static 'svg/avatar.svg' %}
+{% endif %}"
+                             class="object-fit-scale rounded me-2" alt="avatar" height="42px" width="42px"
+                             id="login-avatar">
+                        {#                            <em class="my-auto">{{ user.get_username }}</em>#}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end float-end">
+                        {% if user.is_superuser %}
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">Административная
+                                панель</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a>
                             <li><a class="dropdown-item" href="{% url 'logout' %}?next={{ request.path }}">Выйти</a>
                             </li>
                         </ul>
@@ -85,8 +93,7 @@
                             </li>
                         </ul>
                     {% endif %}
-                </li>
-            </ul>
+            </div>
         </div>
     </div>
 </nav>

@@ -25,7 +25,18 @@ let swipeStart = null;
 let multiplyScore = 1;
 let idleTimeout = null;
 const levelDifficulty = [3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8];
+const modalOptions = {backdrop: 'static', keyboard: false};
+let modalBackdrop;
+let modal;
+let modalBtn;
+let modalBtnCancel;
 
+document.addEventListener("DOMContentLoaded", function () {
+    modalBackdrop = document.getElementById('staticBackdrop');
+    modal = new bootstrap.Modal(modalBackdrop);
+    modalBtn = modalBackdrop.querySelector('.btn');
+    modalBtnCancel = modalBackdrop.querySelector('.btn-cancel');
+});
 
 function getImg(index) {
     const url = 'https://cache.foreca.net/static/img/symb-100x100/';

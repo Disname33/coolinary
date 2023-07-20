@@ -122,6 +122,12 @@
     <script src="{% static "js/local-date.js" %}?v1.1"></script>
     <script src="{% static "js/timer.js" %}?v1.1"></script>
     <script>
+        if (window.innerWidth < 770) {
+            document.querySelector('.offcanvas-body').querySelectorAll('.nav-link').forEach(link => {
+                if (link.href === window.location.origin + '/chat/') link.classList.add("active");
+            });
+        }
+
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         const chatMessageInput = document.querySelector('#chat-message-input');
