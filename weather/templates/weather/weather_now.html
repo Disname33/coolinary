@@ -1,3 +1,4 @@
+{% load temperature %}
 <div class="item sm6 md4 text-center ">
     <div class="vstack gap-2">
         <h1>{{ weather_now.city }}</h1>
@@ -5,12 +6,10 @@
             <div class="col-md-7 row">
                 <div class="temp col-7">
                     <div class="value temp temp_c warm fs-2">
-                        {% if weather_now.temp|slice:":1" != "-" or weather_now.temp|slice:":1" != "0" %}
-                            +{% endif %}{{ weather_now.temp }}°
+                        {{ weather_now.temp|temperature }}
                     </div>
                     <div class="value temp temp_c warm "> Ощущается:
-                        {% if weather_now.flike|slice:":1" != "-" or weather_now.flike|slice:":1" != "0" %}
-                            +{% endif %}{{ weather_now.flike }}°
+                        {{ weather_now.flike|temperature }}
                     </div>
                 </div>
                 <div class="symb center col-5">

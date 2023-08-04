@@ -85,12 +85,30 @@ def test():
     ))
 
 
+def create_image(prompt):
+    response = openai.Image.create(
+        prompt=prompt,
+        n=1,
+        size="1024x1024"
+    )
+    image_url = response['data'][0]['url']
+    return image_url
+
+
+def moderation(prompt):
+    response = openai.Moderation.create(input=prompt)
+    return response["results"][0]
+
+
 if __name__ == '__main__':
-    current_messages = []
-    loop = asyncio.get_event_loop()
-    while True:
-        user_input = input()
-        messages_update(current_messages, "user", user_input)
-        model_response = loop.run_until_complete(get_response(current_messages))
-        print(model_response)
-        messages_update(current_messages, "assistant", model_response)
+    user_input = input()
+    print(create_image(user_input))
+
+    # current_messages = []
+    # loop = asyncio.get_event_loop()
+    # while True:
+    #     user_input = input()
+    #     messages_update(current_messages, "user", user_input)
+    #     model_response = loop.run_until_complete(get_response(current_messages))
+    #     print(model_response)
+    #     messages_update(current_messages, "assistant", model_response)

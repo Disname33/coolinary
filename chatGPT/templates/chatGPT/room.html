@@ -176,16 +176,15 @@
             const minutes = date.getMinutes().toString().padStart(2, '0')
             const time = `${hours}:${minutes}`
             let divClass;
-            let position = 'mt-3 ';
+            let position = '';
             if (sender === "Вы") {
                 divClass = "bg-success rounded-start-4";
-                position += "justify-content-end ";
+                position += "ms-auto ";
             } else {
                 divClass = "bg_darkviolet rounded-end-4";
-                position += "justify-content-start ";
             }
 
-            chatLog.innerHTML += `<div class="d-flex dropdown-center dropup ${position}" id="message_${messageID++}">` +
+            chatLog.innerHTML += `<div class="mt-3 dropdown-center dropup ${position}" id="message_${messageID++}">` +
                 `<div class= 'position-relative rounded-top-4 ${divClass}' href="#" onclick="addMenuAtMessage(this)" ` +
                 `data-bs-toggle="dropdown" aria-expanded="true"><div class='text-break  text-white  px-2' >(<em>` +
                 sender + `</em>): <em>` + escapingMessageSpecialCharacters(message) +
@@ -233,43 +232,85 @@
             startTimer()
             $('#placeholder').show()
             createNewMessage("Вы", message)
-            addMessageToArchive("user", message)
-            $.ajax({
-                url: window.location.href,
-                type: 'POST',
-                headers: {'X-CSRFToken': csrftoken},
-                data: {
-                    'csrfmiddlewaretoken': csrftoken,
-                    'chat-message-input': JSON.stringify(messageArchive),
-                },
-                success: function (response) {
-                    resetTimer()
-                    // Обработка успешного ответа
-                    console.log(response)
-                    $('#placeholder').hide()
-                    createNewMessage("ChatGPT", response)
-                    chatMessageInput.removeAttribute('disabled')
-                    chatMessageSubmitBtn.removeAttribute('disabled')
-                    chatMessageInput.focus()
-                    addMessageToArchive("assistant", response)
-                },
-                error: function (error) {
-                    resetTimer()
-                    $('#placeholder').hide()
-                    // Обработка ошибки
-                    console.log(error);
-                    systemMessage("" + error.status + "(" + error.statusText + ")")
-                    messageArchive = []
-                    chatMessageInput.value = message
-                    chatMessageInput.removeAttribute('disabled')
-                    chatMessageSubmitBtn.removeAttribute('disabled')
-                    chatMessageInput.focus()
-                }
-            });
+            const splitMessage = message.split(" ");
+            const firstWord = splitMessage[0].toLowerCase();
+            const startsWithPicture = firstWord.startsWith("картинка") || firstWord.startsWith("изображение") || firstWord.startsWith("нарисуй");
+            if (startsWithPicture) {
+                $.ajax({
+                    url: window.location.href,
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'image_prompt': splitMessage.slice(1).join(" "),
+                    },
+                    success: function (response) {
+                        resetTimer()
+                        // Обработка успешного ответа
+                        console.log(response)
+                        createNewImage(response)
+                        inputEnable()
+                    },
+                    error: function (error) {
+                        resetTimer()
+                        // Обработка ошибки
+                        console.log(error);
+                        systemMessage("" + error.status + "(" + error.statusText + ")")
+                        chatMessageInput.value = message
+                        inputEnable()
+                    }
+                });
+            } else {
+                addMessageToArchive("user", message)
+                $.ajax({
+                    url: window.location.href,
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'chat-message-input': JSON.stringify(messageArchive),
+                    },
+                    success: function (response) {
+                        resetTimer()
+                        // Обработка успешного ответа
+                        console.log(response)
+                        createNewMessage("ChatGPT", response)
+                        inputEnable()
+                        addMessageToArchive("assistant", response)
+                    },
+                    error: function (error) {
+                        resetTimer()
+                        // Обработка ошибки
+                        console.log(error);
+                        systemMessage("" + error.status + "(" + error.statusText + ")")
+                        messageArchive = []
+                        chatMessageInput.value = message
+                        inputEnable()
+                    }
+                });
+            }
+
         });
 
+        function inputEnable() {
+            $('#placeholder').hide()
+            chatMessageInput.removeAttribute('disabled')
+            chatMessageSubmitBtn.removeAttribute('disabled')
+            chatMessageInput.focus()
+        }
+
+        function createNewImage(response) {
+            const imgElement = document.createElement("img");
+            imgElement.style.width = "auto";
+            imgElement.style.height = "auto";
+            imgElement.src = response;
+            imgElement.classList.add("mt-3", "border", "rounded");
+            chatLog.appendChild(imgElement);
+            chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;
+        }
+
         function systemMessage(message) {
-            chatLog.innerHTML += `<div class="my-3 d-flex justify-content-center">` +
+            chatLog.innerHTML += `<div class="my-3 mx-auto">` +
                 `<div class= 'rounded-4 text-white bg-secondary text-center mx-auto py-0 px-2' >` +
                 message + `</div></div>`;
             chatLog.parentNode.scrollTop = chatLog.parentNode.scrollHeight;

@@ -10,18 +10,30 @@ def get_weather(city: str):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "lxml")
     scripts = soup.find_all('script')
-    # print(*scripts, sep="\n")
-    target_script7 = str(scripts[7])[8:-8]
-    target_script8 = str(scripts[8])[8:-8]
+    # print(*scripts, sep="\n\n\n")
+    # target_script7 = str(scripts[8])[8:-8]
+    # target_script8 = str(scripts[9])[8:-9]
+    observations_script = next((str(script)[8:-9] for script in scripts if str(script)[52:64] == "Observations"), None)
+    data_script = next((str(script)[8:-9] for script in scripts if str(script)[48:68] == "AirPressureMeteogram"), None)
     # Извлечение содержимого скрипта
     # script_content = re.search(r'<script>(.*?)</script>', str(target_script), re.DOTALL).group(1)
     # Получение прогноза погоды на сегодня
     # Извлечение данных из объекта 'dayForecast'
-    day_match = re.search(r'dayForecast:\s*({.*})', target_script7)
+    obs = re.search(r'obs:\s*(\[{.*}])', observations_script)
+    weather_now = None
+    if obs:
+        weather_now = json.loads(obs.group(1))[0]
+        weather_now["city"] = city
+        # print(now)
+        # for el in now[0]:
+        #     print(el)
+    else:
+        print("Данные 'obs' не найдены в скрипте.")
+
+    day_forecast = re.search(r'dayForecast:\s*({.*})', observations_script)
     weather_day = None
-    if day_match:
-        day_string = day_match.group(1)
-        weather_day = json.loads(day_string)
+    if day_forecast:
+        weather_day = json.loads(day_forecast.group(1))
         weather_day["daylen"] = f"{int(int(weather_day['daylen']) / 60)} ч {int(weather_day['daylen']) % 60} мин"
         weather_day["city"] = city
         # print(data[0]["uvi"])
@@ -31,18 +43,15 @@ def get_weather(city: str):
         print("Данные 'dayForecast' не найдены в скрипте.")
     # Получение прогноза погоды на 5 дней с интервалом в 6 часов
     # Извлечение данных из объекта 'data'
-    data_match = re.search(r'data:\s*(\[{.*}])', target_script8)
+    data_match = re.search(r'data:\s*(\[{.*}])', data_script)
     data = None
     if data_match:
-        data_string = data_match.group(1)
-        data = json.loads(data_string)
+        data = json.loads(data_match.group(1))
         data[0]["city"] = city
-        # print(data[0])
-        # for el in data:
-        #     print(el)
+        weather_now.update({key: data[0][key] for key in ("rainin", "uvi", "maxwindkmh")})
     else:
         print("Данные 'data' не найдены в скрипте.")
-    return weather_day, data
+    return weather_day, data, weather_now
 
 
 def get_plot_coordinates(data):

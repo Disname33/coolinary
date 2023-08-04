@@ -1,3 +1,4 @@
+{% load temperature %}
 <div class="item sm6 md4 text-center">
     <div class="vstack gap-2">
         <h1>{{ weather_day.city }}</h1>
@@ -5,12 +6,10 @@
             <div class="col-md-7 row">
                 <div class="temp col-7">
                     <div class="value temp temp_c warm fs-4"> от
-                        {% if weather_day.tmin|slice:":1" != "-" or weather_day.tmin|slice:":1" != "0" %}
-                            +{% endif %}{{ weather_day.tmin }}°C
+                        {{ weather_day.tmin|temperature }}
                     </div>
                     <div class="value temp temp_c warm fs-4"> до
-                        {% if weather_day.tmax|slice:":1" != "-" or weather_day.tmax|slice:":1" != "0" %}
-                            +{% endif %}{{ weather_day.tmax }}°C
+                        {{ weather_day.tmax|temperature }}
                     </div>
                 </div>
                 <div class="symb center col-5">

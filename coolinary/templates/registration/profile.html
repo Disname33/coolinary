@@ -141,11 +141,10 @@
                                 <span class="input-group-text">@</span>
                                 <input type="text" class="form-control" placeholder="email"
                                        value="{{ user.email|hide_email }}" disabled="disabled"
-                                       aria-label="Recipient's username" aria-describedby="email">
+                                       aria-describedby="email">
                                 <button class="btn btn-secondary btn-edit" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#collapseEmail" aria-expanded="false"
-                                        aria-controls="collapseEmail"
-                                        onclick="changeEmail()"></button>
+                                        aria-controls="collapseEmail"></button>
                             </div>
                         </div>
                     </div>
@@ -153,14 +152,13 @@
                         <div class="row mail_change">
                             <div class="left-part">Новый адрес:</div>
                             <div class="right-part">
-                                <input class="form-control edit-link" type="text" name="new_mail" placeholder=""
-                                       value="">
+                                <input class="form-control edit-link" type="text" name="email" value="">
                             </div>
                         </div>
                         <div class="row mail_change by_mail">
                             <div class="left-part">Старый адрес:</div>
                             <div class="right-part">
-                                <input class="form-control edit-link" type="text" name="cur_mail" value="">
+                                <input class="form-control edit-link" type="text" name="old_email" value="">
                                 <a href="javascript:{}" class="visually-hidden"
                                    onclick="$('div.mail_change.by_mail').toggle();$('div.mail_change.by_pass').toggle();">
                                     Не помню</a>
@@ -181,12 +179,10 @@
                             <div class="input-group">
                                 <span class="input-group-text px-3">#</span>
                                 <input type="text" class="form-control inactive" placeholder="******"
-                                       value="" disabled="disabled"
-                                       aria-label="Recipient's username" aria-describedby="email">
+                                       value="" disabled="disabled">
                                 <button class="btn btn-secondary btn-edit" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#collapsePassword" aria-expanded="false"
-                                        aria-controls="collapsePassword"
-                                        onclick="changePassword()"></button>
+                                        aria-controls="collapsePassword"></button>
                             </div>
                         </div>
                     </div>
@@ -194,17 +190,17 @@
                         <div class="row pass_change">
                             <div class="left-part">Новый пароль:</div>
                             <div class="right-part"><input class="form-control edit-link" type="password"
-                                                           name="new_pass" value=""></div>
+                                                           name="new_password1" value=""></div>
                         </div>
                         <div class="row pass_change">
                             <div class="left-part">Повтор пароля:</div>
-                            <div class="right-part"><input class="form-control" type="password" name="new_pass_check"
+                            <div class="right-part"><input class="form-control" type="password" name="new_password2"
                                                            value=""></div>
                         </div>
                         <div class="row pass_change">
                             <div class="left-part">Старый пароль:</div>
                             <div class="right-part"><input class="form-control edit-link" type="password"
-                                                           name="old_pass" value=""></div>
+                                                           name="old_password" value=""></div>
                         </div>
                         <div class="row pass_change">
                             <div class="left-part"></div>
@@ -245,64 +241,15 @@
                                                        disabled="disabled" value="{{ user.get_username }}"></div>
                     </div>
                     <hr>
-                    <div class="row">
-                        <div class="left-part">Дата рождения:</div>
-                        <div class="right-part">
-                            <div class="input-group date">
-                                <input type="date" class="form-control" value="" min="1900-01-01"
-                                       max="{% now "Y-m-d" %}">
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="left-part">Пол:</div>
-                        <div class="right-part row pe-0 ">
-                            <div class="btn-group pe-0" role="group" aria-label="sex">
-                                <input type="radio" class="btn-check" name="sex" value="m" id="sex1"
-                                       autocomplete="off">
-                                <label class="btn btn-outline-primary col-6" for="sex1">Мужской</label>
-                                <input type="radio" class="btn-check" id="sex2" name="sex" value="f"
-                                       autocomplete="off">
-                                <label class="btn btn-outline-primary col-6" for="sex2">Женский</label>
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="left-part">Страна:</div>
-                        <div class="right-part">
-                            {% include "registration/country-select.html" %}
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="left-part">Город:</div>
-                        <div class="right-part">
-                            {% include 'registration/sity-select.html' %}
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="left-part">Показывать:</div>
-                        <div class="right-part row pe-0">
-                            <div class="btn-group pe-0" role="group" aria-label="sex">
-                                <input type="radio" class="btn-check" name="show_name" value="fullname"
-                                       id="show_fullname" autocomplete="off">
-                                <label class="btn btn-outline-primary  col-6" for="show_fullname">Имя и фамилию</label>
-                                <input type="radio" class="btn-check" name="show_name" value="nickname"
-                                       id="show_nickname" autocomplete="off" checked>
-                                <label class="btn btn-outline-primary  col-6" for="show_nickname">Никнейм</label>
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
+                    {{ form.as_row }}
                     <div class="row">
                         <div class="left-part">Мой ID:</div>
                         <div class="right-part"><input class="form-control inactive" type="text" name="my_id"
                                                        disabled="disabled" value="{{ user.id }}"></div>
                     </div>
                     <hr>
+
+
                     <div class="row">
                         <div class="left-part"></div>
                         <div class="right-part">
@@ -322,8 +269,32 @@
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         const imageUpload = document.getElementById('avatar_file_upload');
         const imagePreview = document.getElementById('image-preview');
+        const changedField = new Set();
+
+
         let cropData;
         let cropper;
+
+        function elementsAddEventListener(...names) {
+            const namedFields = [];
+            names.forEach(name => {
+                namedFields.push(...document.querySelectorAll('[name=' + name + ']'))
+            });
+            namedFields.forEach(el => {
+                el.addEventListener("change", function () {
+                    changedField.add(el.name)
+                    console.info(el)
+                });
+            });
+        }
+
+        const formElement = ['birthday', 'country', 'city', 'display_option', 'gender']
+        const formPassword = ['new_password1', 'new_password2', 'old_password']
+        const formEmail = ['email', 'old_email']
+        const formName = ['first_name', 'last_name']
+        elementsAddEventListener(...formElement, ...formPassword, ...formEmail, ...formName)
+
+
         console.info("%cDisname", "border: 5px solid orange; border-radius: 50%; font-size: 40px; padding: 25px; color: white; background: red; font-weight: bold")
         $(document).ready(function () {
             // Обработчик загрузки файла изображения
@@ -374,7 +345,6 @@
                 type: 'POST',
                 headers: {'X-CSRFToken': csrftoken},
                 data: {
-                    'csrfmiddlewaretoken': csrftoken,
                     'file': croppedImageData,
                     'image_format': imageFormat,
                 },
@@ -395,7 +365,6 @@
                 type: 'POST',
                 headers: {'X-CSRFToken': csrftoken},
                 data: {
-                    'csrfmiddlewaretoken': csrftoken,
                     'delete_avatar': "x",
                 },
                 success: () => location.reload(),
@@ -432,6 +401,71 @@
             const left = (canvasData.width - minSize) / 2
             const top = (canvasData.height - minSize) / 2
             cropper.setCropBoxData({"left": left, "top": top, "width": minSize, "height": minSize})
+        }
+
+        function saveSettings() {
+            if (changedField.size !== 0) {
+                let request_data = {'save': "True"};
+                if (changedField.has(formPassword[1])) {
+                    if (getValueAtName(formPassword[0]) === getValueAtName(formPassword[1])) {
+                        formPassword.forEach(name => {
+                            request_data[name] = getValueAtName(name)
+                        })
+                    } else {
+                        alert("Пароли не совпадают!")
+                    }
+                }
+                if (changedField.has(formEmail[0])) {
+                    formEmail.forEach(name => {
+                        request_data[name] = getValueAtName(name)
+                    })
+                }
+                if (changedField.has(formName[0]) || changedField.has(formName[1])) {
+                    formName.forEach(name => {
+                        request_data[name] = getValueAtName(name)
+                    })
+                }
+                {#changedField.forEach(name => {request_data[name] = getValueAtName(name)})#}
+                formElement.forEach(name => {
+                    request_data[name] = getValueAtName(name)
+                })
+                $.ajax({
+                    url: window.location.href,
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: request_data,
+                    success: function (response) {
+                        console.log(response)
+                        if (response.status === "OK") {
+                            location.reload();
+                        } else {
+                            alert(response.error)
+                        }
+
+                    },
+                    error: function (error) {
+                        console.error(error);
+                        alert(error.statusText)
+                    }
+                });
+            } else {
+                alert("Ни одно значение не изменено, нечего сохранять!")
+            }
+
+        }
+
+        function getValueAtName(name) {
+            const Elements = document.querySelectorAll('[name=' + name + ']');
+            if (Elements.length === 1) {
+                return Elements[0].value;
+            } else {
+                let radioValue = '';
+                Elements.forEach(button => {
+                    if (button.checked) radioValue = button.value
+                });
+                return radioValue
+            }
+
         }
 
     </script>

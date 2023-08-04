@@ -45,12 +45,13 @@
         </div>
         <script>
             if (window.innerWidth > 770) {
+                const href = window.location.origin + window.location.pathname;
                 document.querySelector('.offcanvas-body').querySelectorAll('.nav-link').forEach(link => {
                     if (link.classList.contains('dropdown-toggle')) {
                         link.parentNode.querySelectorAll('.dropdown-item').forEach(subLink => {
-                            if (subLink.href === window.location.href) link.classList.add("active");
+                            if (subLink.href === href) link.classList.add("active");
                         });
-                    } else if (link.href === window.location.href) link.classList.add("active");
+                    } else if (link.href === href) link.classList.add("active");
                 });
             }
 

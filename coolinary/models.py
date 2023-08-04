@@ -33,12 +33,13 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True,
                                validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'bmp'])])
-    birthday = models.DateField(null=True, blank=True)
-    country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
-    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True)
-    gender = models.CharField(max_length=8, null=True, blank=True)
-    display_option = models.CharField(max_length=10, choices=[('nickname', 'Nickname'), ('fullname', 'Full Name')],
-                                      default='nickname')
+    birthday = models.DateField(null=True, blank=True, verbose_name='Дата рождения')
+    country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Страна')
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Город')
+    gender = models.CharField(max_length=8, null=True, blank=True, choices=[('m', 'Мужской'), ('f', 'Женский')],
+                              verbose_name='Пол')
+    display_option = models.CharField(max_length=10, choices=[('nickname', 'Никнейм'), ('fullname', 'Имя и фамилия')],
+                                      default='nickname', verbose_name='Показывать')
 
     def __str__(self):
         return self.user.username

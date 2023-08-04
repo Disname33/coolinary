@@ -14,11 +14,11 @@ def weather(request):
             City(name=name).save()
     form = CityForm()
     cities = City.objects.order_by('-date')[:6]
-    weather_day, data = get_weather(cities[0].name)
+    weather_day, data, weather_now = get_weather(cities[0].name)
     time, temp, uvi, rain = get_plot_coordinates(data)
     context = {
         'weather_day': weather_day,
-        'weather_now': data[0],
+        'weather_now': weather_now,
         'plot_temp': plot_chart(x=time, y=temp,
                                 x_label="Дата", y_label="Температура, °C",
                                 title=cities[0].name + ". График температуры", color='red', plot_type='plot'),
