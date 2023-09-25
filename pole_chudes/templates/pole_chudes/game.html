@@ -86,10 +86,6 @@
             padding: 1px !important;
         }
 
-        #remove_btn img {
-            filter: invert(60%);
-        }
-
         .baraban {
             margin: 0 auto;
             float: left;
@@ -100,11 +96,6 @@
             -moz-user-select: none;
             -webkit-user-select: none;
             cursor: default;
-        }
-
-        .baraban {
-            margin-left: 2px;
-            float: left;
             align-items: center;
             justify-content: center;
         }
@@ -120,6 +111,17 @@
             transition: transform 4s ease-out;
         }
 
+        .border-warning {
+            box-shadow: 0 0 10px 5px rgba(255, 100, 0, 0.5),
+            0 0 10px 5px rgba(255, 255, 0, 0.3),
+            0 0 10px 5px rgba(0, 255, 0, 0.2) !important;
+        }
+
+        .pole-chudes-logo img {
+            width: 140px;
+            height: 60px;
+        }
+
         @media (max-width: 568px) {
             .baraban {
                 width: 100%;
@@ -129,6 +131,11 @@
             #baraban {
                 top: -55vw;
                 width: 100%;
+            }
+
+            .baraban .arrow img {
+                width: 33px;
+                height: 33px;
             }
         }
     </style>
@@ -143,8 +150,11 @@
     <div class="container-xl" id="game-field">
 
         <div class="row text-center">
-            <div class="col text-center">
-                <h1>Игра "Поле Чудес"</h1>
+            <div class="col text-center pole-chudes-logo">
+                <a href="?start_new_game=new">
+                    <img src="{% static "/pole_chudes/logo.png" %}" alt="Поле чудес" class="object-fit-contain">
+                </a>
+                {#                <h1>Игра "Поле Чудес"</h1>#}
             </div>
             {#        <div class="col-xl-5 mb-4">#}
             {#            <form method="GET" action="{% url 'guess_the_word_game' %}">#}
@@ -214,7 +224,7 @@
 
         <div class="row">
             <div class="baraban mx-auto px-0 position-relative">
-                <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x">
+                <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x arrow">
                     <img src="{% static "/pole_chudes/arrow.png" %}" alt="">
                 </div>
                 <img src="{% static "/pole_chudes/baraban.png" %}" alt="" class="z-2"
@@ -320,7 +330,7 @@
         {#    </span>#}
         {#    </div>#}
         <div class="row">
-            <div id="question" class="col-auto mx-auto">
+            <div id="question" class="col-auto mx-auto text-center">
                 {{ question }}
             </div>
         </div>

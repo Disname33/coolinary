@@ -30,6 +30,8 @@ def lobby(request, pk=1):
     elif full_word := request.GET.get("full_word"):
         return HttpResponse(json.dumps(pole_chudes_game.check_full_word(full_word, pk)),
                             content_type='application/json')
+    elif request.GET.get("start_new_game"):
+        return render(request, 'pole_chudes/game.html', pole_chudes_game.start_new_game(pk))
     else:
         return render(request, 'pole_chudes/game.html', pole_chudes_game.start_game(pk))
 

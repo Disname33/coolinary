@@ -49,3 +49,9 @@ def start_game(pk):
             Round().save()
         game = Round.objects.get(pk=pk)
     return {"word_mask": game.word_mask.upper(), "question": game.riddle.question}
+
+
+def start_new_game(pk):
+    game = Round.objects.filter(pk=pk).first()
+    game.next_riddle()
+    return {"word_mask": game.word_mask.upper(), "question": game.riddle.question}
