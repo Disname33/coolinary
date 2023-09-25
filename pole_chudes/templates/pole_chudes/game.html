@@ -230,11 +230,12 @@
             let activePlayer = 0;
             let waitToSpin = true;
             let isSpinning = false;
+            let isComplete = false;
             $('#baraban').css("transform", `rotate(${currentDegree}deg)`);
             const baraban = ["200", "X3", "700", "Банкрот", "1000", "100", "X2", "600", "800", "+", "400", "900", "0", "Приз", "500", "300"];
 
             function rotateBaraban(degree) {
-                if (waitToSpin) {
+                if (waitToSpin && !isComplete) {
                     isSpinning = true;
                     waitToSpin = false;
                     let requiredDegree = currentDegree + degree;
@@ -256,7 +257,12 @@
                         }
                     }
                 } else {
-                    alert("Барабан уже крутили")
+                    if (isComplete) {
+                        location.reload();
+                    } else {
+                        alert("Барабан уже крутили");
+                    }
+
                 }
 
             }
@@ -283,10 +289,12 @@
                     case '+':
                         scoreOnWheel = 0;
                         sendLetter("+");
+                        waitToSpin = true;
                         break
                     case 'Приз':
                         scoreOnWheel = 1200;
                         sendLetter("+");
+                        waitToSpin = true;
                         break
                     default:
                         scoreOnWheel = parseInt(sector);
@@ -395,7 +403,10 @@
                         }
                         if (response.word_mask) openLetter(response.word_mask);
                         if (response.is_complete) {
-                            alert("Игрок " + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                            alert("Победитель - Игрок" + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                            setTimeout(function () {
+                                location.reload();
+                            }, 2000);
                         } else {
                             waitToSpin = true;
                         }
@@ -434,9 +445,13 @@
                             if (response.word_mask) openLetter(response.word_mask);
                             if (response.is_complete) {
                                 const score = document.querySelector('#score' + activePlayer);
-                                alert("Игрок " + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                                alert("Победитель - Игрок " + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 2000);
                             } else {
-                                alert("Игрок " + activePlayer + " выбывает!");
+                                moveTransition("Игрок " + activePlayer + " выбывает!");
+                                waitToSpin = true;
                             }
                         },
                         error: function (error) {
