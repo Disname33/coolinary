@@ -1,0 +1,458 @@
+{% extends 'home/header.html' %}
+{% load static %}
+{% load group_check %}
+
+{% block inhead %}
+    <style>
+
+        .none {
+            display: none;
+        }
+
+        body {
+            padding: 0;
+        }
+
+        #game-field {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .custom-tooltip {
+            --bs-tooltip-bg: var(--bs-primary);
+        }
+
+        .custom-popover {
+            --bs-popover-max-width: 200px;
+            --bs-popover-border-color: var(--bs-primary);
+            --bs-popover-header-bg: var(--bs-primary);
+            --bs-popover-header-color: var(--bs-white);
+            --bs-popover-body-padding-x: 1rem;
+            --bs-popover-body-padding-y: .5rem;
+        }
+
+        .hide-letter, .letter {
+            align-items: center;
+            vertical-align: center;
+            justify-content: center;
+        }
+
+        .hide-letter {
+            background: linear-gradient(45deg, #000000, #3f3f3f);
+        }
+
+        .letter {
+            background: linear-gradient(45deg, #bbbbbb, #ffffff);
+            position: relative;
+            font: 42px Arial bold normal;
+            font-weight: 900;
+            color: black;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .letter span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: 0 -50% 0 0;
+            transform: translate(-50%, -50%)
+        }
+
+        @media (min-width: 992px) {
+            .hide-letter, .letter {
+                width: 60px;
+                height: 60px;
+                margin: 4px;
+            }
+        }
+
+        @media (max-width: 991px) {
+            .hide-letter, .letter {
+                width: 50px;
+                height: 50px;
+                margin: 2px;
+            }
+        }
+
+        #keyboard, #keyboard_btn {
+            max-width: 600px;
+
+        }
+
+        #keyboard .border {
+            align-items: center;
+            justify-content: center;
+            padding: 1px !important;
+        }
+
+        #remove_btn img {
+            filter: invert(60%);
+        }
+
+        .baraban {
+            margin: 0 auto;
+            float: left;
+            width: 566px;
+            height: 303px;
+            overflow: hidden;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            cursor: default;
+        }
+
+        .baraban {
+            margin-left: 2px;
+            float: left;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #baraban {
+            position: relative;
+            top: -283px;
+            -webkit-transform: rotate(0deg);
+            -moz-transform: rotate(0deg);
+            -ms-transform: rotate(0deg);
+            -o-transform: rotate(0deg);
+            transform: rotate(0deg);
+            transition: transform 4s ease-out;
+        }
+
+        @media (max-width: 568px) {
+            .baraban {
+                width: 100%;
+                height: 50vw;
+            }
+
+            #baraban {
+                top: -55vw;
+                width: 100%;
+            }
+        }
+    </style>
+{% endblock %}
+
+
+{% block title %}
+    Игра Поле Чудес
+{% endblock %}
+
+{% block body_block %}
+    <div class="container-xl" id="game-field">
+
+        <div class="row text-center">
+            <div class="col text-center">
+                <h1>Игра "Поле Чудес"</h1>
+            </div>
+            {#        <div class="col-xl-5 mb-4">#}
+            {#            <form method="GET" action="{% url 'guess_the_word_game' %}">#}
+            {#                {% csrf_token %}#}
+            {#                <div class="input-group justify-content-md-end">#}
+            {#                    <button class="btn btn-primary btn-lg" type="submit">Новая игра</button>#}
+            {#                </div>#}
+            {#            </form>#}
+            {#        </div>#}
+        </div>
+        <div class="row attempt">
+            <div class="col pb-2">
+                <a class="btn btn-primary d-flex text-center  border border-warning" type="button">
+                    <div class="col-auto">Игрок1:&nbsp;</div>
+                    <em id="score0">0</em>
+                </a>
+            </div>
+            <div class="col pb-2">
+                <a class="btn btn-success d-flex text-center  border " type="button">
+                    <div class="col-auto">Игрок2:&nbsp;</div>
+                    <em id="score1">0</em>
+                </a>
+            </div>
+            <div class="col pb-2">
+                <a class="btn btn-danger d-flex text-center  border " type="button">
+                    <div class="col-auto">Игрок3:&nbsp;</div>
+                    <em id="score2">0</em>
+                </a>
+            </div>
+            {#        <div class="col-lg pb-2">#}
+            {#            <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game_results' %}"#}
+            {#               role="button">#}
+            {#                Таблица рекордов#}
+            {#            </a>#}
+            {#        </div>#}
+            {#        <div class="col-lg pb-2">#}
+            {#            <a class="btn btn-outline-primary d-flex text-center" id="rules_btn" href="#rules" data-bs-toggle="collapse"#}
+            {#               role="button" aria-expanded="true" aria-controls="collapseExample">#}
+            {#                Напомнить правила#}
+            {#            </a>#}
+            {#        </div>#}
+        </div>
+        <div class="collapse {{ show_rules }} pb-2" id="rules">
+            <div class="card card-body">
+                <b>
+                    <span> Вам нужно отгадать загаданное слово.<br>
+                   Вращайте барабан и называйте букву, либо отгадайте слово целиком, чтобы победить.<br>
+                        Если буква названа неверно ход переходит к следующему игроку.<br>
+                        Если слово названо неверно вы проигрываете.<br>
+                </span>
+                </b>
+            </div>
+        </div>
+        <div class="row">
+            <h2>
+                <div id="wordbord" class="row justify-content-center my-2 mx-auto">
+                    {% for letter in word_mask %}
+                        {% if letter == '*' %}
+                            <div class="hide-letter border border-white"></div>
+                        {% else %}
+                            <div class="letter border border-black"><span class="mx-auto">{{ letter }}</span></div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </h2>
+        </div>
+
+        <div class="row">
+            <div class="baraban mx-auto px-0 position-relative">
+                <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x">
+                    <img src="{% static "/pole_chudes/arrow.png" %}" alt="">
+                </div>
+                <img src="{% static "/pole_chudes/baraban.png" %}" alt="" class="z-2"
+                     onclick="rotateBaraban(Math.floor(Math.random() * 720)+360)" id="baraban">
+            </div>
+
+        </div>
+
+        <script>
+            let currentDegree = Math.floor(Math.random() * 360);
+            let scoreOnWheel = 0;
+            let moveTransitionCount = 0;
+            let activePlayer = 0;
+            let waitToSpin = true;
+            let isSpinning = false;
+            $('#baraban').css("transform", `rotate(${currentDegree}deg)`);
+            const baraban = ["200", "X3", "700", "Банкрот", "1000", "100", "X2", "600", "800", "+", "400", "900", "0", "Приз", "500", "300"];
+
+            function rotateBaraban(degree) {
+                if (waitToSpin) {
+                    isSpinning = true;
+                    waitToSpin = false;
+                    let requiredDegree = currentDegree + degree;
+                    let delay = 10;
+                    let intervalId = setInterval(function () {
+                        rotate()
+                    }, delay);
+
+                    function rotate() {
+                        currentDegree++;
+                        $("#baraban").css("transform", `rotate(${currentDegree}deg)`);
+                        if (requiredDegree === currentDegree) {
+                            clearInterval(intervalId);
+                            console.log(currentDegree);
+                            setTimeout(function () {
+                                scoreCalc(baraban[Math.floor((currentDegree - 11.25) % 360 / 22.5)]);
+                                isSpinning = false;
+                            }, 4000);
+                        }
+                    }
+                } else {
+                    alert("Барабан уже крутили")
+                }
+
+            }
+
+            function scoreCalc(sector) {
+                const score = document.querySelector('#score' + activePlayer);
+                const intScore = parseInt(score.innerHTML);
+                switch (sector) {
+                    case 'Банкрот':
+                        score.innerHTML = "0";
+                        moveTransition('Вы банкрот');
+                        waitToSpin = true;
+                        break
+                    case '0':
+                        moveTransition();
+                        waitToSpin = true;
+                        break
+                    case 'X2':
+                        scoreOnWheel = intScore * 2;
+                        break
+                    case 'X3':
+                        scoreOnWheel = intScore * 3;
+                        break
+                    case '+':
+                        scoreOnWheel = 0;
+                        sendLetter("+");
+                        break
+                    case 'Приз':
+                        scoreOnWheel = 1200;
+                        sendLetter("+");
+                        break
+                    default:
+                        scoreOnWheel = parseInt(sector);
+                        break
+                }
+            }
+
+            function moveTransition(message = "Переход хода") {
+                document.querySelector('#score' + activePlayer).parentElement.classList.remove("border-warning");
+                moveTransitionCount++;
+                activePlayer = moveTransitionCount % 3;
+                document.querySelector('#score' + activePlayer).parentElement.classList.add("border-warning");
+                alert(message);
+            }
+
+        </script>
+
+        {#    <div class="z-3 position-absolute top-50 start-50 translate-middle pe-none {{ firework }}" tabindex="-1"#}
+        {#         aria-disabled="true"><span>#}
+        {#        <canvas class="pe-none" width="640" height="480" id="fireworks-canvas" tabindex="-1"#}
+        {#                aria-disabled="true"></canvas>#}
+        {#    <script src=" {% static "/js/fireworks.js" %} "></script>#}
+        {#    </span>#}
+        {#    </div>#}
+        <div class="row">
+            <div id="question" class="col-auto mx-auto">
+                {{ question }}
+            </div>
+        </div>
+
+        <div class="col-12 collapse multi-collapse">
+            <form method="GET" action="{% url 'pole_chudes_lobby' %}" id="sendFullWordForm">
+                {% csrf_token %}
+                <div class="input-group my-3">
+                    <input type="text" name="full_word" class="form-control active" autofocus
+                           placeholder="Введите слово"
+                           aria-label="Введите слово" aria-describedby="input_btn" minlength="{{ word_mask|length }}"
+                           maxlength="{{ word_mask|length }}" id="full_word"
+                           pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы" required>
+                    <button class="btn btn-primary btn-lg" type="submit" id="input_btn" {{ input_btn }} >Проверить
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="row d-flex mt-2 mx-2 mx-md-auto" id="keyboard_btn">
+            <a class="btn btn-sm btn-outline-secondary d-flex text-center col p-0 mx-auto" href="#keyboard"
+               data-bs-toggle="collapse"
+               role="button" aria-expanded="true" aria-controls="#keyboard #sendFullWordForm"
+               data-bs-target=".multi-collapse">
+                Назвать букву / Назвать слово
+            </a>
+        </div>
+
+
+        <div class="collapse show multi-collapse text-center mx-2 mx-md-auto user-select-none" id="keyboard">
+        </div>
+        <script>
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            function createNewKeyboard() {
+                const keyboard = document.getElementById('keyboard');
+                keyboard.innerHTML = createNewLineKeys('Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ') +
+                    createNewLineKeys('Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э') +
+                    createNewLineKeys('Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю');
+                keyboard.querySelectorAll('.border').forEach(function (key) {
+                    key.addEventListener("click", function () {
+                        if (!waitToSpin) {
+                            if (!isSpinning) {
+                                sendLetter(this.innerText);
+                                this.classList.add("bg-danger");
+                            } else {
+                                alert("Дождитесь остановки барабана!")
+                            }
+                        } else {
+                            alert("Крутите барабан!")
+                        }
+
+                    });
+                });
+
+                function createNewLineKeys(...keys) {
+                    let linesCode = `<div class="row justify-content-center my-2">`;
+                    keys.forEach(function (key) {
+                        linesCode += `<div class="btn btn-outline-secondary col-1 border" id="` + key + `">` + key + `</div>`;
+                    });
+                    return linesCode + `</div>`;
+                }
+            }
+
+            function sendLetter(letter) {
+                $.ajax({
+                    url: window.location.href,
+                    type: 'GET',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        'checked_letter': letter
+                    },
+                    success: function (response) {
+                        const score = document.querySelector('#score' + activePlayer);
+                        if (response.letter_count) {
+                            const intScore = parseInt(score.innerHTML);
+                            score.innerHTML = (intScore + (scoreOnWheel * parseInt(response.letter_count))).toString();
+                            if (!!response.comment) alert(response.comment);
+                        } else {
+                            moveTransition(response.comment);
+                        }
+                        if (response.word_mask) openLetter(response.word_mask);
+                        if (response.is_complete) {
+                            alert("Игрок " + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                        } else {
+                            waitToSpin = true;
+                        }
+
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            function openLetter(word_mask) {
+                let wordbordHTML = '';
+                for (let i = 0; i < word_mask.length; i++) {
+                    if (word_mask[i] === '*') {
+                        wordbordHTML += `<div class="hide-letter border border-white"></div>`;
+                    } else {
+                        wordbordHTML += `<div class="letter border border-black"> <span class="mx-auto">` + word_mask[i] + `</span></div>`;
+                    }
+                }
+
+                $('#wordbord').html(wordbordHTML);
+            }
+
+            document.getElementById("sendFullWordForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+                if (!isSpinning) {
+                    $.ajax({
+                        url: window.location.href,
+                        type: 'GET',
+                        headers: {'X-CSRFToken': csrftoken},
+                        data: {
+                            'full_word': $('#full_word').val().toUpperCase(),
+                        },
+                        success: function (response) {
+                            if (response.word_mask) openLetter(response.word_mask);
+                            if (response.is_complete) {
+                                const score = document.querySelector('#score' + activePlayer);
+                                alert("Игрок " + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                            } else {
+                                alert("Игрок " + activePlayer + " выбывает!");
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
+                } else {
+                    alert("Дождитесь остановки барабана!")
+                }
+            });
+
+            createNewKeyboard();
+
+        </script>
+    </div>
+
+{% endblock %}
+
+

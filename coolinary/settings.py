@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'coolinary',
     'games',
     'chatGPT',
+    'pole_chudes',
 ]
 
 MIDDLEWARE = [
