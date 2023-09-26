@@ -13,11 +13,6 @@
             padding: 0;
         }
 
-        #game-field {
-            position: relative;
-            overflow: hidden;
-        }
-
         .custom-tooltip {
             --bs-tooltip-bg: var(--bs-primary);
         }
@@ -154,7 +149,6 @@
                 <a href="?start_new_game=new">
                     <img src="{% static "/pole_chudes/logo.png" %}" alt="Поле чудес" class="object-fit-contain">
                 </a>
-                {#                <h1>Игра "Поле Чудес"</h1>#}
             </div>
             {#        <div class="col-xl-5 mb-4">#}
             {#            <form method="GET" action="{% url 'guess_the_word_game' %}">#}
@@ -209,21 +203,23 @@
             </div>
         </div>
         <div class="row">
-            <h2>
-                <div id="wordbord" class="row justify-content-center my-2 mx-auto">
-                    {% for letter in word_mask %}
+            <h2 id="wordbord" class="row justify-content-center my-2 mx-auto">
+                {% for letter in word_mask %}
                         {% if letter == '*' %}
                             <div class="hide-letter border border-white"></div>
                         {% else %}
                             <div class="letter border border-black"><span class="mx-auto">{{ letter }}</span></div>
                         {% endif %}
                     {% endfor %}
-                </div>
             </h2>
         </div>
 
         <div class="row">
             <div class="baraban mx-auto px-0 position-relative">
+                <div class="baraban-info rounded-2 p-2 z-3 position-absolute top-0 start-50 translate-middle-x
+                text-warning bg-dark pe-none bg-opacity-75 text-center"
+                     tabindex="-1" aria-disabled="true"> нажмите для вращения
+                </div>
                 <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x arrow">
                     <img src="{% static "/pole_chudes/arrow.png" %}" alt="">
                 </div>
@@ -234,6 +230,7 @@
         </div>
 
         <script>
+            const barabanInfo = document.querySelector('.baraban-info');
             let currentDegree = Math.floor(Math.random() * 360);
             let scoreOnWheel = 0;
             let moveTransitionCount = 0;
@@ -248,6 +245,7 @@
                 if (waitToSpin && !isComplete) {
                     isSpinning = true;
                     waitToSpin = false;
+                    barabanInfo.classList.add("visually-hidden");
                     let requiredDegree = currentDegree + degree;
                     let delay = 10;
                     let intervalId = setInterval(function () {
@@ -291,10 +289,10 @@
                         waitToSpin = true;
                         break
                     case 'X2':
-                        scoreOnWheel = intScore * 2;
+                        scoreOnWheel = intScore;
                         break
                     case 'X3':
-                        scoreOnWheel = intScore * 3;
+                        scoreOnWheel = intScore * 2;
                         break
                     case '+':
                         scoreOnWheel = 0;
@@ -335,7 +333,7 @@
             </div>
         </div>
 
-        <div class="col-12 collapse multi-collapse">
+        <div class="col-12 collapse multi-collapse" id="inputForm">
             <form method="GET" action="{% url 'pole_chudes_lobby' %}" id="sendFullWordForm">
                 {% csrf_token %}
                 <div class="input-group my-3">
@@ -349,13 +347,19 @@
                 </div>
             </form>
         </div>
-        <div class="row d-flex mt-2 mx-2 mx-md-auto" id="keyboard_btn">
-            <a class="btn btn-sm btn-outline-secondary d-flex text-center col p-0 mx-auto" href="#keyboard"
-               data-bs-toggle="collapse"
-               role="button" aria-expanded="true" aria-controls="#keyboard #sendFullWordForm"
-               data-bs-target=".multi-collapse">
-                Назвать букву / Назвать слово
-            </a>
+        <div class="row d-flex mt-2 mx-2 mx-md-auto" id="keyboard_toggle">
+            <div class="col row">
+                <div id="id_input_type" class="btn-group" role="group">
+                    <input type="radio" class=" btn-check" autocomplete="off" name="input_type" id="input_type_letter"
+                           value="letter" checked="checked">
+                    <label class="btn btn-outline-primary col-6 py-1 " for="input_type_letter"
+                           onclick="showKeyboard(true)">Назвать букву</label>
+                    <input type="radio" class=" btn-check" autocomplete="off" name="input_type" id="input_type_word"
+                           value="word">
+                    <label class="btn btn-outline-primary col-6 py-1" for="input_type_word"
+                           onclick="showKeyboard(false)">Назвать слово</label>
+                </div>
+            </div>
         </div>
 
 
@@ -472,6 +476,25 @@
                     alert("Дождитесь остановки барабана!")
                 }
             });
+
+            function showKeyboard(is_show) {
+                const keyboard_toggle = document.getElementById('keyboard_toggle');
+                const keyboard = new bootstrap.Collapse('#keyboard', {
+                    parent: keyboard_toggle,
+                    toggle: false
+                });
+                const inputForm = new bootstrap.Collapse('#inputForm', {
+                    parent: keyboard_toggle,
+                    toggle: false
+                });
+                if (is_show) {
+                    keyboard.show();
+                    inputForm.hide();
+                } else {
+                    keyboard.hide();
+                    inputForm.show();
+                }
+            }
 
             createNewKeyboard();
 
