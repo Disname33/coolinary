@@ -70,7 +70,7 @@
             }
         }
 
-        #keyboard, #keyboard_btn {
+        #keyboard, #keyboard_toggle {
             max-width: 600px;
 
         }
@@ -347,18 +347,16 @@
                 </div>
             </form>
         </div>
-        <div class="row d-flex mt-2 mx-2 mx-md-auto" id="keyboard_toggle">
-            <div class="col row">
-                <div id="id_input_type" class="btn-group" role="group">
-                    <input type="radio" class=" btn-check" autocomplete="off" name="input_type" id="input_type_letter"
-                           value="letter" checked="checked">
-                    <label class="btn btn-outline-primary col-6 py-1 " for="input_type_letter"
-                           onclick="showKeyboard(true)">Назвать букву</label>
-                    <input type="radio" class=" btn-check" autocomplete="off" name="input_type" id="input_type_word"
-                           value="word">
-                    <label class="btn btn-outline-primary col-6 py-1" for="input_type_word"
-                           onclick="showKeyboard(false)">Назвать слово</label>
-                </div>
+        <div class="row d-flex mt-2 mx-auto" id="keyboard_toggle">
+            <div id="id_input_type" class="btn-group" role="group">
+                <input type="radio" class=" btn-check" autocomplete="off" name="input_type" id="input_type_letter"
+                       value="letter" checked="checked">
+                <label class="btn btn-outline-primary col-6 py-1 " for="input_type_letter"
+                       onclick="showKeyboard(true)">Назвать букву</label>
+                <input type="radio" class=" btn-check" autocomplete="off" name="input_type" id="input_type_word"
+                       value="word">
+                <label class="btn btn-outline-primary col-6 py-1" for="input_type_word"
+                       onclick="showKeyboard(false)">Назвать слово</label>
             </div>
         </div>
 
@@ -383,7 +381,8 @@
                                 alert("Дождитесь остановки барабана!")
                             }
                         } else {
-                            alert("Крутите барабан!")
+                            barabanInfo.classList.remove('visually-hidden')
+                            alert("Крутите барабан!");
                         }
 
                     });
@@ -417,9 +416,9 @@
                         }
                         if (response.word_mask) openLetter(response.word_mask);
                         if (response.is_complete) {
-                            alert("Победитель - Игрок" + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                            alert("Победитель - Игрок" + (activePlayer + 1) + " с результатом " + score.innerHTML + " очков!");
                             setTimeout(function () {
-                                location.reload();
+                                window.location.href = '../../';
                             }, 2000);
                         } else {
                             waitToSpin = true;
@@ -459,12 +458,13 @@
                             if (response.word_mask) openLetter(response.word_mask);
                             if (response.is_complete) {
                                 const score = document.querySelector('#score' + activePlayer);
-                                alert("Победитель - Игрок " + activePlayer + " с результатом " + score.innerHTML + " очков!");
+                                alert("Победитель - Игрок " + (activePlayer + 1) + " с результатом " + score.innerHTML + " очков!");
                                 setTimeout(function () {
-                                    location.reload();
+                                    {#location.reload();#}
+                                    window.location.href = '../../';
                                 }, 2000);
                             } else {
-                                moveTransition("Игрок " + activePlayer + " выбывает!");
+                                moveTransition("Игрок " + (activePlayer + 1) + " выбывает!");
                                 waitToSpin = true;
                             }
                         },

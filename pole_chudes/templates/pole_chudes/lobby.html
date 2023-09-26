@@ -1,0 +1,48 @@
+{% extends 'home/header.html' %}
+{% load static %}
+{% load group_check %}
+
+{% block inhead %}
+    <style>
+        .pole-chudes-logo img {
+            width: 140px;
+            height: 60px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block title %}
+    Игра Поле Чудес
+{% endblock %}
+
+{% block body_block %}
+    <div class="container-xl">
+        <div class="row text-center">
+            <div class="col text-center pole-chudes-logo">
+                <a href="?start_new_game=new">
+                    <img src="{% static "/pole_chudes/logo.png" %}" alt="Поле чудес" class="object-fit-contain">
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <h2 id="gamebord" class="vstack gap-3">
+                <div class="mx-auto col-auto btn">Выберите зал для игры</div>
+                {% for room in rooms %}
+                    <div class="hstack gap-3">
+                        <div class="row mx-auto gap-3">
+                            <div class="btn btn-primary col-auto">Зал №{{ room.pk }}</div>
+                            {% if room.is_complete %}
+                                <div class="btn btn-success col-auto">Свободен</div>
+                                <a class="btn btn-success col-auto" href="./room/{{ room.pk }}">Войти</a>
+                            {% else %}
+                                <div class="btn btn-warning col-auto">Занят</div>
+                                <a class="btn btn-warning col-auto" href="./room/{{ room.pk }}">Присоединиться</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </h2>
+        </div>
+    </div>
+{% endblock %}

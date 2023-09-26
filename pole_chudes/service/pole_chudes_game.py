@@ -43,11 +43,12 @@ def start_game(pk):
     game = Round.objects.filter(pk=pk).first()
     if game and game.is_complete:
         game.next_riddle()
-    else:
+
         # Первый запуск игры. Создание трёх игровых комнат.
-        for _ in range(3):
-            Round().save()
-        game = Round.objects.get(pk=pk)
+    # if not game:
+    # for _ in range(3):
+    #     Round().save()
+    # game = Round.objects.get(pk=pk)
     return {"word_mask": game.word_mask.upper(), "question": game.riddle.question}
 
 
