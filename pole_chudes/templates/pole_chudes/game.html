@@ -259,6 +259,8 @@
                 }
             }
 
+            let countRotate = 0;
+
             function rotateWheel() {
                 if (waitToSpin && !isComplete) {
                     wheelSound.play();
@@ -267,9 +269,9 @@
                     waitToSpin = false;
                     barabanInfo.classList.add("visually-hidden");
                     currentDegree = Math.floor(currentDegree / 90) * 90;
-                    let countRotate = 0;
+                    countRotate = 0;
                     intervalRotateId = setInterval(function () {
-                        if ((stopDegree >= 0) && (countRotate > 3) && (stopDegree - currentDegree % 360 < 91)) {
+                        if ((stopDegree >= 0) && (countRotate > 6) && (stopDegree - currentDegree % 360 < 91)) {
                             clearInterval(intervalRotateId);
                             currentDegree = currentDegree - currentDegree % 360 + stopDegree;
                             setTimeout(function () {
@@ -284,11 +286,7 @@
                     }, 500);
                     sendMessage({"rotate_wheel": "rotate"})
                 } else {
-                    if (isComplete) {
-                        location.reload();
-                    } else {
-                        alert("Барабан уже крутили");
-                    }
+                    alert("Барабан уже крутили");
                 }
             }
 
