@@ -1,4 +1,5 @@
 {% extends 'home/header.html' %}
+{% load bool %}
 {% load static %}
 {% load group_check %}
 
@@ -103,7 +104,7 @@
             -ms-transform: rotate(0deg);
             -o-transform: rotate(0deg);
             transform: rotate(0deg);
-            transition: transform 4s ease-out;
+            transition: transform 3s ease-out;
         }
 
         .border-warning {
@@ -142,6 +143,7 @@
 {% endblock %}
 
 {% block body_block %}
+    <audio id="wheelSound" src="{% static "/pole_chudes/wheel_sound.mp3" %}" muted="muted"></audio>
     <div class="container-xl" id="game-field">
 
         <div class="row text-center">
@@ -161,21 +163,21 @@
         </div>
         <div class="row attempt">
             <div class="col pb-2">
-                <a class="btn btn-primary d-flex text-center  border border-warning" type="button">
+                <a class="btn btn-primary d-flex text-center  border" type="button">
                     <div class="col-auto">Игрок1:&nbsp;</div>
-                    <em id="score0">0</em>
+                    <em id="score0" class="score">0</em>
                 </a>
             </div>
             <div class="col pb-2">
                 <a class="btn btn-success d-flex text-center  border " type="button">
                     <div class="col-auto">Игрок2:&nbsp;</div>
-                    <em id="score1">0</em>
+                    <em id="score1" class="score">0</em>
                 </a>
             </div>
             <div class="col pb-2">
                 <a class="btn btn-danger d-flex text-center  border " type="button">
                     <div class="col-auto">Игрок3:&nbsp;</div>
-                    <em id="score2">0</em>
+                    <em id="score2" class="score">0</em>
                 </a>
             </div>
             {#        <div class="col-lg pb-2">#}
@@ -191,14 +193,14 @@
             {#            </a>#}
             {#        </div>#}
         </div>
-        <div class="collapse {{ show_rules }} pb-2" id="rules">
+        <div class="collapse pb-2" id="rules">
             <div class="card card-body">
                 <b>
                     <span> Вам нужно отгадать загаданное слово.<br>
                    Вращайте барабан и называйте букву, либо отгадайте слово целиком, чтобы победить.<br>
                         Если буква названа неверно ход переходит к следующему игроку.<br>
                         Если слово названо неверно вы проигрываете.<br>
-                </span>
+                    </span>
                 </b>
             </div>
         </div>
@@ -220,116 +222,79 @@
                 text-warning bg-dark pe-none bg-opacity-75 text-center"
                      tabindex="-1" aria-disabled="true"> нажмите для вращения
                 </div>
-                <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x arrow">
+                <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x pe-none arrow">
                     <img src="{% static "/pole_chudes/arrow.png" %}" alt="">
                 </div>
+                <div class="btn z-3 position-absolute bottom-0 end-0 mute">
+                    <img src="{% static "/svg/volume-off.svg" %}" alt="mute" onclick="mute(this)" class="svg">
+                </div>
                 <img src="{% static "/pole_chudes/baraban.png" %}" alt="" class="z-2"
-                     onclick="rotateBaraban(Math.floor(Math.random() * 720)+360)" id="baraban">
+                     onclick="rotateWheel()" id="baraban">
             </div>
 
         </div>
 
         <script>
+            const wheelSound = document.getElementById('wheelSound');
+            const scores = document.querySelectorAll('.score');
             const barabanInfo = document.querySelector('.baraban-info');
-            let currentDegree = Math.floor(Math.random() * 360);
-            let scoreOnWheel = 0;
-            let moveTransitionCount = 0;
-            let activePlayer = 0;
-            let waitToSpin = true;
+            let currentDegree = {{ wheel_angle }};
+            let activePlayer = {{ active_player_index }};
+            scores[activePlayer].parentElement.classList.add("border-warning");
+            let waitToSpin = {{ wait_to_spin|bool_js }};
             let isSpinning = false;
             let isComplete = false;
+            let stopDegree;
+            let wordMask;
             $('#baraban').css("transform", `rotate(${currentDegree}deg)`);
-            const baraban = ["200", "X3", "700", "Банкрот", "1000", "100", "X2", "600", "800", "+", "400", "900", "0", "Приз", "500", "300"];
+            let intervalRotateId;
 
-            function rotateBaraban(degree) {
+            function mute(muteButton) {
+                if (wheelSound.muted) {
+                    wheelSound.muted = false;
+                    muteButton.src = "/static/svg/volume-on.svg";
+                } else {
+                    wheelSound.muted = true;
+                    muteButton.src = "/static/svg/volume-off.svg";
+                }
+            }
+
+            function rotateWheel() {
                 if (waitToSpin && !isComplete) {
+                    wheelSound.play();
+                    stopDegree = -1;
                     isSpinning = true;
                     waitToSpin = false;
                     barabanInfo.classList.add("visually-hidden");
-                    let requiredDegree = currentDegree + degree;
-                    let delay = 10;
-                    let intervalId = setInterval(function () {
-                        rotate()
-                    }, delay);
-
-                    function rotate() {
-                        currentDegree++;
-                        $("#baraban").css("transform", `rotate(${currentDegree}deg)`);
-                        if (requiredDegree === currentDegree) {
-                            clearInterval(intervalId);
-                            console.log(currentDegree);
+                    currentDegree = Math.floor(currentDegree / 90) * 90;
+                    intervalRotateId = setInterval(function () {
+                        if ((stopDegree > 0) && (stopDegree - currentDegree % 360 < 91)) {
+                            clearInterval(intervalRotateId);
+                            currentDegree = currentDegree - currentDegree % 360 + stopDegree;
                             setTimeout(function () {
-                                scoreCalc(baraban[Math.floor((currentDegree - 11.25) % 360 / 22.5)]);
                                 isSpinning = false;
-                            }, 4000);
-                        }
-                    }
+                                openLetter(wordMask);
+                                wheelSound.pause();
+                                wheelSound.currentTime = 0;
+                            }, 3000);
+                        } else currentDegree += 90;
+                        $("#baraban").css("transform", `rotate(${currentDegree}deg)`);
+                    }, 500);
+                    sendMessage({"rotate_wheel": "rotate"})
                 } else {
                     if (isComplete) {
                         location.reload();
                     } else {
                         alert("Барабан уже крутили");
                     }
-
                 }
-
-            }
-
-            function scoreCalc(sector) {
-                const score = document.querySelector('#score' + activePlayer);
-                const intScore = parseInt(score.innerHTML);
-                switch (sector) {
-                    case 'Банкрот':
-                        score.innerHTML = "0";
-                        moveTransition('Вы банкрот');
-                        waitToSpin = true;
-                        break
-                    case '0':
-                        moveTransition();
-                        waitToSpin = true;
-                        break
-                    case 'X2':
-                        scoreOnWheel = intScore;
-                        break
-                    case 'X3':
-                        scoreOnWheel = intScore * 2;
-                        break
-                    case '+':
-                        scoreOnWheel = 0;
-                        sendLetter("+");
-                        waitToSpin = true;
-                        break
-                    case 'Приз':
-                        scoreOnWheel = 1200;
-                        sendLetter("+");
-                        waitToSpin = true;
-                        break
-                    default:
-                        scoreOnWheel = parseInt(sector);
-                        break
-                }
-            }
-
-            function moveTransition(message = "Переход хода") {
-                document.querySelector('#score' + activePlayer).parentElement.classList.remove("border-warning");
-                moveTransitionCount++;
-                activePlayer = moveTransitionCount % 3;
-                document.querySelector('#score' + activePlayer).parentElement.classList.add("border-warning");
-                alert(message);
             }
 
         </script>
 
-        {#    <div class="z-3 position-absolute top-50 start-50 translate-middle pe-none {{ firework }}" tabindex="-1"#}
-        {#         aria-disabled="true"><span>#}
-        {#        <canvas class="pe-none" width="640" height="480" id="fireworks-canvas" tabindex="-1"#}
-        {#                aria-disabled="true"></canvas>#}
-        {#    <script src=" {% static "/js/fireworks.js" %} "></script>#}
-        {#    </span>#}
-        {#    </div>#}
         <div class="row">
             <div id="question" class="col-auto mx-auto text-center">
-                {{ question }}
+                {{ riddle.question }}
             </div>
         </div>
 
@@ -375,7 +340,7 @@
                     key.addEventListener("click", function () {
                         if (!waitToSpin) {
                             if (!isSpinning) {
-                                sendLetter(this.innerText);
+                                sendMessage({'checked_letter': this.innerText})
                                 this.classList.add("bg-danger");
                             } else {
                                 alert("Дождитесь остановки барабана!")
@@ -397,33 +362,47 @@
                 }
             }
 
-            function sendLetter(letter) {
+            function sendMessage(data) {
                 $.ajax({
                     url: window.location.href,
                     type: 'GET',
                     headers: {'X-CSRFToken': csrftoken},
-                    data: {
-                        'checked_letter': letter
-                    },
+                    data: data,
                     success: function (response) {
-                        const score = document.querySelector('#score' + activePlayer);
-                        if (response.letter_count) {
-                            const intScore = parseInt(score.innerHTML);
-                            score.innerHTML = (intScore + (scoreOnWheel * parseInt(response.letter_count))).toString();
-                            if (!!response.comment) alert(response.comment);
-                        } else {
-                            moveTransition(response.comment);
+                        console.log(response)
+                        if (isSpinning) {
+                            wordMask = response.word_mask;
+                            stopDegree = response.wheel_angle;
                         }
-                        if (response.word_mask) openLetter(response.word_mask);
+                        for (let i = 0; i < 3; i++) {
+                            scores[i].innerHTML = response.players[i]["score"];
+                            if (!response.players[i]['in_game']) scores[i].parentElement.classList.add('bg-black');
+                        }
+                        if (response.active_player_index === activePlayer) {
+                            if (!isSpinning) {
+                                if (wordMask === response.word_mask) {
+                                    alert(response.comment);
+                                } else {
+                                    wordMask = response.word_mask;
+                                    openLetter(wordMask);
+                                }
+                            }
+                        } else {
+                            setTimeout(function () {
+                                scores[activePlayer].parentElement.classList.remove("border-warning");
+                                activePlayer = response.active_player_index;
+                                scores[activePlayer].parentElement.classList.add("border-warning");
+                                alert(response.comment);
+                            }, isSpinning ? 3500 : 0);
+                        }
                         if (response.is_complete) {
-                            alert("Победитель - Игрок" + (activePlayer + 1) + " с результатом " + score.innerHTML + " очков!");
+                            openLetter(response.word_mask);
+                            alert(response.comment);
                             setTimeout(function () {
                                 window.location.href = '../../';
                             }, 2000);
-                        } else {
-                            waitToSpin = true;
                         }
-
+                        waitToSpin = response.wait_to_spin;
                     },
                     error: function (error) {
                         console.log(error);
@@ -447,31 +426,7 @@
             document.getElementById("sendFullWordForm").addEventListener("submit", function (event) {
                 event.preventDefault();
                 if (!isSpinning) {
-                    $.ajax({
-                        url: window.location.href,
-                        type: 'GET',
-                        headers: {'X-CSRFToken': csrftoken},
-                        data: {
-                            'full_word': $('#full_word').val().toUpperCase(),
-                        },
-                        success: function (response) {
-                            if (response.word_mask) openLetter(response.word_mask);
-                            if (response.is_complete) {
-                                const score = document.querySelector('#score' + activePlayer);
-                                alert("Победитель - Игрок " + (activePlayer + 1) + " с результатом " + score.innerHTML + " очков!");
-                                setTimeout(function () {
-                                    {#location.reload();#}
-                                    window.location.href = '../../';
-                                }, 2000);
-                            } else {
-                                moveTransition("Игрок " + (activePlayer + 1) + " выбывает!");
-                                waitToSpin = true;
-                            }
-                        },
-                        error: function (error) {
-                            console.log(error);
-                        }
-                    });
+                    sendMessage({'full_word': $('#full_word').val().toUpperCase()})
                 } else {
                     alert("Дождитесь остановки барабана!")
                 }

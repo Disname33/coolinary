@@ -29,15 +29,15 @@
             <h2 id="gamebord" class="vstack gap-3">
                 <div class="mx-auto col-auto btn">Выберите зал для игры</div>
                 {% for room in rooms %}
-                    <div class="hstack gap-3">
-                        <div class="row mx-auto gap-3">
-                            <div class="btn btn-primary col-auto">Зал №{{ room.pk }}</div>
+                    <div class="hstack gap-3 px-2">
+                        <div class="row col gap-2">
+                            <div class="btn btn-primary col">Зал №{{ room.pk }}</div>
                             {% if room.is_complete %}
-                                <div class="btn btn-success col-auto">Свободен</div>
-                                <a class="btn btn-success col-auto" href="./room/{{ room.pk }}">Войти</a>
+                                <div class="btn btn-success col">Свободен</div>
+                                <a class="btn btn-success col" href="./room/{{ room.pk }}">Войти</a>
                             {% else %}
-                                <div class="btn btn-warning col-auto">Занят</div>
-                                <a class="btn btn-warning col-auto" href="./room/{{ room.pk }}">Присоединиться</a>
+                                <div class="btn btn-warning col">Занят</div>
+                                <a class="btn btn-warning col" href="./room/{{ room.pk }}">Присоединиться</a>
                             {% endif %}
                         </div>
                     </div>
