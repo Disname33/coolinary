@@ -143,7 +143,7 @@
 {% endblock %}
 
 {% block body_block %}
-    <audio id="wheelSound" src="{% static "/pole_chudes/wheel_sound.mp3" %}" muted="muted"></audio>
+    <audio id="wheelSound" src="{% static "/pole_chudes/wheel_sound.mp3" %}" muted="muted" loop="loop"></audio>
     <div class="container-xl" id="game-field">
 
         <div class="row text-center">
@@ -161,25 +161,19 @@
             {#            </form>#}
             {#        </div>#}
         </div>
-        <div class="row attempt">
-            <div class="col pb-2">
-                <a class="btn btn-primary d-flex text-center  border" type="button">
-                    <div class="col-auto">Игрок1:&nbsp;</div>
-                    <em id="score0" class="score">0</em>
-                </a>
-            </div>
-            <div class="col pb-2">
-                <a class="btn btn-success d-flex text-center  border " type="button">
-                    <div class="col-auto">Игрок2:&nbsp;</div>
-                    <em id="score1" class="score">0</em>
-                </a>
-            </div>
-            <div class="col pb-2">
-                <a class="btn btn-danger d-flex text-center  border " type="button">
-                    <div class="col-auto">Игрок3:&nbsp;</div>
-                    <em id="score2" class="score">0</em>
-                </a>
-            </div>
+        <div class="row attempt pb-2 gap-1 px-1">
+            <a class="btn btn-primary d-flex text-center col border">
+                <div class="col-auto">Игрок1:&nbsp;</div>
+                <em id="score0" class="score"> {{ players.0.score }} </em>
+            </a>
+            <a class="btn btn-success d-flex text-center col border">
+                <div class="col-auto">Игрок2:&nbsp;</div>
+                <em id="score1" class="score">{{ players.1.score }}</em>
+            </a>
+            <a class="btn btn-danger d-flex text-center col border">
+                <div class="col-auto">Игрок3:&nbsp;</div>
+                <em id="score2" class="score">{{ players.2.score }}</em>
+            </a>
             {#        <div class="col-lg pb-2">#}
             {#            <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game_results' %}"#}
             {#               role="button">#}
@@ -212,14 +206,14 @@
                         {% else %}
                             <div class="letter border border-black"><span class="mx-auto">{{ letter }}</span></div>
                         {% endif %}
-                    {% endfor %}
+                {% endfor %}
             </h2>
         </div>
 
         <div class="row">
             <div class="baraban mx-auto px-0 position-relative">
-                <div class="baraban-info rounded-2 p-2 z-3 position-absolute top-0 start-50 translate-middle-x
-                text-warning bg-dark pe-none bg-opacity-75 text-center"
+                <div class="baraban-info rounded-2 p-2 z-3 position-absolute top-0 start-50 translate-middle-x bg-dark
+                text-warning pe-none bg-opacity-75 text-center {% if wait_to_spin %} visually-hidden {% endif %} "
                      tabindex="-1" aria-disabled="true"> нажмите для вращения
                 </div>
                 <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x pe-none arrow">
@@ -244,10 +238,13 @@
             let waitToSpin = {{ wait_to_spin|bool_js }};
             let isSpinning = false;
             let isComplete = false;
+            let isWaitingResponse = false;
             let stopDegree;
             let wordMask;
             $('#baraban').css("transform", `rotate(${currentDegree}deg)`);
             let intervalRotateId;
+            let countRotate = 0;
+            let stopWheelFunction;
 
             function mute(muteButton) {
                 if (wheelSound.muted) {
@@ -258,8 +255,6 @@
                     muteButton.src = "/static/svg/volume-off.svg";
                 }
             }
-
-            let countRotate = 0;
 
             function rotateWheel() {
                 if (waitToSpin && !isComplete) {
@@ -276,9 +271,9 @@
                             currentDegree = currentDegree - currentDegree % 360 + stopDegree;
                             setTimeout(function () {
                                 isSpinning = false;
-                                openLetter(wordMask);
                                 wheelSound.pause();
                                 wheelSound.currentTime = 0;
+                                stopWheelFunction()
                             }, 3000);
                         } else currentDegree += 90;
                         $("#baraban").css("transform", `rotate(${currentDegree}deg)`);
@@ -339,11 +334,16 @@
                 keyboard.querySelectorAll('.border').forEach(function (key) {
                     key.addEventListener("click", function () {
                         if (!waitToSpin) {
-                            if (!isSpinning) {
-                                sendMessage({'checked_letter': this.innerText})
-                                this.classList.add("bg-danger");
+                            if (!isWaitingResponse) {
+                                if (!isSpinning) {
+                                    sendMessage({'checked_letter': this.innerText})
+                                    isWaitingResponse = true;
+                                    this.classList.add("bg-danger");
+                                } else {
+                                    alert("Дождитесь остановки барабана!")
+                                }
                             } else {
-                                alert("Дождитесь остановки барабана!")
+                                alert("Дождитесь ответа ведущего!")
                             }
                         } else {
                             barabanInfo.classList.remove('visually-hidden')
@@ -362,6 +362,29 @@
                 }
             }
 
+            function win(comment) {
+                setTimeout(function () {
+                    alert(comment);
+                }, 1500);
+                setTimeout(function () {
+                    window.location.href = '../../';
+                }, 2000);
+            }
+
+            function updateActivePlayer(response) {
+                scores[activePlayer].parentElement.classList.remove("border-warning");
+                activePlayer = response.active_player_index;
+                scores[activePlayer].parentElement.classList.add("border-warning");
+                alert(response.comment);
+            }
+
+            function updateScore(response) {
+                for (let i = 0; i < 3; i++) {
+                    scores[i].innerHTML = response.players[i]["score"];
+                    if (!response.players[i]['in_game']) scores[i].parentElement.classList.add('bg-black', 'text-dark');
+                }
+            }
+
             function sendMessage(data) {
                 $.ajax({
                     url: window.location.href,
@@ -369,52 +392,36 @@
                     headers: {'X-CSRFToken': csrftoken},
                     data: data,
                     success: function (response) {
-                        console.log(response)
+                        isWaitingResponse = false;
+                        console.log(response);
                         if (isSpinning) {
                             wordMask = response.word_mask;
                             stopDegree = response.wheel_angle;
-                        }
-                        for (let i = 0; i < 3; i++) {
-                            scores[i].innerHTML = response.players[i]["score"];
-                            if (!response.players[i]['in_game']) scores[i].parentElement.classList.add('bg-black');
-                        }
-                        if (response.active_player_index === activePlayer) {
-                            if (!isSpinning) {
+                            stopWheelFunction = function () {
+                                if (response.active_player_index !== activePlayer) updateActivePlayer(response);
+                                openLetter(response.word_mask);
+                                updateScore(response);
+                                waitToSpin = response.wait_to_spin;
+                                if (response.is_complete) win(response.comment);
+                            }
+                        } else {
+                            if (response.active_player_index === activePlayer) {
                                 if (wordMask === response.word_mask) {
                                     alert(response.comment);
                                 } else {
                                     wordMask = response.word_mask;
                                     openLetter(wordMask);
                                 }
+                            } else {
+                                updateActivePlayer(response);
                             }
-                        } else {
-                            function updateScore() {
-                                scores[activePlayer].parentElement.classList.remove("border-warning");
-                                activePlayer = response.active_player_index;
-                                scores[activePlayer].parentElement.classList.add("border-warning");
-                                alert(response.comment);
-                            }
-
-                            if (isSpinning) {
-                                const intervalId = setInterval(function () {
-                                    if (!isSpinning) {
-                                        updateScore();
-                                        clearInterval(intervalId);
-                                    }
-                                }, 500);
-                            } else updateScore();
+                            updateScore(response);
+                            if (response.is_complete) win(response.comment)
+                            waitToSpin = response.wait_to_spin;
                         }
-                        if (response.is_complete) {
-                            openLetter(response.word_mask);
-                            alert(response.comment);
-                            setTimeout(function () {
-                                window.location.href = '../../';
-                            }, isSpinning ? 4000 : 2000);
-                        }
-                        waitToSpin = response.wait_to_spin;
                     },
                     error: function (error) {
-                        console.log(error);
+                        alert(error);
                     }
                 });
             }
@@ -435,7 +442,12 @@
             document.getElementById("sendFullWordForm").addEventListener("submit", function (event) {
                 event.preventDefault();
                 if (!isSpinning) {
-                    sendMessage({'full_word': $('#full_word').val().toUpperCase()})
+                    if (!isWaitingResponse) {
+                        isWaitingResponse = true;
+                        sendMessage({'full_word': $('#full_word').val().toUpperCase()})
+                    } else {
+                        alert("Дождитесь ответа ведущего!")
+                    }
                 } else {
                     alert("Дождитесь остановки барабана!")
                 }

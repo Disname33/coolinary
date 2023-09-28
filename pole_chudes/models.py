@@ -56,12 +56,12 @@ class Round(models.Model):
         self.is_complete = False
         self.wait_to_spin = True
         self.comment = None
+        while self.players.count() < 3:
+            self.add_player()
         for player in self.players.all():
             player.score = 0
             player.in_game = True
             player.save()
-        while self.players.count() < 3:
-            self.add_player()
         self.save()
 
     def get_active_player(self) -> Player:

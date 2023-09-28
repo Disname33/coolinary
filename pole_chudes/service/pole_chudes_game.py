@@ -23,53 +23,61 @@ class Wheel:
 
 
 def rotate_wheel(game: Round):
-    active_player = game.get_active_player()
-    wheel = Wheel()
-    game.wheel_angle = wheel.angle
-    game.wheel_sector = wheel.sector
-    game.points_earned = wheel.score
-    game.comment = None
-    game.wait_to_spin = False
-    match wheel.sector:
-        case 'Банкрот':
-            game.set_active_player(score=0)
-            game.next_player(f'Игрок {game.active_player_index} банкрот')
-        case '0':
-            game.next_player('Переход хода')
-        case 'X2':
-            game.points_earned = active_player.score
-        case 'X3':
-            game.points_earned = active_player.score * 2
-        case '+':
-            return open_first_hidden_letter(game)
-        case 'Приз':
-            return open_first_hidden_letter(game)
-    game.save()
-    return RoundSerializer(game).data
+    if game.wait_to_spin:
+        active_player = game.get_active_player()
+        wheel = Wheel()
+        game.wheel_angle = wheel.angle
+        game.wheel_sector = wheel.sector
+        game.points_earned = wheel.score
+        game.comment = None
+        game.wait_to_spin = False
+        match wheel.sector:
+            case 'Банкрот':
+                game.set_active_player(score=0)
+                game.next_player(f'Игрок{game.active_player_index + 1} банкрот')
+            case '0':
+                game.next_player('Переход хода')
+            case 'X2':
+                game.points_earned = active_player.score
+            case 'X3':
+                game.points_earned = active_player.score * 2
+            case '+':
+                return open_first_hidden_letter(game)
+            case 'Приз':
+                return open_first_hidden_letter(game)
+        game.save()
+        return RoundSerializer(game).data
+    else:
+        game.comment = 'Назовите букву!'
+        return RoundSerializer(game).data
 
 
-def check_letter(letter, game: Round):
-    checked_letter = letter.strip().upper()[0]
-    if checked_letter not in game.word_mask.upper():
-        indices = [i for i, letter in enumerate(game.riddle.word.upper()) if letter == checked_letter]
-        if indices:
-            game.wait_to_spin = True
-            game.comment = None
-            word_list = list(game.word_mask.upper())
-            game.set_active_player(add_score=game.points_earned * len(indices))
-            for index in indices:
-                word_list[index] = checked_letter
-            game.word_mask = "".join(word_list)
-            if "*" not in game.word_mask:
-                game.win()
-            game.save()
+def check_letter(letter: str, game: Round):
+    if game.wait_to_spin:
+        game.comment = 'Вращайте барабан!'
+        return RoundSerializer(game).data
+    else:
+        checked_letter = letter.strip().upper()[0]
+        if checked_letter in game.word_mask.upper():
+            game.next_player("Букву уже отгадали")
             return RoundSerializer(game).data
         else:
-            game.next_player("Нет такой буквы")
-            return RoundSerializer(game).data
-    else:
-        game.next_player("Букву уже отгадали")
-        return RoundSerializer(game).data
+            indices = [i for i, letter in enumerate(game.riddle.word.upper()) if letter == checked_letter]
+            if indices:
+                game.wait_to_spin = True
+                game.comment = None
+                word_list = list(game.word_mask.upper())
+                game.set_active_player(add_score=game.points_earned * len(indices))
+                for index in indices:
+                    word_list[index] = checked_letter
+                game.word_mask = "".join(word_list)
+                if "*" not in game.word_mask:
+                    game.win()
+                game.save()
+                return RoundSerializer(game).data
+            else:
+                game.next_player("Нет такой буквы")
+                return RoundSerializer(game).data
 
 
 def open_first_hidden_letter(game: Round):
@@ -77,8 +85,9 @@ def open_first_hidden_letter(game: Round):
     return check_letter(letter, game)
 
 
-def check_full_word(full_word, game: Round):
-    if full_word.upper() == game.riddle.word.upper():
+def check_full_word(full_word: str, game: Round):
+    full_word = full_word.strip().upper().replace('Ё', 'Е')
+    if full_word == game.riddle.word.upper():
         game.word_mask = game.riddle.word
         game.is_complete = True
         game.win()
@@ -86,7 +95,7 @@ def check_full_word(full_word, game: Round):
         return RoundSerializer(game).data
     else:
         game.set_active_player(in_game=False)
-        game.next_player("Вы проиграли и покидаете игру")
+        game.next_player(f"Игрок{game.active_player_index + 1} проиграл и покидает игру")
         return RoundSerializer(game).data
 
 
