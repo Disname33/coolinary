@@ -267,8 +267,9 @@
                     waitToSpin = false;
                     barabanInfo.classList.add("visually-hidden");
                     currentDegree = Math.floor(currentDegree / 90) * 90;
+                    let countRotate = 0;
                     intervalRotateId = setInterval(function () {
-                        if ((stopDegree > 0) && (stopDegree - currentDegree % 360 < 91)) {
+                        if ((stopDegree >= 0) && (countRotate > 3) && (stopDegree - currentDegree % 360 < 91)) {
                             clearInterval(intervalRotateId);
                             currentDegree = currentDegree - currentDegree % 360 + stopDegree;
                             setTimeout(function () {
@@ -279,6 +280,7 @@
                             }, 3000);
                         } else currentDegree += 90;
                         $("#baraban").css("transform", `rotate(${currentDegree}deg)`);
+                        countRotate++;
                     }, 500);
                     sendMessage({"rotate_wheel": "rotate"})
                 } else {
@@ -388,12 +390,21 @@
                                 }
                             }
                         } else {
-                            setTimeout(function () {
+                            function updateScore() {
                                 scores[activePlayer].parentElement.classList.remove("border-warning");
                                 activePlayer = response.active_player_index;
                                 scores[activePlayer].parentElement.classList.add("border-warning");
                                 alert(response.comment);
-                            }, isSpinning ? 3500 : 0);
+                            }
+
+                            if (isSpinning) {
+                                const intervalId = setInterval(function () {
+                                    if (!isSpinning) {
+                                        updateScore();
+                                        clearInterval(intervalId);
+                                    }
+                                }, 500);
+                            } else updateScore();
                         }
                         if (response.is_complete) {
                             openLetter(response.word_mask);
