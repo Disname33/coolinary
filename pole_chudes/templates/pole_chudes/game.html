@@ -6,25 +6,8 @@
 {% block inhead %}
     <style>
 
-        .none {
-            display: none;
-        }
-
         body {
             padding: 0;
-        }
-
-        .custom-tooltip {
-            --bs-tooltip-bg: var(--bs-primary);
-        }
-
-        .custom-popover {
-            --bs-popover-max-width: 200px;
-            --bs-popover-border-color: var(--bs-primary);
-            --bs-popover-header-bg: var(--bs-primary);
-            --bs-popover-header-color: var(--bs-white);
-            --bs-popover-body-padding-x: 1rem;
-            --bs-popover-body-padding-y: .5rem;
         }
 
         .hide-letter, .letter {
@@ -82,7 +65,7 @@
             padding: 1px !important;
         }
 
-        .baraban {
+        .wheel {
             margin: 0 auto;
             float: left;
             width: 566px;
@@ -96,7 +79,7 @@
             justify-content: center;
         }
 
-        #baraban {
+        #wheel {
             position: relative;
             top: -283px;
             -webkit-transform: rotate(0deg);
@@ -119,17 +102,17 @@
         }
 
         @media (max-width: 568px) {
-            .baraban {
+            .wheel {
                 width: 100%;
                 height: 50vw;
             }
 
-            #baraban {
+            #wheel {
                 top: -55vw;
                 width: 100%;
             }
 
-            .baraban .arrow img {
+            .wheel .arrow img {
                 width: 33px;
                 height: 33px;
             }
@@ -211,8 +194,8 @@
         </div>
 
         <div class="row">
-            <div class="baraban mx-auto px-0 position-relative">
-                <div class="baraban-info rounded-2 p-2 z-3 position-absolute top-0 start-50 translate-middle-x bg-dark
+            <div class="wheel mx-auto px-0 position-relative">
+                <div class="wheel-info rounded-2 p-2 z-3 position-absolute top-0 start-50 translate-middle-x bg-dark
                 text-warning pe-none bg-opacity-75 text-center {% if wait_to_spin %} visually-hidden {% endif %} "
                      tabindex="-1" aria-disabled="true"> нажмите для вращения
                 </div>
@@ -222,8 +205,8 @@
                 <div class="btn z-3 position-absolute bottom-0 end-0 mute">
                     <img src="{% static "/svg/volume-off.svg" %}" alt="mute" onclick="mute(this)" class="svg">
                 </div>
-                <img src="{% static "/pole_chudes/baraban.png" %}" alt="" class="z-2"
-                     onclick="rotateWheel()" id="baraban">
+                <img src="{% static "/pole_chudes/wheel.png" %}" alt="" class="z-2"
+                     onclick="rotateWheel(true)" id="wheel">
             </div>
 
         </div>
@@ -231,7 +214,7 @@
         <script>
             const wheelSound = document.getElementById('wheelSound');
             const scores = document.querySelectorAll('.score');
-            const barabanInfo = document.querySelector('.baraban-info');
+            const wheelInfo = document.querySelector('.wheel-info');
             let currentDegree = {{ wheel_angle }};
             let activePlayer = {{ active_player_index }};
             scores[activePlayer].parentElement.classList.add("border-warning");
@@ -241,7 +224,9 @@
             let isWaitingResponse = false;
             let stopDegree;
             let wordMask;
-            $('#baraban').css("transform", `rotate(${currentDegree}deg)`);
+            $('#wheel').css("transform", `rotate(${currentDegree}deg)`);
+            const wheel = document.getElementById('wheel');
+            let startX;
             let intervalRotateId;
             let countRotate = 0;
             let stopWheelFunction;
@@ -256,27 +241,54 @@
                 }
             }
 
-            function rotateWheel() {
+
+            wheel.addEventListener('touchstart', function (e) {
+                startX = e.touches[0].clientX;
+            });
+            wheel.addEventListener('touchend', function (e) {
+                const endX = e.changedTouches[0].clientX;
+                const deltaX = endX - startX;
+                const minSwipeDistance = 50;
+
+                if (deltaX > minSwipeDistance) {
+                    // Свайп вправо
+                    rotateWheel();
+                } else if (deltaX < -minSwipeDistance) {
+                    // Свайп влево
+                    rotateWheel(true);
+                }
+            });
+
+
+            function rotateWheel(left = false) {
                 if (waitToSpin && !isComplete) {
                     wheelSound.play();
                     stopDegree = -1;
                     isSpinning = true;
                     waitToSpin = false;
-                    barabanInfo.classList.add("visually-hidden");
-                    currentDegree = Math.floor(currentDegree / 90) * 90;
+                    wheelInfo.classList.add("visually-hidden");
+                    currentDegree = (left ? Math.ceil(currentDegree / 90) : Math.floor(currentDegree / 90)) * 90;
+                    let step = left ? 90 : -90;
                     countRotate = 0;
+                    let lastStep = step * 4;
                     intervalRotateId = setInterval(function () {
-                        if ((stopDegree >= 0) && (countRotate > 6) && (stopDegree - currentDegree % 360 < 91)) {
-                            clearInterval(intervalRotateId);
-                            currentDegree = currentDegree - currentDegree % 360 + stopDegree;
-                            setTimeout(function () {
-                                isSpinning = false;
-                                wheelSound.pause();
-                                wheelSound.currentTime = 0;
-                                stopWheelFunction()
-                            }, 3000);
-                        } else currentDegree += 90;
-                        $("#baraban").css("transform", `rotate(${currentDegree}deg)`);
+                        console.log('currentDegree =' + currentDegree);
+                        if ((stopDegree >= 0) && (countRotate > 6)) {
+                            lastStep = left ? (stopDegree - ((currentDegree % 360) + 360) % 360) : (360 - stopDegree - (360 - (currentDegree % 360)) % 360)
+                            if (lastStep < 91) {
+                                console.log('stopDegree =' + stopDegree);
+                                clearInterval(intervalRotateId);
+                                step = left ? lastStep : (-lastStep);
+                                setTimeout(function () {
+                                    isSpinning = false;
+                                    wheelSound.pause();
+                                    wheelSound.currentTime = 0;
+                                    stopWheelFunction();
+                                }, 3000);
+                            }
+                        }
+                        currentDegree += step;
+                        $("#wheel").css("transform", `rotate(${currentDegree}deg)`);
                         countRotate++;
                     }, 500);
                     sendMessage({"rotate_wheel": "rotate"})
@@ -346,7 +358,7 @@
                                 alert("Дождитесь ответа ведущего!")
                             }
                         } else {
-                            barabanInfo.classList.remove('visually-hidden')
+                            wheelInfo.classList.remove('visually-hidden')
                             alert("Крутите барабан!");
                         }
 
