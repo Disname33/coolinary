@@ -411,7 +411,7 @@
                             alert(response.comment);
                             setTimeout(function () {
                                 window.location.href = '../../';
-                            }, 2000);
+                            }, isSpinning ? 4000 : 2000);
                         }
                         waitToSpin = response.wait_to_spin;
                     },
