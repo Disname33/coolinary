@@ -17,16 +17,13 @@ class Wheel:
             self.angle = random.randint(0, 359)
         else:
             self.angle = angle
-        index = self.degrees_to_sector_index()
+        index = int((self.angle - 11) % 360 / 22.5)
         self.sector = self.sectors[index]
         self.score = self.scores[index]
 
-    def degrees_to_sector_index(self):
-        return int((self.angle - 11) % 360 / 22.5)
-
 
 def rotate_wheel(game: Round):
-    active_player = game.players.all()[game.active_player_index]
+    active_player = game.get_active_player()
     wheel = Wheel()
     game.wheel_angle = wheel.angle
     game.wheel_sector = wheel.sector
