@@ -1,8 +1,8 @@
 attempts = {4: 6, 5: 6, 6: 8, 7: 10}
 # красный, синий, зелёный
-colors = {"R": "<div class='col-1 link-danger border border-danger'>{}</div>",
-          "B": "<div class='col-1 link-primary border border-primary'>{}</div>",
-          "G": "<div class='col-1 link-success border border-success'>{}</div>",
+colors = {"R": "<div class='col-1 letter letter-red'><span>{}</span></div>",
+          "B": "<div class='col-1 letter letter-blue'><span>{}</span></div>",
+          "G": "<div class='col-1 letter letter-green'><span>{}</span></div>",
           }
 
 russian_nouns_with_definition_json = "word/russian_nouns_with_definition.json"

@@ -5,8 +5,8 @@ from ..serializers import RoundSerializer
 
 
 class Wheel:
-    sectors = ("200", "X3", "700", "Банкрот", "1000", "100", "X2", "600", "800", "+", "400", "900", "0", "Приз", "500",
-               "300")
+    sectors = ("200", "X3", "700", "Банкрот", "1000", "100", "X2",
+               "600", "800", "+", "400", "900", "0", "Приз", "500", "300")
     scores = (200, 0, 700, 0, 1000, 100, 0, 600, 800, 0, 400, 900, 0, 1200, 500, 300)
     sector = sectors[0]
     score = scores[0]
@@ -17,7 +17,7 @@ class Wheel:
             self.angle = random.randint(0, 359)
         else:
             self.angle = angle
-        index = int((self.angle - 11) % 360 / 22.5)
+        index = int(self.angle % 360 / 22.5)
         self.sector = self.sectors[index]
         self.score = self.scores[index]
 
@@ -34,9 +34,9 @@ def rotate_wheel(game: Round):
         match wheel.sector:
             case 'Банкрот':
                 game.set_active_player(score=0)
-                game.next_player(f'Игрок{game.active_player_index + 1} банкрот')
+                game.next_player(f'Игрок{game.active_player_index + 1} - банкрот', save=False)
             case '0':
-                game.next_player('Переход хода')
+                game.next_player('Переход хода', save=False)
             case 'X2':
                 game.points_earned = active_player.score
             case 'X3':

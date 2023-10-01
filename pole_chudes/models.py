@@ -83,7 +83,7 @@ class Round(models.Model):
         self.comment = f"Игрок {self.active_player_index + 1} победил с результатом {player.score} очков"
         self.is_complete = True
 
-    def next_player(self, comment=None):
+    def next_player(self, comment=None, save=True):
         players = self.players.order_by('pk').all()
         self.wait_to_spin = True
         players_count = min(len(players), 3)
@@ -98,7 +98,8 @@ class Round(models.Model):
                     break
         if comment:
             self.comment = comment
-        self.save()
+        if save:
+            self.save()
         return self.active_player_index
 
 

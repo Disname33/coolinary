@@ -93,7 +93,7 @@ CHANNEL_LAYERS = secret.get_channel_layers()
 WSGI_APPLICATION = 'coolinary.wsgi.application'
 
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
-LOGIN_REDIRECT_URL = '/game/'
+LOGIN_REDIRECT_URL = '/games/'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

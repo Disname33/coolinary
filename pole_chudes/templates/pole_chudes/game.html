@@ -79,6 +79,12 @@
             justify-content: center;
         }
 
+        .wheel-info {
+            max-height: 80px;
+            overflow: auto;
+            width: 80vw;
+        }
+
         #wheel {
             position: relative;
             top: -283px;
@@ -196,108 +202,20 @@
         <div class="row">
             <div class="wheel mx-auto px-0 position-relative">
                 <div class="wheel-info rounded-2 p-2 z-3 position-absolute top-0 start-50 translate-middle-x bg-dark
-                text-warning pe-none bg-opacity-75 text-center {% if wait_to_spin %} visually-hidden {% endif %} "
-                     tabindex="-1" aria-disabled="true"> нажмите для вращения
+                text-warning pe-none bg-opacity-75 text-center visually-hidden"
+                     tabindex="-1" aria-disabled="true">
                 </div>
                 <div class="z-3 position-absolute bottom-0 start-50 translate-middle-x pe-none arrow">
-                    <img src="{% static "/pole_chudes/arrow.png" %}" alt="">
+                    <img src="{% static "/pole_chudes/arrow.png" %}" alt="arrow">
                 </div>
                 <div class="btn z-3 position-absolute bottom-0 end-0 mute">
                     <img src="{% static "/svg/volume-off.svg" %}" alt="mute" onclick="mute(this)" class="svg">
                 </div>
-                <img src="{% static "/pole_chudes/wheel.png" %}" alt="" class="z-2"
+                <img src="{% static "/pole_chudes/wheel.png" %}" alt="wheel" class="z-2"
                      onclick="rotateWheel(true)" id="wheel">
             </div>
 
         </div>
-
-        <script>
-            const wheelSound = document.getElementById('wheelSound');
-            const scores = document.querySelectorAll('.score');
-            const wheelInfo = document.querySelector('.wheel-info');
-            let currentDegree = {{ wheel_angle }};
-            let activePlayer = {{ active_player_index }};
-            scores[activePlayer].parentElement.classList.add("border-warning");
-            let waitToSpin = {{ wait_to_spin|bool_js }};
-            let isSpinning = false;
-            let isComplete = false;
-            let isWaitingResponse = false;
-            let stopDegree;
-            let wordMask;
-            $('#wheel').css("transform", `rotate(${currentDegree}deg)`);
-            const wheel = document.getElementById('wheel');
-            let startX;
-            let intervalRotateId;
-            let countRotate = 0;
-            let stopWheelFunction;
-
-            function mute(muteButton) {
-                if (wheelSound.muted) {
-                    wheelSound.muted = false;
-                    muteButton.src = "/static/svg/volume-on.svg";
-                } else {
-                    wheelSound.muted = true;
-                    muteButton.src = "/static/svg/volume-off.svg";
-                }
-            }
-
-
-            wheel.addEventListener('touchstart', function (e) {
-                startX = e.touches[0].clientX;
-            });
-            wheel.addEventListener('touchend', function (e) {
-                const endX = e.changedTouches[0].clientX;
-                const deltaX = endX - startX;
-                const minSwipeDistance = 50;
-
-                if (deltaX > minSwipeDistance) {
-                    // Свайп вправо
-                    rotateWheel();
-                } else if (deltaX < -minSwipeDistance) {
-                    // Свайп влево
-                    rotateWheel(true);
-                }
-            });
-
-
-            function rotateWheel(left = false) {
-                if (waitToSpin && !isComplete) {
-                    wheelSound.play();
-                    stopDegree = -1;
-                    isSpinning = true;
-                    waitToSpin = false;
-                    wheelInfo.classList.add("visually-hidden");
-                    currentDegree = (left ? Math.ceil(currentDegree / 90) : Math.floor(currentDegree / 90)) * 90;
-                    let step = left ? 90 : -90;
-                    countRotate = 0;
-                    let lastStep = step * 4;
-                    intervalRotateId = setInterval(function () {
-                        console.log('currentDegree =' + currentDegree);
-                        if ((stopDegree >= 0) && (countRotate > 6)) {
-                            lastStep = left ? (stopDegree - ((currentDegree % 360) + 360) % 360) : (360 - stopDegree - (360 - (currentDegree % 360)) % 360)
-                            if (lastStep < 91) {
-                                console.log('stopDegree =' + stopDegree);
-                                clearInterval(intervalRotateId);
-                                step = left ? lastStep : (-lastStep);
-                                setTimeout(function () {
-                                    isSpinning = false;
-                                    wheelSound.pause();
-                                    wheelSound.currentTime = 0;
-                                    stopWheelFunction();
-                                }, 3000);
-                            }
-                        }
-                        currentDegree += step;
-                        $("#wheel").css("transform", `rotate(${currentDegree}deg)`);
-                        countRotate++;
-                    }, 500);
-                    sendMessage({"rotate_wheel": "rotate"})
-                } else {
-                    alert("Барабан уже крутили");
-                }
-            }
-
-        </script>
 
         <div class="row">
             <div id="question" class="col-auto mx-auto text-center">
@@ -331,163 +249,331 @@
                        onclick="showKeyboard(false)">Назвать слово</label>
             </div>
         </div>
-
-
         <div class="collapse show multi-collapse text-center mx-2 mx-md-auto user-select-none" id="keyboard">
         </div>
-        <script>
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    </div>
+    <script>
+        const wheelSound = document.getElementById('wheelSound');
+        const fullWordFInput = document.getElementById('full_word');
+        const wheel = document.getElementById('wheel');
+        const scores = document.querySelectorAll('.score');
+        const wheelInfo = document.querySelector('.wheel-info');
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let currentDegree = {{ wheel_angle }};
+        let activePlayer = {{ active_player_index }};
+        scores[activePlayer].parentElement.classList.add("border-warning");
+        let waitToSpin = {{ wait_to_spin|bool_js }};
+        let countRotate = 0;
+        let isSpinning = false;
+        let isComplete = false;
+        let isWaitingResponse = false;
+        let stopDegree;
+        let wordMask;
+        let startX;
+        let intervalRotateId;
+        let stopWheelFunction;
+        $('#wheel').css("transform", `rotate(${currentDegree}deg)`);
 
-            function createNewKeyboard() {
-                const keyboard = document.getElementById('keyboard');
-                keyboard.innerHTML = createNewLineKeys('Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ') +
-                    createNewLineKeys('Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э') +
-                    createNewLineKeys('Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю');
-                keyboard.querySelectorAll('.border').forEach(function (key) {
-                    key.addEventListener("click", function () {
-                        if (!waitToSpin) {
-                            if (!isWaitingResponse) {
-                                if (!isSpinning) {
-                                    sendMessage({'checked_letter': this.innerText})
-                                    isWaitingResponse = true;
-                                    this.classList.add("bg-danger");
-                                } else {
-                                    alert("Дождитесь остановки барабана!")
-                                }
-                            } else {
-                                alert("Дождитесь ответа ведущего!")
-                            }
-                        } else {
-                            wheelInfo.classList.remove('visually-hidden')
-                            alert("Крутите барабан!");
-                        }
+        const room_pk = "{{ pk }}";
+        const request_id = "{{ request.session.session_key }}";
+        const current_user = "{{ user.get_username }}"
+        const current_user_is_superuser = "{{ user.is_superuser }}"
+        let lastMessage;
+        let wsocket = new WebSocket(webSocket());
 
-                    });
-                });
+        function webSocket() {
+            const protocol = window.location.protocol === "http:" ? 'ws://' : 'wss://';
+            return protocol + window.location.host + '/ws/pole_chudes/'
+        }
 
-                function createNewLineKeys(...keys) {
-                    let linesCode = `<div class="row justify-content-center my-2">`;
-                    keys.forEach(function (key) {
-                        linesCode += `<div class="btn btn-outline-secondary col-1 border" id="` + key + `">` + key + `</div>`;
-                    });
-                    return linesCode + `</div>`;
+        wsocket.onopen = function () {
+            wsocket.send(
+                JSON.stringify({
+                    pk: room_pk,
+                    action: "join_room",
+                    request_id: request_id,
+                })
+            );
+            wsocket.send(
+                JSON.stringify({
+                    pk: room_pk,
+                    action: "retrieve",
+                    request_id: request_id,
+                })
+            );
+            wsocket.send(
+                JSON.stringify({
+                    pk: room_pk,
+                    action: "subscribe_instance",
+                    request_id: request_id,
+                })
+            );
+        };
+
+        wsocket.onclose = function () {
+            console.log("Соединение разорвано!")
+            wsocket = new WebSocket(webSocket());
+        };
+
+        wsocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            console.log('RealTime', data)
+            if ("errors" in data && data.errors.length) {
+                alert(data.errors[0]);
+            } else {
+                switch (data.action) {
+                    case "retrieve":
+                        updateInfo(data.data)
+                        break;
+                    case "update":
+                        updateInfo(data.data)
+                        break;
+                    case "info":
+                        updateInfo(data.data)
+                        break;
+                    default:
+                        break;
                 }
             }
+        };
 
-            function win(comment) {
-                setTimeout(function () {
-                    alert(comment);
-                }, 1500);
-                setTimeout(function () {
-                    window.location.href = '../../';
-                }, 2000);
-            }
-
-            function updateActivePlayer(response) {
-                scores[activePlayer].parentElement.classList.remove("border-warning");
-                activePlayer = response.active_player_index;
-                scores[activePlayer].parentElement.classList.add("border-warning");
-                alert(response.comment);
-            }
-
-            function updateScore(response) {
-                for (let i = 0; i < 3; i++) {
-                    scores[i].innerHTML = response.players[i]["score"];
-                    if (!response.players[i]['in_game']) scores[i].parentElement.classList.add('bg-black', 'text-dark');
+        function updateInfo(response) {
+            isWaitingResponse = false;
+            console.log(response);
+            if (isSpinning) {
+                wordMask = response.word_mask;
+                stopDegree = response.wheel_angle;
+                stopWheelFunction = function () {
+                    if (response.active_player_index !== activePlayer) updateActivePlayer(response);
+                    openLetter(response.word_mask);
+                    updateScore(response);
+                    waitToSpin = response.wait_to_spin;
+                    if (response.is_complete) win(response.comment);
                 }
-            }
-
-            function sendMessage(data) {
-                $.ajax({
-                    url: window.location.href,
-                    type: 'GET',
-                    headers: {'X-CSRFToken': csrftoken},
-                    data: data,
-                    success: function (response) {
-                        isWaitingResponse = false;
-                        console.log(response);
-                        if (isSpinning) {
-                            wordMask = response.word_mask;
-                            stopDegree = response.wheel_angle;
-                            stopWheelFunction = function () {
-                                if (response.active_player_index !== activePlayer) updateActivePlayer(response);
-                                openLetter(response.word_mask);
-                                updateScore(response);
-                                waitToSpin = response.wait_to_spin;
-                                if (response.is_complete) win(response.comment);
-                            }
-                        } else {
-                            if (response.active_player_index === activePlayer) {
-                                if (wordMask === response.word_mask) {
-                                    alert(response.comment);
-                                } else {
-                                    wordMask = response.word_mask;
-                                    openLetter(wordMask);
-                                }
-                            } else {
-                                updateActivePlayer(response);
-                            }
-                            updateScore(response);
-                            if (response.is_complete) win(response.comment)
-                            waitToSpin = response.wait_to_spin;
-                        }
-                    },
-                    error: function (error) {
-                        alert(error);
-                    }
-                });
-            }
-
-            function openLetter(word_mask) {
-                let wordbordHTML = '';
-                for (let i = 0; i < word_mask.length; i++) {
-                    if (word_mask[i] === '*') {
-                        wordbordHTML += `<div class="hide-letter border border-white"></div>`;
+            } else {
+                if (response.active_player_index === activePlayer) {
+                    if (wordMask === response.word_mask) {
+                        showInfo("Ведущий: " + response.comment);
                     } else {
-                        wordbordHTML += `<div class="letter border border-black"> <span class="mx-auto">` + word_mask[i] + `</span></div>`;
-                    }
-                }
-
-                $('#wordbord').html(wordbordHTML);
-            }
-
-            document.getElementById("sendFullWordForm").addEventListener("submit", function (event) {
-                event.preventDefault();
-                if (!isSpinning) {
-                    if (!isWaitingResponse) {
-                        isWaitingResponse = true;
-                        sendMessage({'full_word': $('#full_word').val().toUpperCase()})
-                    } else {
-                        alert("Дождитесь ответа ведущего!")
+                        wordMask = response.word_mask;
+                        openLetter(wordMask);
                     }
                 } else {
-                    alert("Дождитесь остановки барабана!")
+                    updateActivePlayer(response);
                 }
+                updateScore(response);
+                if (response.is_complete) win(response.comment)
+                waitToSpin = response.wait_to_spin;
+            }
+        }
+
+        function showInfo(message) {
+            wheelInfo.innerHTML += message + '<br>';
+            wheelInfo.classList.remove('visually-hidden');
+            wheelInfo.scrollTop = wheelInfo.scrollHeight;
+        }
+
+        function mute(muteButton) {
+            if (wheelSound.muted) {
+                wheelSound.muted = false;
+                muteButton.src = "/static/svg/volume-on.svg";
+            } else {
+                wheelSound.muted = true;
+                muteButton.src = "/static/svg/volume-off.svg";
+            }
+        }
+
+        wheel.addEventListener('touchstart', function (e) {
+            startX = e.touches[0].clientX;
+        });
+        wheel.addEventListener('touchend', function (e) {
+            const endX = e.changedTouches[0].clientX;
+            const deltaX = endX - startX;
+            const minSwipeDistance = 50;
+
+            if (deltaX > minSwipeDistance) {
+                // Свайп вправо
+                rotateWheel();
+            } else if (deltaX < -minSwipeDistance) {
+                // Свайп влево
+                rotateWheel(true);
+            }
+        });
+
+        function rotateWheel(left = false) {
+            if (waitToSpin && !isComplete) {
+                wheelSound.play();
+                stopDegree = -1;
+                isSpinning = true;
+                waitToSpin = false;
+                wheelInfo.classList.add("visually-hidden");
+                currentDegree = (left ? Math.ceil(currentDegree / 90) : Math.floor(currentDegree / 90)) * 90;
+                let step = left ? 90 : -90;
+                countRotate = 0;
+                let lastStep = step * 4;
+                intervalRotateId = setInterval(function () {
+                    if ((stopDegree >= 0) && (countRotate > 6)) {
+                        lastStep = left ? (stopDegree - ((currentDegree % 360) + 360) % 360) : (360 - stopDegree - (360 - (currentDegree % 360)) % 360)
+                        if (lastStep < 91) {
+                            clearInterval(intervalRotateId);
+                            step = left ? lastStep : (-lastStep);
+                            setTimeout(function () {
+                                isSpinning = false;
+                                wheelSound.pause();
+                                wheelSound.currentTime = 0;
+                                stopWheelFunction();
+                            }, 3000);
+                        }
+                    }
+                    currentDegree += step;
+                    $("#wheel").css("transform", `rotate(${currentDegree}deg)`);
+                    countRotate++;
+                }, 500);
+                {#sendMessage({"rotate_wheel": "rotate"})#}
+                sendRotate();
+            } else {
+                showInfo("Барабан уже крутили");
+            }
+        }
+
+        function sendRotate() {
+            wsocket.send(JSON.stringify({
+                pk: room_pk,
+                action: "rotate_wheel",
+                request_id: request_id,
+            }));
+        }
+
+        function sendLetter(letter) {
+            wsocket.send(JSON.stringify({
+                pk: room_pk,
+                letter: letter,
+                action: "check_letter",
+                request_id: request_id,
+            }));
+        }
+
+        function sendFullWord(full_word) {
+            wsocket.send(JSON.stringify({
+                pk: room_pk,
+                full_word: full_word,
+                action: "check_full_word",
+                request_id: request_id,
+            }));
+        }
+
+
+        function createNewKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = createNewLineKeys('Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ') +
+                createNewLineKeys('Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э') +
+                createNewLineKeys('Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю');
+            keyboard.querySelectorAll('.border').forEach(function (key) {
+                key.addEventListener("click", function () {
+                    if (!waitToSpin) {
+                        if (!isWaitingResponse) {
+                            if (!isSpinning) {
+                                {#sendMessage({'checked_letter': this.innerText})#}
+                                sendLetter(this.innerText)
+                                isWaitingResponse = true;
+                                this.classList.add("bg-danger");
+                            } else {
+                                showInfo("Дождитесь остановки барабана!")
+                            }
+                        } else {
+                            showInfo("Дождитесь ответа ведущего!");
+                        }
+                    } else {
+                        showInfo("Ведущий: Крутите барабан!");
+                    }
+
+                });
             });
 
-            function showKeyboard(is_show) {
-                const keyboard_toggle = document.getElementById('keyboard_toggle');
-                const keyboard = new bootstrap.Collapse('#keyboard', {
-                    parent: keyboard_toggle,
-                    toggle: false
+            function createNewLineKeys(...keys) {
+                let linesCode = `<div class="row justify-content-center my-2">`;
+                keys.forEach(function (key) {
+                    linesCode += `<div class="btn btn-outline-secondary col-1 border" id="` + key + `">` + key + `</div>`;
                 });
-                const inputForm = new bootstrap.Collapse('#inputForm', {
-                    parent: keyboard_toggle,
-                    toggle: false
-                });
-                if (is_show) {
-                    keyboard.show();
-                    inputForm.hide();
+                return linesCode + `</div>`;
+            }
+        }
+
+        function win(comment) {
+            setTimeout(function () {
+                alert(comment);
+            }, 1500);
+            setTimeout(function () {
+                window.location.href = '../../';
+            }, 2000);
+        }
+
+        function updateActivePlayer(response) {
+            scores[activePlayer].parentElement.classList.remove("border-warning");
+            activePlayer = response.active_player_index;
+            scores[activePlayer].parentElement.classList.add("border-warning");
+            showInfo("Ведущий: " + response.comment);
+        }
+
+        function updateScore(response) {
+            for (let i = 0; i < 3; i++) {
+                scores[i].innerHTML = response.players[i]["score"];
+                if (!response.players[i]['in_game']) scores[i].parentElement.classList.add('bg-black', 'text-dark');
+            }
+        }
+
+        function openLetter(word_mask) {
+            let wordbordHTML = '';
+            for (let i = 0; i < word_mask.length; i++) {
+                if (word_mask[i] === '*') {
+                    wordbordHTML += `<div class="hide-letter border border-white"></div>`;
                 } else {
-                    keyboard.hide();
-                    inputForm.show();
+                    wordbordHTML += `<div class="letter border border-black"> <span class="mx-auto">` + word_mask[i] + `</span></div>`;
                 }
             }
 
-            createNewKeyboard();
+            $('#wordbord').html(wordbordHTML);
+        }
 
-        </script>
-    </div>
+        document.getElementById("sendFullWordForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            if (!isSpinning) {
+                if (!isWaitingResponse) {
+                    isWaitingResponse = true;
+                    {#sendMessage({'full_word': fullWordFInput.value.toUpperCase()})#}
+                    sendFullWord(fullWordFInput.value.toUpperCase())
+                    fullWordFInput.value = '';
+                } else {
+                    showInfo("Дождитесь ответа ведущего!")
+                }
+            } else {
+                showInfo("Дождитесь остановки барабана!")
+            }
+        });
+
+        function showKeyboard(is_show) {
+            const keyboard_toggle = document.getElementById('keyboard_toggle');
+            const keyboard = new bootstrap.Collapse('#keyboard', {
+                parent: keyboard_toggle,
+                toggle: false
+            });
+            const inputForm = new bootstrap.Collapse('#inputForm', {
+                parent: keyboard_toggle,
+                toggle: false
+            });
+            if (is_show) {
+                keyboard.show();
+                inputForm.hide();
+            } else {
+                keyboard.hide();
+                inputForm.show();
+            }
+        }
+
+        createNewKeyboard();
+
+    </script>
+
 
 {% endblock %}
 

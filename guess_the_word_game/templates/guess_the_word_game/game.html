@@ -29,26 +29,51 @@
             --bs-popover-body-padding-y: .5rem;
         }
 
+
+        .letter {
+            position: relative;
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .letter-red {
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .letter-blue {
+            color: #0d6efd;
+            border: 1px solid #0d6efd;
+        }
+
+        .letter-green {
+            color: #198754;
+            border: 1px solid #198754;
+        }
+
+        .letter span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: 0 -50% 0 0;
+            transform: translate(-50%, -50%)
+        }
+
         @media (min-width: 992px) {
-            .colored-word .border {
+            .colored-word .letter {
+                font: 42px Arial bold normal;
                 width: 60px;
                 height: 60px;
-                padding-top: 10px;
-                align-items: center;
-                vertical-align: center;
-                justify-content: center;
                 margin: 4px;
             }
         }
 
         @media (max-width: 991px) {
-            .colored-word .border {
+            .colored-word .letter {
+                font: 35px Arial bold normal;
                 width: 50px;
                 height: 50px;
-                padding-top: 9px;
-                align-items: center;
-                vertical-align: center;
-                justify-content: center;
                 margin: 2px;
             }
         }

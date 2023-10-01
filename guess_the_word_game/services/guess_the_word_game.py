@@ -26,7 +26,10 @@ def get_attempts(difficulty: int):
 
 
 def remaining_attempts(current_session: CurrentSession) -> int:
-    return get_attempts(current_session.difficulty) - len(current_session.entered_words_list)
+    if current_session.entered_words_list:
+        return get_attempts(current_session.difficulty) - current_session.entered_words_list.count(',') - 1
+    else:
+        return get_attempts(current_session.difficulty)
 
 
 def get_meaning_word(word: str) -> str:
@@ -127,7 +130,7 @@ def is_meaning(text: str) -> bool:
 
 
 # Список пустой или не содержит введённое слово?
-def is_already_entered(text: str, _entered_words_list: []) -> bool:
+def is_already_entered(text: str, _entered_words_list: str) -> bool:
     return _entered_words_list and text in _entered_words_list
 
 
@@ -159,17 +162,12 @@ def find_matching_letters(entered_word: str, current_session: CurrentSession) ->
 
 
 def word_coloring(entered_word: str, coincidences: str) -> str:
-    color_word = ""
-    for entered_letter, coincidence in zip(entered_word.upper(), coincidences):
-        color_word = color_word + colors[coincidence].format(entered_letter)
-    return color_word
+    return ''.join(colors[color].format(letter.upper()) for letter, color in zip(entered_word, coincidences))
 
 
-def word_list_coloring(entered_words_list: [str], coincidences_list: [str]) -> [str]:
-    colored__words_list = []
-    for entered_word, coincidences in zip(entered_words_list, coincidences_list):
-        colored__words_list.append(word_coloring(entered_word, coincidences))
-    return colored__words_list
+def word_list_coloring(entered_words_list: str, coincidences_list: str) -> [str]:
+    return [word_coloring(entered_word, coincidences) for entered_word, coincidences
+            in zip(entered_words_list.split(','), coincidences_list.split(','))]
 
 
 def is_win(entered_word: str, current_session: CurrentSession) -> bool:
@@ -177,7 +175,7 @@ def is_win(entered_word: str, current_session: CurrentSession) -> bool:
 
 
 def is_loss(current_session: CurrentSession):
-    return len(current_session.entered_words_list) >= get_attempts(current_session.difficulty)
+    return remaining_attempts(current_session) == 0
 
 
 def notice_loss(current_session: CurrentSession) -> str:
@@ -187,7 +185,7 @@ def notice_loss(current_session: CurrentSession) -> str:
 def notice_congratulations_final(current_session: CurrentSession) -> str:
     return (
             notice_congratulations + notice_final).format(
-        len(current_session.entered_words_list),
+        current_session.entered_words_list.count(',') + 1,
         int(elapsed_time(current_session.start_time)),
         current_session.hidden_word.upper(),
         get_full_meaning_word(current_session.hidden_word)
@@ -196,16 +194,20 @@ def notice_congratulations_final(current_session: CurrentSession) -> str:
 
 def input_cycle(entered_string: str, current_session: CurrentSession):
     current_session.notice = ""
-    current_session.entered_words_list.append(entered_string)
+    if current_session.entered_words_list:
+        current_session.entered_words_list += ','
+    current_session.entered_words_list += entered_string
     coincidences = find_matching_letters(entered_string, current_session)
-    current_session.coincidences_list.append(coincidences)
+    if current_session.coincidences_list:
+        current_session.coincidences_list += ','
+    current_session.coincidences_list += coincidences
     current_session.save()
 
 
 def start_new_game(current_session):
-    current_session.notice = ""
-    current_session.entered_words_list = []
-    current_session.coincidences_list = []
+    current_session.notice = ''
+    current_session.entered_words_list = ''
+    current_session.coincidences_list = ''
     current_session.start_time = start_timer()
     current_session.hidden_word = get_random_noun(current_session.difficulty)
 

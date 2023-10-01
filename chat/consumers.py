@@ -1,6 +1,5 @@
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
-from djangochannelsrestframework import mixins
 from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
 from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.observer.generics import (ObserverModelInstanceMixin, action)
@@ -172,7 +171,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
     def remove_user_from_room(self, pk, user=None):
         if user is None:
             user = self.scope["user"]
-        room: Room = self.get_room(pk)
+        room = Room.objects.get(pk=pk)
         room.current_users.remove(user)
         room.save()
 
@@ -186,15 +185,14 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         if errors:
             await self.send_json({"action": action, "errors": errors})
 
-
-class UserConsumer(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    # mixins.PatchModelMixin,
-    # mixins.UpdateModelMixin,
-    # mixins.CreateModelMixin,
-    # mixins.DeleteModelMixin,
-    GenericAsyncAPIConsumer,
-):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+# class UserConsumer(
+#     mixins.ListModelMixin,
+#     mixins.RetrieveModelMixin,
+#     # mixins.PatchModelMixin,
+#     # mixins.UpdateModelMixin,
+#     # mixins.CreateModelMixin,
+#     # mixins.DeleteModelMixin,
+#     GenericAsyncAPIConsumer,
+# ):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer

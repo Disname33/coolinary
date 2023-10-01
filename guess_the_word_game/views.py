@@ -12,7 +12,6 @@ from .services.timer import elapsed_time, start_timer
 
 @login_required
 def process_input(request):
-    # agent = request.META.get('HTTP_USER_AGENT')
     current_session = guess_the_word_game.get_current_session(request.user)
     if entered_string := request.GET.get('my_input'):
         # Получение значения из поля input
@@ -66,7 +65,7 @@ def process_input(request):
         return render(request, 'guess_the_word_game/enter_words.html', context)
     else:
         print("Первоначальная загрузка игры")
-        if len(current_session.entered_words_list) and elapsed_time(current_session.start_time) > 100:
+        if not current_session.entered_words_list and elapsed_time(current_session.start_time) > 100:
             current_session.start_time = start_timer()
         # guess_the_word_game.start_new_game(current_session)
         entered_colored_words_list = []

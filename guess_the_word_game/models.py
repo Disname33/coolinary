@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from .services.timer import start_timer, elapsed_time
@@ -35,25 +34,13 @@ class GameScore(models.Model):
         return game_score_obj
 
 
-class EnterWords(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    enter_word = models.CharField('Введённое слово', max_length=10)
-
-    def __str__(self):
-        return f'Введённое слово {self.enter_word}.'
-
-    class Meta:
-        verbose_name = 'Введённое слово'
-        verbose_name_plural = 'Введённые слова'
-
-
 class CurrentSession(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
-    difficulty = models.IntegerField('difficulty', default=5)
+    difficulty = models.IntegerField('Сложность', default=5)
     start_time = models.DecimalField('Время начала', default=0, max_digits=30, decimal_places=7)
     hidden_word = models.CharField('Слово', default='старт', max_length=10)
-    entered_words_list = ArrayField(models.CharField(max_length=10), default=list)
-    coincidences_list = ArrayField(models.CharField(max_length=200), default=list)
+    entered_words_list = models.CharField('Введенные слова', default='', max_length=120)
+    coincidences_list = models.CharField('Цвета для введённых букв', default='', max_length=120)
     notice = models.CharField('уведомление', default="", max_length=255)
 
     @classmethod
