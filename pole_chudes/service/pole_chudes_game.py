@@ -1,4 +1,5 @@
 import random
+from datetime import datetime, timedelta
 
 from ..models import Round
 from ..serializers import RoundSerializer
@@ -167,5 +168,4 @@ def start_new_game(game: Round, users_id=list, creator=None, is_one_device=False
 
 
 def is_old_game(game: Round):
-    from datetime import datetime, timedelta
-    return datetime.now() - game.change_at > timedelta(minutes=20)
+    return datetime.now(game.change_at.tzinfo) - game.change_at > timedelta(minutes=20)
