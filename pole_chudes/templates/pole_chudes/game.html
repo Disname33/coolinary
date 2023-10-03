@@ -150,19 +150,15 @@
             {#            </form>#}
             {#        </div>#}
         </div>
-        <div class="row attempt pb-2 gap-1 px-1">
-            <a class="btn btn-primary d-flex text-center col border">
-                <div class="col-auto">Игрок1:&nbsp;</div>
-                <em id="score0" class="score"> {{ players.0.score }} </em>
-            </a>
-            <a class="btn btn-success d-flex text-center col border">
-                <div class="col-auto">Игрок2:&nbsp;</div>
-                <em id="score1" class="score">{{ players.1.score }}</em>
-            </a>
-            <a class="btn btn-danger d-flex text-center col border">
-                <div class="col-auto">Игрок3:&nbsp;</div>
-                <em id="score2" class="score">{{ players.2.score }}</em>
-            </a>
+        <div class="row players pb-2 gap-1 px-1">
+            {% for player in players %}
+                <a class="btn btn-primary d-flex text-center col border
+                {% if not player.in_game %} bg-black text-dark {% endif %}">
+                    <div class="col-auto player-name">{{ player.name }}</div>
+                    :&nbsp;
+                    <em class="score"> {{ player.score }} </em>
+                </a>
+            {% endfor %}
             {#        <div class="col-lg pb-2">#}
             {#            <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game_results' %}"#}
             {#               role="button">#}
@@ -256,14 +252,20 @@
         const wheelSound = document.getElementById('wheelSound');
         const fullWordFInput = document.getElementById('full_word');
         const wheel = document.getElementById('wheel');
-        const scores = document.querySelectorAll('.score');
+        const playersInfo = document.querySelector('.players');
+        const players = {
+            "bg": playersInfo.querySelectorAll('a'),
+            "scores": playersInfo.querySelectorAll('.score'),
+            "names": playersInfo.querySelectorAll('.player-name')
+        };
         const wheelInfo = document.querySelector('.wheel-info');
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         let currentDegree = {{ wheel_angle }};
-        let activePlayer = {{ active_player_index }};
-        scores[activePlayer].parentElement.classList.add("border-warning");
+        const userId = {{ user.id }};
+        const oneDeviceGame = false;
+        let activePlayerUserId = 0;
+        let activePlayerIndex = {{ active_player_index }};
         let waitToSpin = {{ wait_to_spin|bool_js }};
-        let countRotate = 0;
         let isSpinning = false;
         let isComplete = false;
         let isWaitingResponse = false;
@@ -276,9 +278,8 @@
 
         const room_pk = "{{ pk }}";
         const request_id = "{{ request.session.session_key }}";
-        const current_user = "{{ user.get_username }}"
-        const current_user_is_superuser = "{{ user.is_superuser }}"
-        let lastMessage;
+        const current_user = "{{ user.get_username }}";
+        const current_user_is_superuser = "{{ user.is_superuser }}";
         let wsocket = new WebSocket(webSocket());
 
         function webSocket() {
@@ -287,27 +288,9 @@
         }
 
         wsocket.onopen = function () {
-            wsocket.send(
-                JSON.stringify({
-                    pk: room_pk,
-                    action: "join_room",
-                    request_id: request_id,
-                })
-            );
-            wsocket.send(
-                JSON.stringify({
-                    pk: room_pk,
-                    action: "retrieve",
-                    request_id: request_id,
-                })
-            );
-            wsocket.send(
-                JSON.stringify({
-                    pk: room_pk,
-                    action: "subscribe_instance",
-                    request_id: request_id,
-                })
-            );
+            sendAction("join_room");
+            sendAction("retrieve");
+            sendAction("subscribe_instance");
         };
 
         wsocket.onclose = function () {
@@ -323,13 +306,20 @@
             } else {
                 switch (data.action) {
                     case "retrieve":
-                        updateInfo(data.data)
+                        updateInfo(data.data);
+                        updateActivePlayer(data.data);
                         break;
                     case "update":
-                        updateInfo(data.data)
+                        updateInfo(data.data);
                         break;
                     case "info":
-                        updateInfo(data.data)
+                        if (data.data.letter) {
+                            showInfo(`Буква "${data.data.letter.toUpperCase()}"!`, data.data.user);
+                        } else if (data.data.full_word) {
+                            showInfo(data.data.full_word.toUpperCase() + "!", data.data.user);
+                        } else if (data.data.rotate_wheel) {
+                            rotateWheel(true, true);
+                        }
                         break;
                     default:
                         break;
@@ -344,16 +334,17 @@
                 wordMask = response.word_mask;
                 stopDegree = response.wheel_angle;
                 stopWheelFunction = function () {
-                    if (response.active_player_index !== activePlayer) updateActivePlayer(response);
+                    if (response.active_player_index !== activePlayerIndex) updateActivePlayer(response);
                     openLetter(response.word_mask);
                     updateScore(response);
                     waitToSpin = response.wait_to_spin;
                     if (response.is_complete) win(response.comment);
+                    else startBot(response);
                 }
             } else {
-                if (response.active_player_index === activePlayer) {
+                if (response.active_player_index === activePlayerIndex) {
                     if (wordMask === response.word_mask) {
-                        showInfo("Ведущий: " + response.comment);
+                        showInfo(response.comment, 'Ведущий');
                     } else {
                         wordMask = response.word_mask;
                         openLetter(wordMask);
@@ -362,15 +353,50 @@
                     updateActivePlayer(response);
                 }
                 updateScore(response);
-                if (response.is_complete) win(response.comment)
+                if (response.is_complete) win(response.comment);
+                else startBot(response);
                 waitToSpin = response.wait_to_spin;
             }
         }
 
-        function showInfo(message) {
-            wheelInfo.innerHTML += message + '<br>';
-            wheelInfo.classList.remove('visually-hidden');
-            wheelInfo.scrollTop = wheelInfo.scrollHeight;
+        function startBot(response) {
+            if (response.players[response.active_player_index]["user"] === null && response.creator.id === userId) {
+                if (response.wait_to_spin && countStars(response.word_mask) > 1) {
+                    sendAction("bot_rotate_wheel");
+                    {#setInterval(function () {sendAction("bot_rotate_wheel_stop");},1000);#}
+                } else sendAction("bot_next_letter", response.players[response.active_player_index]["name"]);
+            } else console.log("не время для бота")
+        }
+
+        function countStars(str) {
+            let starCount = 0;
+            for (let i = 0; i < str.length; i++) {
+                if (str[i] === '*') {
+                    starCount++;
+                }
+            }
+            return starCount;
+        }
+
+        function sendAction(action, name = '') {
+            const data = {
+                pk: room_pk,
+                action: action,
+                request_id: request_id,
+            };
+            if (name) data['name'] = name;
+            wsocket.send(
+                JSON.stringify(data)
+            );
+        }
+
+        function showInfo(message, sender = null) {
+            if (message !== null) {
+                if (sender !== null) wheelInfo.innerHTML += `${sender}: ${message} <br>`;
+                else wheelInfo.innerHTML += `${message} <br>`;
+                wheelInfo.classList.remove('visually-hidden');
+                wheelInfo.scrollTop = wheelInfo.scrollHeight;
+            }
         }
 
         function mute(muteButton) {
@@ -400,20 +426,20 @@
             }
         });
 
-        function rotateWheel(left = false) {
-            if (waitToSpin && !isComplete) {
+        function rotateWheel(left = false, is_bot = false, degree = -1) {
+            if (waitToSpin && !isComplete && (is_bot || userId === activePlayerUserId || oneDeviceGame)) {
                 wheelSound.play();
-                stopDegree = -1;
+                stopDegree = degree;
                 isSpinning = true;
                 waitToSpin = false;
-                wheelInfo.classList.add("visually-hidden");
+                if (!is_bot) wheelInfo.classList.add("visually-hidden");
                 currentDegree = (left ? Math.ceil(currentDegree / 90) : Math.floor(currentDegree / 90)) * 90;
                 let step = left ? 90 : -90;
-                countRotate = 0;
+                let countRotate = 0;
                 let lastStep = step * 4;
                 intervalRotateId = setInterval(function () {
                     if ((stopDegree >= 0) && (countRotate > 6)) {
-                        lastStep = left ? (stopDegree - ((currentDegree % 360) + 360) % 360) : (360 - stopDegree - (360 - (currentDegree % 360)) % 360)
+                        lastStep = left ? (stopDegree - ((currentDegree % 360) + 360) % 360) : (360 - stopDegree - (360 - (currentDegree % 360)) % 360);
                         if (lastStep < 91) {
                             clearInterval(intervalRotateId);
                             step = left ? lastStep : (-lastStep);
@@ -430,9 +456,10 @@
                     countRotate++;
                 }, 500);
                 {#sendMessage({"rotate_wheel": "rotate"})#}
-                sendRotate();
+                if (!is_bot) sendRotate();
             } else {
-                showInfo("Барабан уже крутили");
+                if (!waitToSpin) showInfo("Барабан уже крутили");
+                if (userId !== activePlayerUserId) showInfo("Очередь другого игрока");
             }
         }
 
@@ -484,7 +511,7 @@
                             showInfo("Дождитесь ответа ведущего!");
                         }
                     } else {
-                        showInfo("Ведущий: Крутите барабан!");
+                        showInfo("Крутите барабан!", 'Ведущий');
                     }
 
                 });
@@ -509,16 +536,22 @@
         }
 
         function updateActivePlayer(response) {
-            scores[activePlayer].parentElement.classList.remove("border-warning");
-            activePlayer = response.active_player_index;
-            scores[activePlayer].parentElement.classList.add("border-warning");
-            showInfo("Ведущий: " + response.comment);
+            players.bg[activePlayerIndex].classList.remove("border-warning");
+            activePlayerIndex = response.active_player_index;
+            if (response.players[activePlayerIndex]["user"] === null) activePlayerUserId = 0;
+            else {
+                activePlayerUserId = response.players[activePlayerIndex]["user"]["id"];
+            }
+            players.bg[activePlayerIndex].classList.add("border-warning");
+            showInfo(response.comment, "Ведущий");
         }
 
         function updateScore(response) {
             for (let i = 0; i < 3; i++) {
-                scores[i].innerHTML = response.players[i]["score"];
-                if (!response.players[i]['in_game']) scores[i].parentElement.classList.add('bg-black', 'text-dark');
+                players.scores[i].innerHTML = response.players[i]["score"];
+                players.names[i].innerHTML = response.players[i]["name"];
+                if (response.players[i]['in_game']) players.bg[i].classList.remove('bg-black', 'text-dark');
+                else players.bg[i].classList.add('bg-black', 'text-dark');
             }
         }
 

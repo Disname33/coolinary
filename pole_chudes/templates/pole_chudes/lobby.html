@@ -1,4 +1,5 @@
 {% extends 'home/header.html' %}
+{% load avatar %}
 {% load static %}
 {% load group_check %}
 
@@ -8,6 +9,12 @@
             width: 140px;
             height: 60px;
         }
+
+        .player-logo {
+            width: 20px;
+            height: 20px;
+        }
+
     </style>
 {% endblock %}
 
@@ -20,13 +27,13 @@
     <div class="container-xl">
         <div class="row text-center">
             <div class="col text-center pole-chudes-logo">
-                <a href="?start_new_game=new">
+                <a onclick="window.location.reload()">
                     <img src="{% static "/pole_chudes/logo.png" %}" alt="Поле чудес" class="object-fit-contain">
                 </a>
             </div>
         </div>
         <div class="row">
-            <h2 id="gamebord" class="vstack gap-3">
+            <div id="gamebord" class="vstack gap-3">
                 <div class="mx-auto col-auto btn">Выберите зал для игры</div>
                 {% for room in rooms %}
                     <div class="hstack gap-3 px-2">
@@ -34,15 +41,112 @@
                             <div class="btn btn-primary col">Зал №{{ room.pk }}</div>
                             {% if room.is_complete %}
                                 <div class="btn btn-success col">Свободен</div>
-                                <a class="btn btn-success col" href="./room/{{ room.pk }}">Войти</a>
+                                {#                                <a class="btn btn-success col" href="./room/{{ room.pk }}">Войти</a>#}
+                                <a class="btn btn-success col" href="#room_info{{ room.pk }}"
+                                   role="button" aria-expanded="true" aria-controls="collapse"
+                                   onclick="showRoomInfo({{ room.pk }})" data-bs-toggle="collapse">Войти</a>
                             {% else %}
                                 <div class="btn btn-warning col">Занят</div>
                                 <a class="btn btn-warning col" href="./room/{{ room.pk }}">Присоединиться</a>
                             {% endif %}
                         </div>
                     </div>
+                    <div class="collapse card card-body px-3 " id="room_info{{ room.pk }}">
+                        <h3>Загрузка данных...</h3>
+                    </div>
                 {% endfor %}
-            </h2>
+            </div>
         </div>
     </div>
+
+    <script>
+        {#const request_id = "{{ request.session.session_key }}";#}
+        {#const current_user = "{{ user.id }}";#}
+        {#const current_user_is_superuser = "{{ user.is_superuser }}";#}
+        {##}
+        {##}
+        {#function webSocket() {#}
+        {#    const protocol = window.location.protocol === "http:" ? 'ws://' : 'wss://';#}
+        {#    return protocol + window.location.host + '/ws/pole_chudes/';#}
+        {# }#}
+        {##}
+        {#function get_room_info(room_pk) {#}
+        {#    wsocket = new WebSocket(webSocket());#}
+        {#    wsocket.onopen = function (){onOpenSocket (room_pk)};#}
+        {#    wsocket.onclose = function () {console.log("Соединение разорвано!")};#}
+        {#    wsocket.onmessage = function (e) {onMessageSocket(e)};#}
+        {# }#}
+        {#let wsocket;#}
+        {#function onOpenSocket (room_pk) {#}
+        {#    wsocket.send(#}
+        {#        JSON.stringify({#}
+        {#            pk: room_pk,#}
+        {#            action: "join_room",#}
+        {#            request_id: request_id,#}
+        {#        })#}
+        {#    );#}
+        {#    wsocket.send(#}
+        {#        JSON.stringify({#}
+        {#            pk: room_pk,#}
+        {#            action: "retrieve",#}
+        {#            request_id: request_id,#}
+        {#        })#}
+        {#    );#}
+        {#    wsocket.send(#}
+        {#        JSON.stringify({#}
+        {#            pk: room_pk,#}
+        {#            action: "subscribe_instance",#}
+        {#            request_id: request_id,#}
+        {#        })#}
+        {#    );#}
+        {# }#}
+        {##}
+        {##}
+        {#function onMessageSocket(e) {#}
+        {#    const data = JSON.parse(e.data);#}
+        {#    console.log('RealTime', data)#}
+        {#    if ("errors" in data && data.errors.length) {#}
+        {#        alert(data.errors[0]);#}
+        {#    } else {#}
+        {#        switch (data.action) {#}
+        {#            case "retrieve":#}
+        {#                showRoomInfo(data.data);#}
+        {#                break;#}
+        {#            case "update":#}
+        {#                showRoomInfo(data.data);#}
+        {#                break;#}
+        {#            default:#}
+        {#                break;#}
+        {#        }#}
+        {#    }#}
+        {# } #}
+
+        function showRoomInfo(room) {
+            const avatar = `<img src="{{user|avatar }}" class="me-2 player-logo">`
+            const creator = `<div class="col-lg m-2"><a class="btn btn-outline-light d-flex text-center border ">${avatar} Вы </a></div>`;
+            const menu =
+                `<div class="m-2 col-lg"><select class="form-select" aria-label="Player select">
+                    <option value="-2"> Никто</option>
+                    <option selected value="0"> Человек</option>
+                    <option value="-1"> Бот</option>
+                </select></div>`;
+            const oneDeviceGame = `<div class="btn m-2 col-md col-lg-auto"><div class="form-check ">
+                  <input class="form-check-input col-1" type="checkbox" value="" id="check${room}" checked>
+                  <label class="form-check-label" for="check${room}">
+                    Играть на одном устройстве
+                  </label>
+                </div></div>`
+            const start = `<div class="col-lg m-2"><a class="btn btn-success d-flex text-center col border" onclick="startGame(${room})"> Старт </a></div>`
+            document.getElementById('room_info' + room).innerHTML = `<div class='container-lg row'>  ${creator} ${menu} ${menu} ${oneDeviceGame} ${start}</div>`;
+        }
+
+        function startGame(room) {
+            const room_info = document.querySelector('#room_info' + room);
+            const selects = room_info.querySelectorAll("select");
+            const oneDeviceGame = room_info.querySelector(`#check${room}`);
+            const setting = `room/${room}/?p2=${selects[0].value}&p3=${selects[1].value}&is_one_device=${oneDeviceGame.checked ? 1 : 0}`
+            window.location.href = window.location.origin + window.location.pathname + setting;
+        }
+    </script>
+
 {% endblock %}

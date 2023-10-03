@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -15,12 +17,21 @@ class Riddle(models.Model):
 
 
 class Player(models.Model):
-    # name = models.CharField('Имя игрока', max_length=50)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    name = models.CharField('Имя игрока', max_length=150, default='Игрок')
     score = models.IntegerField('Текущий счет', default=0)
     in_game = models.BooleanField('В игре', default=True)
 
+    def set(self, user=None, name='Ждун', score=0, in_game=True):
+        self.in_game = in_game
+        self.score = score
+        self.user = user
+        self.name = name
+        self.save()
+
 
 class Round(models.Model):
+    creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     riddle = models.ForeignKey(Riddle, on_delete=models.CASCADE)
     word_mask = models.CharField('Маска ответа', max_length=20)
     is_complete = models.BooleanField('Завершено', default=False)
@@ -30,7 +41,9 @@ class Round(models.Model):
     wait_to_spin = models.BooleanField('Вращайте барабан', default=True)
     players = models.ManyToManyField(Player, related_name='rounds', through='RoundPlayer')
     active_player_index = models.IntegerField('Активный игрок', default=0)
+    checked_letters = models.CharField('Проверенные буквы', max_length=32, default='')
     change_at = models.DateTimeField(auto_now=True)
+    is_one_device = models.BooleanField('Играть на одном устройстве', default=False)
     comment = models.CharField('Комментарий', max_length=250, null=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -49,19 +62,39 @@ class Round(models.Model):
             print("Максимум игроков в комнате")
             return False
 
-    def next_riddle(self):
+    def next_riddle(self, users_id=list, creator=None, is_one_device=False):
+        if not users_id:
+            users_id = [1]
+        while len(users_id) < 3:
+            users_id.append(None)
+        self.is_one_device = is_one_device
         self.riddle = Riddle.objects.order_by('?').first()
         self.word_mask = '*' * len(self.riddle.word)
         self.active_player_index = 0
         self.is_complete = False
         self.wait_to_spin = True
+        self.checked_letters = ''
         self.comment = None
+        self.creator = creator
+        names = ['Даня', 'Валя', 'Саша', 'Вася', 'Женя']
         while self.players.count() < 3:
             self.add_player()
-        for player in self.players.all():
-            player.score = 0
-            player.in_game = True
-            player.save()
+        players = self.players.all()[:3]
+        for player, user in zip(players, users_id):
+            if user > 0:
+                _user = User.objects.get(pk=user)
+                player.set(user=_user, name=_user.username)
+            elif user == 0:
+                if is_one_device:
+                    player.set(user=players[0].user, name=f'Игрок{player.id}')
+                else:
+                    player.set(name='Ждун', in_game=False)
+            elif user == -1:
+                name = random.choice(names)
+                names.remove(name)
+                player.set(name=name)
+            elif user == -2:
+                player.set(name='Пусто', in_game=False)
         self.save()
 
     def get_active_player(self) -> Player:
@@ -80,7 +113,7 @@ class Round(models.Model):
     def win(self):
         player = self.get_active_player()
         self.wait_to_spin = False
-        self.comment = f"Игрок {self.active_player_index + 1} победил с результатом {player.score} очков"
+        self.comment = f"{player.name} победил(а) с результатом {player.score} очков"
         self.is_complete = True
 
     def next_player(self, comment=None, save=True):
@@ -102,7 +135,31 @@ class Round(models.Model):
             self.save()
         return self.active_player_index
 
+    def is_user_in_game(self, user):
+        for player in self.players.order_by('pk').all()[:3]:
+            if player.user == user:
+                return True
+        return False
+
+    def take_vacant_seat(self, user: User):
+        for player in self.players.order_by('pk').all()[:3]:
+            if player.user is None and player.name == 'Ждун':
+                player.user = user
+                player.name = user.username
+                player.in_game = True
+                player.save()
+                self.save()
+                return player
+        return None
+
 
 class RoundPlayer(models.Model):
     round = models.ForeignKey(Round, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
+
+#
+# class SystemMessage(models.Model):
+#     round = models.ForeignKey(Round, on_delete=models.CASCADE)
+#     comment = models.CharField('Комментарий', max_length=250, null=True, blank=True)
+#     action = models.CharField('Действие', max_length=20, null=True, blank=True)
+#     player_name = models.CharField('Игрок', max_length=10, null=True, blank=True)

@@ -4,6 +4,11 @@ from ..models import Round
 from ..serializers import RoundSerializer
 
 
+# from django.db.models.signals import post_save
+# from django.dispatch import receiver
+# import time
+
+
 class Wheel:
     sectors = ("200", "X3", "700", "Банкрот", "1000", "100", "X2",
                "600", "800", "+", "400", "900", "0", "Приз", "500", "300")
@@ -22,6 +27,51 @@ class Wheel:
         self.score = self.scores[index]
 
 
+#
+# @receiver(post_save, sender=Round)
+# def bot_info(sender, instance, created, **kwargs):
+#
+#     def find_first_unique_char(checked_letters: str):
+#         letters = 'ОЕАИНТСРВЛКМДПУЯЫЬГЗБЧЙХЖШЮЦЩЭФЪ'
+#         for letter in letters:
+#             if letter not in checked_letters:
+#                 return letter
+#         return random.choice(letters)
+#
+#     if instance.get_active_player().user is None and not instance.is_complete:
+#         sys_msg = SystemMessage.objects.get_or_create(round=instance)[0]
+#         time.sleep(0.5)
+#         bot_name = instance.get_active_player().name,
+#         if instance.wait_to_spin:
+#             if instance.word_mask.count('*') == 1:
+#                 sys_msg.action = 'check_full_word'
+#                 sys_msg.comment = instance.riddle.word
+#                 # check_full_word(instance.riddle.word, instance)
+#             else:
+#                 sys_msg.action = 'rotate_wheel'
+#                 # rotate_wheel(instance)
+#                 # time.sleep(4)
+#         else:
+#             sys_msg.action = 'check_letter'
+#             sys_msg.comment = find_first_unique_char(instance.checked_letters)
+#             # check_letter(find_first_unique_char(instance.checked_letters), instance)
+#         sys_msg.save()
+#
+#
+# @receiver(post_save, sender=SystemMessage)
+# def bot_action(sender, instance, created, **kwargs):
+#     game: Round = instance.round
+#     time.sleep(1)
+#     match instance.action:
+#         case 'rotate_wheel':
+#             time.sleep(2)
+#             rotate_wheel(game)
+#         case 'check_letter':
+#             check_letter(instance.comment, game)
+#         case 'check_full_word':
+#             check_full_word(instance.comment, game)
+
+
 def rotate_wheel(game: Round):
     if game.wait_to_spin:
         active_player = game.get_active_player()
@@ -34,7 +84,7 @@ def rotate_wheel(game: Round):
         match wheel.sector:
             case 'Банкрот':
                 game.set_active_player(score=0)
-                game.next_player(f'Игрок{game.active_player_index + 1} - банкрот', save=False)
+                game.next_player(f'{game.get_active_player().name} - банкрот', save=False)
             case '0':
                 game.next_player('Переход хода', save=False)
             case 'X2':
@@ -42,30 +92,33 @@ def rotate_wheel(game: Round):
             case 'X3':
                 game.points_earned = active_player.score * 2
             case '+':
-                return open_first_hidden_letter(game)
+                open_first_hidden_letter(game)
+                return
             case 'Приз':
-                return open_first_hidden_letter(game)
+                open_first_hidden_letter(game, comment='Сектор "Приз" на барабане!')
+                return
         game.save()
-        return RoundSerializer(game).data
+        # return RoundSerializer(game).data
     else:
         game.comment = 'Назовите букву!'
-        return RoundSerializer(game).data
+        # return RoundSerializer(game).data
 
 
-def check_letter(letter: str, game: Round):
+def check_letter(letter: str, game: Round, comment=None):
     if game.wait_to_spin:
         game.comment = 'Вращайте барабан!'
         return RoundSerializer(game).data
     else:
         checked_letter = letter.strip().upper()[0]
-        if checked_letter in game.word_mask.upper():
-            game.next_player("Букву уже отгадали")
-            return RoundSerializer(game).data
+        if checked_letter in game.checked_letters:
+            game.next_player("Букву уже называли")
+            # return RoundSerializer(game).data
         else:
+            game.checked_letters += checked_letter
             indices = [i for i, letter in enumerate(game.riddle.word.upper()) if letter == checked_letter]
             if indices:
                 game.wait_to_spin = True
-                game.comment = None
+                game.comment = comment
                 word_list = list(game.word_mask.upper())
                 game.set_active_player(add_score=game.points_earned * len(indices))
                 for index in indices:
@@ -74,15 +127,18 @@ def check_letter(letter: str, game: Round):
                 if "*" not in game.word_mask:
                     game.win()
                 game.save()
-                return RoundSerializer(game).data
+                # return RoundSerializer(game).data
             else:
                 game.next_player("Нет такой буквы")
-                return RoundSerializer(game).data
+                # return RoundSerializer(game).data
 
 
-def open_first_hidden_letter(game: Round):
-    letter = game.riddle.word[game.word_mask.find("*")]
-    return check_letter(letter, game)
+def open_first_hidden_letter(game: Round, comment=None):
+    letter_index = game.word_mask.find("*")
+    letter = game.riddle.word[letter_index]
+    if comment is None:
+        comment = f'Откройте {letter_index + 1}-ю букву'
+    return check_letter(letter, game, comment)
 
 
 def check_full_word(full_word: str, game: Round):
@@ -95,16 +151,21 @@ def check_full_word(full_word: str, game: Round):
         return RoundSerializer(game).data
     else:
         game.set_active_player(in_game=False)
-        game.next_player(f"Игрок{game.active_player_index + 1} проиграл и покидает игру")
+        game.next_player(f"{game.get_active_player().name} проиграл(а) и покидает игру")
         return RoundSerializer(game).data
 
 
-def start_game(game: Round):
-    if game and game.is_complete:
-        game.next_riddle()
+def start_game(game: Round, users_id=list, creator=None, is_one_device=False):
+    if game and (game.is_complete or is_old_game(game)):
+        game.next_riddle(users_id=users_id, creator=creator, is_one_device=is_one_device)
     return RoundSerializer(game).data
 
 
-def start_new_game(game: Round):
-    game.next_riddle()
+def start_new_game(game: Round, users_id=list, creator=None, is_one_device=False):
+    game.next_riddle(users_id=users_id, creator=creator, is_one_device=is_one_device)
     return RoundSerializer(game).data
+
+
+def is_old_game(game: Round):
+    from datetime import datetime, timedelta
+    return datetime.now() - game.change_at > timedelta(minutes=20)

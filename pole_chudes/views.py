@@ -22,21 +22,17 @@ def lobby(request):
 @login_required
 def room(request, pk):
     game: Round = get_object_or_404(Round, pk=pk)
-    # return render(request, 'chat/room.html', {
-    #     "room": chat_room,
-    #     "room_name": chat_room.name,
-    #     "session_key": request.session.session_key,
-    # })
-    if request.GET.get("rotate_wheel"):
-        return response_json(pole_chudes_game.rotate_wheel(game))
-    elif checked_letter := request.GET.get("checked_letter"):
-        return response_json(pole_chudes_game.check_letter(checked_letter, game))
-    elif full_word := request.GET.get("full_word"):
-        return response_json(pole_chudes_game.check_full_word(full_word, game))
-    elif request.GET.get("start_new_game"):
-        return render(request, 'pole_chudes/game.html', pole_chudes_game.start_new_game(game))
+    p2 = int(request.GET.get("p2", 0))
+    p3 = int(request.GET.get("p3", 0))
+    is_one_device = request.GET.get("is_one_device", '0') == "1"
+    if request.GET.get("start_new_game"):
+        return render(request, 'pole_chudes/game.html',
+                      pole_chudes_game.start_new_game(game, users_id=[request.user.id, p2, p3],
+                                                      creator=request.user, is_one_device=is_one_device))
     else:
-        return render(request, 'pole_chudes/game.html', pole_chudes_game.start_game(game))
+        return render(request, 'pole_chudes/game.html',
+                      pole_chudes_game.start_game(game, users_id=[request.user.id, p2, p3],
+                                                  creator=request.user, is_one_device=is_one_device))
 
 
 def response_json(data):
