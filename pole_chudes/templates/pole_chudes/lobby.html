@@ -127,9 +127,9 @@
             const creator = `<div class="col-lg m-2"><a class="btn btn-outline-light d-flex text-center border ">${avatar} Вы </a></div>`;
             const menu =
                 `<div class="m-2 col-lg"><select class="form-select" aria-label="Player select">
-                    <option value="-2"> Никто</option>
                     <option selected value="0"> Человек</option>
                     <option value="-1"> Бот</option>
+                    <option value="-2"> Пусто</option>
                 </select></div>`;
             const oneDeviceGame = `<div class="btn m-2 col-md col-lg-auto"><div class="form-check ">
                   <input class="form-check-input col-1" type="checkbox" value="" id="check${room}" checked>
@@ -138,7 +138,7 @@
                   </label>
                 </div></div>`
             const start = `<div class="col-lg m-2"><a class="btn btn-success d-flex text-center col border" onclick="startGame(${room})"> Старт </a></div>`
-            document.getElementById('room_info' + room).innerHTML = `<div class='container-lg row'>  ${creator} ${menu} ${menu} ${oneDeviceGame} ${start}</div>`;
+            document.getElementById('room_info' + room).innerHTML = `<div class='row'>  ${creator} ${menu} ${menu} ${oneDeviceGame} ${start}</div>`;
         }
 
         function startGame(room) {
