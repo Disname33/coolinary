@@ -249,6 +249,7 @@
         </div>
     </div>
     <script>
+        const keyboard = document.getElementById('keyboard');
         const wheelSound = document.getElementById('wheelSound');
         const fullWordFInput = document.getElementById('full_word');
         const wheel = document.getElementById('wheel');
@@ -338,6 +339,7 @@
                     openLetter(response.word_mask);
                     updateScore(response);
                     waitToSpin = response.wait_to_spin;
+                    updateCheckedLetter(response.checked_letters);
                     if (response.is_complete) win(response.comment);
                     else startBot(response);
                 }
@@ -353,6 +355,7 @@
                     updateActivePlayer(response);
                 }
                 updateScore(response);
+                updateCheckedLetter(response.checked_letters);
                 if (response.is_complete) win(response.comment);
                 else startBot(response);
                 waitToSpin = response.wait_to_spin;
@@ -491,7 +494,6 @@
 
 
         function createNewKeyboard() {
-            const keyboard = document.getElementById('keyboard');
             keyboard.innerHTML = createNewLineKeys('Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ') +
                 createNewLineKeys('Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э') +
                 createNewLineKeys('Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю');
@@ -544,6 +546,16 @@
             }
             players.bg[activePlayerIndex].classList.add("border-warning");
             showInfo(response.comment, "Ведущий");
+        }
+
+        function updateCheckedLetter(letters) {
+            for (let i = 0; i < letters.length; i++) {
+                const letter = letters.charAt(i);
+                const element = document.getElementById(letter);
+                if (element) {
+                    element.classList.add("bg-danger");
+                }
+            }
         }
 
         function updateScore(response) {
