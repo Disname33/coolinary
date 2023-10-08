@@ -1,4 +1,5 @@
 {% extends 'home/header.html' %}
+{% load avatar %}
 {% load static %}
 {% load hide_email %}
 {% block inhead %}
@@ -65,11 +66,7 @@
             <div class="col col-lg-auto offset-xl-1">
                 <div class="user-block">
                     <div id="avatar-box" class="mx-auto avatar position-relative">
-                        <img src="{% if user.userprofile.avatar %}
-                                        {{ user.userprofile.avatar.url }}
-                                    {% else %}
-                                         {% static 'svg/avatar.svg' %}
-                                    {% endif %}"
+                        <img src="{{ user|avatar }}"
                              class="avatar object-fit-cover border rounded" alt="avatar" id="avatar">
                         <div class="btn btn-edit btn-light position-absolute bottom-0 end-0 m-2 opacity-50"
                              onclick="loadFileImage()"></div>
@@ -437,6 +434,7 @@
                     success: function (response) {
                         console.log(response)
                         if (response.status === "OK") {
+                            alert("Параметры обновлены")
                             location.reload();
                         } else {
                             alert(response.error)

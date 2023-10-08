@@ -12,6 +12,17 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from .models import UserProfile
 
 
+class RelatedUserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name')
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'email': forms.EmailInput(attrs={'class': 'form-control'}),
+        }
+
+
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(label='Введите пароль',
                                widget=forms.PasswordInput(attrs={'class': 'form-control'}))
@@ -20,13 +31,17 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = ('username',)  # ('username', 'first_name', 'last_name', 'email')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            # 'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(UserRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['username'].help_text = "Не более 30 знаков. Только буквы и цифры."
 
     def clean_password2(self):
         cd = self.cleaned_data
@@ -88,10 +103,16 @@ class DateInputNotLocale(forms.DateInput):
 
 
 class UserProfileForm(forms.ModelForm):
+    # user = RelatedUserProfileForm()
+    # first_name = user.first_name
+    # last_name = user.last_name
+
     class Meta:
         model = UserProfile
-        fields = ['birthday', 'country', 'city', 'display_option', 'gender']
+        fields = ['birthday', 'country', 'city', 'display_option', 'gender']  # 'first_name', 'last_name',
         widgets = {
+            # 'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'birthday': DateInputNotLocale(attrs={
                 'class': 'form-control',
                 'min': "1900-01-01",
@@ -114,6 +135,12 @@ class UserProfileForm(forms.ModelForm):
             help_text_html='<br><span class="helptext">%s</span>',
             errors_on_separate_row=True,
         )
+
+    # def __init__(self, *args, **kwargs):
+    #     super(UserProfileForm, self).__init__(*args, **kwargs)
+    #
+    #     if 'instance' in kwargs:
+    #         self.user = RelatedUserProfileForm(instance=kwargs['instance'].user)
 
 
 class UserChangePasswordForm(PasswordChangeForm):
