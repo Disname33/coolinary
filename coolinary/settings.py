@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'brake',
     'rest_framework',
     'channels',
     'guess_the_word_game',
@@ -152,3 +153,9 @@ MEDIA_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {}
 DJANGO_CHANNELS_REST_API = {}
+
+# Максимальное количество запросов в минуту для аутентификации (5 запросов в минуту)
+BRAKE_BACKEND = 'brake.backends.cache.CacheBackend'
+BRAKE_GLOBAL_LIMITS = {
+    'default': (5, 60),
+}

@@ -44,6 +44,7 @@
             <br>
             {# Assumes you setup the password_reset view in your URLconf #}
             <p><a href="{% url 'password_reset' %}">Забыли пароль?</a></p>
+            <p><a href="{% url 'register' %}">Зарегистрироваться</a></p>
             <script>
                 const username = document.getElementById("id_password");
                 const password = document.getElementById("id_username");

@@ -1,5 +1,6 @@
 import json
 
+from brake.decorators import ratelimit
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
@@ -23,6 +24,7 @@ def work_trip(request):
     return render(request, 'work_trip/work_trip.html')
 
 
+@ratelimit(rate='2/15m', method='POST', block=True)
 def register(request):
     if request.user.is_authenticated:
         return render(request, 'home/index.html')
