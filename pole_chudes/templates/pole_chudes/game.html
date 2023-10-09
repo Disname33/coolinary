@@ -137,7 +137,8 @@
 
         <div class="row text-center">
             <div class="col text-center pole-chudes-logo">
-                <a href="?start_new_game=new">
+                <a {% if creator.id == user.id %} href="?start_new_game=new" {% else %} href="#"
+                                                  onclick="location.reload()" {% endif %} >
                     <img src="{% static "/pole_chudes/logo.png" %}" alt="Поле чудес" class="object-fit-contain">
                 </a>
             </div>

@@ -1,7 +1,8 @@
+from datetime import datetime, timedelta
+
 from rest_framework import serializers
 
 from .models import Round, Player, Riddle, User
-from .service import pole_chudes_game
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -54,4 +55,4 @@ class RoundSerializer(serializers.ModelSerializer):
             return None
 
     def get_is_old_game(self, obj):
-        return pole_chudes_game.is_old_game(obj)
+        return datetime.now(obj.change_at.tzinfo) - obj.change_at > timedelta(minutes=20)
