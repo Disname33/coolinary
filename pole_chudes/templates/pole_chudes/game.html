@@ -152,12 +152,28 @@
         </div>
         <div class="row players pb-2 gap-1 px-1">
             {% for player in players %}
-                <a class="btn btn-primary d-flex text-center col border
-                {% if not player.in_game %} bg-black text-dark {% endif %}">
-                    <div class="col-auto player-name">{{ player.name }}</div>
-                    :&nbsp;
-                    <em class="score"> {{ player.score }} </em>
-                </a>
+                <div class="nav-item dropdown col">
+                    <a class="btn btn-primary d-flex text-center col border
+                    {% if not player.in_game %} bg-black text-dark {% endif %}
+                    {% if player.user.id == user.id %}" data-bs-toggle="dropdown" aria-expanded="false {% endif %}">
+                        <div class="text-nowrap player-name">{{ player.name }}</div>
+                        :&nbsp;
+                        <em class="score"> {{ player.score }} </em>
+                    </a>
+
+                    <ul class="dropdown-menu">
+                        <li>
+                            <div class="dropdown-item">
+                                <input type="text" class="form-control active my-3 col" autofocus
+                                       placeholder="Введите имя" aria-label="Введите имя"
+                                       aria-describedby="input_name">
+                                <button class="btn btn-primary col-12 mx-auto"
+                                        onclick="renamePlayer(this, {{ player.id }})">Переименовать
+                                </button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             {% endfor %}
             {#        <div class="col-lg pb-2">#}
             {#            <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game_results' %}"#}
@@ -322,6 +338,9 @@
                             rotateWheel(true, true);
                         }
                         break;
+                    case "update_players":
+                        updatePlayerInfo(data.data);
+                        break;
                     default:
                         break;
                 }
@@ -337,7 +356,7 @@
                 stopWheelFunction = function () {
                     if (response.active_player_index !== activePlayerIndex) updateActivePlayer(response);
                     openLetter(response.word_mask);
-                    updateScore(response);
+                    updatePlayerInfo(response);
                     waitToSpin = response.wait_to_spin;
                     updateCheckedLetter(response.checked_letters);
                     if (response.is_complete) win(response.comment);
@@ -354,7 +373,7 @@
                 } else {
                     updateActivePlayer(response);
                 }
-                updateScore(response);
+                updatePlayerInfo(response);
                 updateCheckedLetter(response.checked_letters);
                 if (response.is_complete) win(response.comment);
                 else startBot(response);
@@ -459,20 +478,13 @@
                     countRotate++;
                 }, 500);
                 {#sendMessage({"rotate_wheel": "rotate"})#}
-                if (!is_bot) sendRotate();
+                if (!is_bot) sendAction("rotate_wheel");
             } else {
                 if (!waitToSpin) showInfo("Барабан уже крутили");
                 if (userId !== activePlayerUserId) showInfo("Очередь другого игрока");
             }
         }
 
-        function sendRotate() {
-            wsocket.send(JSON.stringify({
-                pk: room_pk,
-                action: "rotate_wheel",
-                request_id: request_id,
-            }));
-        }
 
         function sendLetter(letter) {
             wsocket.send(JSON.stringify({
@@ -488,6 +500,16 @@
                 pk: room_pk,
                 full_word: full_word,
                 action: "check_full_word",
+                request_id: request_id,
+            }));
+        }
+
+        function sendRenamePlayer(name, player_id) {
+            wsocket.send(JSON.stringify({
+                pk: room_pk,
+                name: name,
+                player_id: player_id,
+                action: "rename_player",
                 request_id: request_id,
             }));
         }
@@ -558,7 +580,7 @@
             }
         }
 
-        function updateScore(response) {
+        function updatePlayerInfo(response) {
             for (let i = 0; i < 3; i++) {
                 players.scores[i].innerHTML = response.players[i]["score"];
                 players.names[i].innerHTML = response.players[i]["name"];
@@ -613,6 +635,17 @@
                 keyboard.hide();
                 inputForm.show();
             }
+        }
+
+        function renamePlayer(btn, player_id) {
+            const name = btn.previousElementSibling.value.trim();
+            const re = /[а-яёА-ЯЁA-Za-z\d\s_]+/
+            if (name.length) {
+                if (name.length < 20) {
+                    if (re.test(name)) sendRenamePlayer(name, player_id);
+                    else alert("Спецсимволы в имени игрока запрещены!")
+                } else alert("Имя слишком длинное!");
+            } else alert("Введите имя!");
         }
 
         createNewKeyboard();

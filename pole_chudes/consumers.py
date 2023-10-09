@@ -9,7 +9,7 @@ from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
 from djangochannelsrestframework.observer.generics import (ObserverModelInstanceMixin, action)
 
 from .models import Round
-from .serializers import RoundSerializer
+from .serializers import RoundSerializer, PlayerSerializer
 from .service import pole_chudes_game
 
 
@@ -68,6 +68,12 @@ class GameConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         if self.scope['user'].is_authenticated:
             self.room_subscribe = pk
             await self.add_user_to_room(pk)
+
+    @action()
+    async def rename_player(self, name, player_id, **kwargs):
+        room: Round = await Round.objects.aget(pk=self.room_subscribe)
+        if players := await self.rename_player_db(name, player_id, room):
+            await self.send_group_message({'players': players}, message_action='update_players')
 
     @action()
     async def bot_rotate_wheel(self, pk, **kwargs):
@@ -145,6 +151,16 @@ class GameConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
             if room.take_vacant_seat(user) is None:
                 asyncio.run(self.send_json({"action": action, "errors": "Нет свободных мест"}))
         #     user.current_rooms.add(Round.objects.get(pk=pk))
+
+    @database_sync_to_async
+    def rename_player_db(self, name, player_id, room: Round):
+        player = room.players.get(pk=player_id)
+        if player.user == self.scope["user"]:
+            player.name = name
+            player.save()
+            return PlayerSerializer(room.players.order_by('pk').all()[:3], many=True).data
+        else:
+            return None
 
     async def send_if_errors(self, action, errors):
         if errors:

@@ -7,9 +7,10 @@ function createNewKeyboard() {
     linesCode += createNewLineKeys('Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю');
     keyboard.innerHTML = linesCode;
     // Разукрашивает клавиатуру
-    const letters = document.querySelector('#words').querySelectorAll('.border');
+    const letters = document.querySelector('#words').querySelectorAll('.letter');
     letters.forEach(function (letter) {
-        document.getElementById(letter.textContent).classList.add(...letter.classList);
+        const letterBtn = document.getElementById(letter.textContent);
+        letterBtn.classList.add(...letter.classList);
     });
     // Добавление буквы с виртуальной клавиатуры в поле input
     keyboard.querySelectorAll('.border').forEach(function (key) {

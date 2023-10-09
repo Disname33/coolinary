@@ -79,7 +79,7 @@ class Round(models.Model):
         names = ['Даня', 'Валя', 'Саша', 'Вася', 'Женя']
         while self.players.count() < 3:
             self.add_player()
-        players = self.players.all()[:3]
+        players = self.players.order_by('pk').all()[:3]
         for player, user in zip(players, users_id):
             if user > 0:
                 _user = User.objects.get(pk=user)
@@ -101,7 +101,7 @@ class Round(models.Model):
         return self.players.order_by('pk').all()[self.active_player_index]
 
     def set_active_player(self, in_game=None, score=None, add_score=None):
-        player = self.players.order_by('pk').all()[self.active_player_index]
+        player = self.get_active_player()
         if in_game is not None:
             player.in_game = in_game
         if score is not None:
@@ -117,7 +117,7 @@ class Round(models.Model):
         self.is_complete = True
 
     def next_player(self, comment=None, save=True):
-        players = self.players.order_by('pk').all()
+        players = self.players.order_by('pk').all()[:3]
         self.wait_to_spin = True
         players_count = min(len(players), 3)
         active_player_index = self.active_player_index
@@ -144,10 +144,7 @@ class Round(models.Model):
     def take_vacant_seat(self, user: User):
         for player in self.players.order_by('pk').all()[:3]:
             if player.user is None and player.name == 'Ждун':
-                player.user = user
-                player.name = user.username
-                player.in_game = True
-                player.save()
+                player.set(user=user, name=user.username, in_game=True)
                 self.save()
                 return player
         return None
