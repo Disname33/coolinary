@@ -386,9 +386,8 @@
             if (response.players[response.active_player_index]["user"] === null && response.creator.id === userId) {
                 if (response.wait_to_spin && countStars(response.word_mask) > 1) {
                     sendAction("bot_rotate_wheel");
-                    {#setInterval(function () {sendAction("bot_rotate_wheel_stop");},1000);#}
                 } else sendAction("bot_next_letter", response.players[response.active_player_index]["name"]);
-            } else console.log("не время для бота")
+            }
         }
 
         function countStars(str) {
@@ -463,7 +462,7 @@
                 intervalRotateId = setInterval(function () {
                     if ((stopDegree >= 0) && (countRotate > 6)) {
                         lastStep = left ? (stopDegree - ((currentDegree % 360) + 360) % 360) : (360 - stopDegree - (360 - (currentDegree % 360)) % 360);
-                        if (lastStep < 91) {
+                        if (lastStep >= 0 && lastStep < 91) {
                             clearInterval(intervalRotateId);
                             step = left ? lastStep : (-lastStep);
                             setTimeout(function () {
