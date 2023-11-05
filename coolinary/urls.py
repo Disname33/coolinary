@@ -36,9 +36,9 @@ urlpatterns = [
     path('game/pole_chudes/', include('pole_chudes.urls')),
     path('game/guess_the_word/', include('guess_the_word_game.urls'), name='guess_the_word'),
     path('guess_the_word/', include('guess_the_word_game.urls'), name='start_guess_the_word_game'),
+    path('game/', include('games.urls')),
     path('weather/', include('weather.urls'), name='weather'),
     path('register/', views.register, name='register'),
     path('device-info/', views.device_info, name='device_info'),
 ]
-
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
