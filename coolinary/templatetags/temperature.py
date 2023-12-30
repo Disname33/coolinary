@@ -11,4 +11,4 @@ def temperature(temp):
         return f'+{temp}°C'
     if isinstance(temp, str) and not (temp.startswith("-") or temp in {"0", "0.0"}):
         return f'+{temp}°C'
-    return f'+{temp}°C'
+    return f'{temp}°C'

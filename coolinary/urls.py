@@ -40,5 +40,6 @@ urlpatterns = [
     path('weather/', include('weather.urls'), name='weather'),
     path('register/', views.register, name='register'),
     path('device-info/', views.device_info, name='device_info'),
+    path('debt/', include('debt_app.urls')),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

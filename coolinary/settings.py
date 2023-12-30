@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'games',
     'chatGPT',
     'pole_chudes',
+    'debt_app',
 ]
 
 MIDDLEWARE = [

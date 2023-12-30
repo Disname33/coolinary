@@ -1,0 +1,65 @@
+{% extends 'home/header.html' %}
+
+{% block title %}
+    Кредитная история
+{% endblock %}
+
+{% block body_block %}
+    <div class="container-lg">
+        <div class="row text-center">
+            <div class="col-xl-7">
+                <h1>Кредитная история</h1>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <div class="col-12">
+
+                <table class="table table-dark table-striped text-center" id='debt_table'>
+                    {% if user_debts %}
+                        <tr>
+                            <th scope="col">Сумма кредита, руб.</th>
+                            <th scope="col">Ставка, %</th>
+                            <th scope="col">Внесённая сумма, руб.</th>
+                            <th scope="col">Оставшаяся сумма, руб.</th>
+                            <th scope="col">Дата взноса</th>
+                        </tr>
+                        {% for debt in user_debts %}
+                            <tr>
+                                <td>{{ debt.principal_amount }}</td>
+                                <td>{{ debt.interest_rate }}</td>
+                                <td>{{ debt.paid_amount }}</td>
+                                <td>{{ debt.remaining_amount }}</td>
+                                <td>{{ debt.payment_date }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td> -</td>
+                            <td> -</td>
+                            <td> -</td>
+                            <td>{{ current_debt|floatformat:2|default:"N/A" }}</td>
+                            <td>{% now "" %}</td>
+                        </tr>
+
+                    {% else %}
+                        <thead>
+                        <tr>
+                            <th scope="col">Отсутствует информация о кредитной истории.</th>
+                        </tr>
+                        </thead>
+                    {% endif %}
+
+                </table>
+
+            </div>
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <div class=" col-xl-2 p-2">
+                <a class="btn col btn-outline-success d-flex text-center" href="javascript:history.back()"
+                   role="button">
+                    Назад
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
