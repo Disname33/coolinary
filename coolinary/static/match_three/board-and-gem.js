@@ -31,13 +31,14 @@ class Board {
 
 
     createGemDiv(row, col) {
-        $(GAME_FIELD).append('<div class = "' + GEM_CLASS + '" id = "' + Gem.getID(row, col) + `">` + getImg(this.grid[row][col].value) + `</div>`);
+        const gem = this.grid[row][col];
+        $(GAME_FIELD).append('<div class = "' + GEM_CLASS + ' ' + gem.flash + '" id = "' + Gem.getID(row, col) + `">` + getImg(gem.value) + `</div>`);
         $("#" + Gem.getID(row, col)).css({
             "top": (row * GEM_SIZE) + BORDER + "px",
             "left": (col * GEM_SIZE) + BORDER + "px",
             "width": (GEM_SIZE - BORDER) + "px",
             "height": (GEM_SIZE - BORDER) + "px",
-            "background-color": bgColors[this.grid[row][col].value]
+            "background-color": bgColors[gem.value]
         });
     }
 
@@ -97,9 +98,10 @@ class Board {
 
 class Gem {
 
-    constructor(value = Math.floor(Math.random() * difficulty), type = GEM_CLASS) {
+    constructor(value = Math.floor(Math.random() * difficulty), type = GEM_CLASS, flash = '') {
         this.value = value;
         this.type = type;
+        this.flash = flash;
     }
 
     static getID(row, col) {
@@ -136,6 +138,10 @@ class Gem {
         if (gem !== null) {
             return gem.classList.contains(Flash.RAINBOW);
         } else return false
+    }
+
+    copy() {
+        return new Gem(this.value, this.type, this.flash)
     }
 
     addClass(newClass) {

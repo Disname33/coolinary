@@ -333,22 +333,12 @@ function gemSwitch(row = selectedRow, col = selectedCol, row2 = posY, col2 = pos
 }
 
 function removeGems(row, col) {
-    const v_streak = board.verticalStreak(row, col)
-    const h_streak = board.horizontalStreak(row, col)
-    const gemElement = $("#" + Gem.getID(row, col))
-    let flash_str = flash_explode(row, col, false);
+    const v_streak = board.verticalStreak(row, col);
+    const h_streak = board.horizontalStreak(row, col);
+    const gemElement = $("#" + Gem.getID(row, col));
+    const copyGem = board.grid[row][col].copy();
     if (board.inGame(row, col)) {
-        if (v_streak.length > 3 || h_streak.length > 3) {
-            gemElement.addClass(Flash.RAINBOW);
-        } else if (v_streak.length && h_streak.length) {
-            gemElement.addClass(Flash.DOUBLE);
-        } else if (h_streak.length > 2) {
-            gemElement.addClass(Flash.HORIZONTAL);
-        } else if (v_streak.length > 2) {
-            gemElement.addClass(Flash.VERTICAL);
-        } else {
-            flash_explode(row, col);
-        }
+        let flash_str = flash_explode(row, col);
         for (let v_row of v_streak) {
             flash_str = flash_explode(v_row, col);
             if (flash_str === Flash.DOUBLE || flash_str === Flash.VERTICAL) {
@@ -362,6 +352,23 @@ function removeGems(row, col) {
             }
         }
         account.score += multiplyScore;
+        if (v_streak.length > 3 || h_streak.length > 3) {
+            copyGem.flash = Flash.RAINBOW;
+        } else if (v_streak.length && h_streak.length) {
+            copyGem.flash = Flash.DOUBLE;
+        } else if (h_streak.length > 2) {
+            copyGem.flash = Flash.HORIZONTAL;
+        } else if (v_streak.length > 2) {
+            copyGem.flash = Flash.VERTICAL;
+        } else {
+            copyGem.flash = '';
+        }
+        if (copyGem.flash !== '') {
+            gemElement.remove();
+            board.grid[row][col] = copyGem;
+            board.createGemDiv(row, col);
+        }
+
     }
 }
 
