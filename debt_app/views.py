@@ -2,9 +2,33 @@ from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
+from .forms import DebtForm
 from .models import Debt
+
+
+@login_required
+def debt_create(request):
+    if request.user.id == 1:
+        if request.method == 'POST':
+            form = DebtForm(request.POST)
+            if form.is_valid():
+                if form.cleaned_data['principal_amount'] != 0 or form.cleaned_data['paid_amount'] != 0:
+                    form.save()
+                user_debts = Debt.objects.filter(user=form.cleaned_data['user']).order_by("payment_date", "id")
+                current_debt = 0
+                if user_debts:
+                    current_debt = user_debts.last().current_debt()
+                return render(request, 'debt_app/debt_info.html',
+                              {'user_debts': user_debts, 'current_debt': current_debt})
+            else:
+                return redirect('debt_info')
+        else:
+            form = DebtForm()
+        return render(request, 'debt_app/debt_create.html', {'form': form})
+    else:
+        return redirect('debt_info')
 
 
 @login_required
@@ -32,7 +56,7 @@ def debt_admin(request):
             elif paid_amount != 0:
                 date = request.POST.get('paid_amount_date')
                 last_debts = Debt.objects.filter(user=select_user).order_by("payment_date").last()
-                principal_amount = last_debts.current_debt(date)
+                principal_amount = last_debts.current_debt(date=date)
                 if principal_amount - paid_amount < 1:
                     paid_amount = principal_amount
                 debts = Debt.objects.create(user=User(select_user), principal_amount=principal_amount,

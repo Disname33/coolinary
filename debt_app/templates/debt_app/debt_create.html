@@ -1,0 +1,87 @@
+{% extends 'home/header.html' %}
+{% block inhead %}
+    <style>
+        @media (min-width: 768px) {
+            .left-part {
+                text-align: right;
+                width: 150px;
+                float: left;
+                font-size: 14px;
+                padding-right: 10px;
+                padding-top: 10px;
+            }
+
+            .right-part {
+                width: 350px;
+                float: left;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    Кредиты
+{% endblock %}
+
+{% block body_block %}
+    <div class="container-lg">
+        <div class="row text-center">
+            <div class="col-xl-7">
+                <h1>Кредиты</h1>
+            </div>
+        </div>
+
+        <div>
+            <div class="col-12 col-lg-6 mx-auto">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_row }}
+                    <div class="row my-1">
+                        <div class="left-part"></div>
+                        <div class="right-part">
+                            <div class="col row px-2">
+                                <button type="submit" class="col mx-auto btn btn-success">Добавить</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <div class=" col-xl-2 p-2">
+                <a class="btn col btn-outline-success d-flex text-center" href="javascript:history.back()"
+                   role="button">
+                    Назад
+                </a>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const transactionTypeField = document.querySelectorAll('input[type="radio"][name="transaction_type"]');
+            const principalAmountField = document.getElementById('id_principal_amount');
+            const paidAmountField = document.getElementById('id_paid_amount');
+
+            function updateFieldsVisibility() {
+                if (transactionTypeField[1].checked) {
+                    principalAmountField.parentElement.parentElement.classList.add('visually-hidden');
+                    principalAmountField.value = 0;
+                    paidAmountField.parentElement.parentElement.classList.remove('visually-hidden');
+                } else {
+                    principalAmountField.parentElement.parentElement.classList.remove('visually-hidden');
+                    paidAmountField.parentElement.parentElement.classList.add('visually-hidden');
+                    paidAmountField.value = 0;
+                }
+            }
+
+            transactionTypeField.forEach(function (radio) {
+                radio.addEventListener("change", function () {
+                    updateFieldsVisibility();
+                });
+            });
+
+            updateFieldsVisibility();
+
+        });
+    </script>
+{% endblock %}
