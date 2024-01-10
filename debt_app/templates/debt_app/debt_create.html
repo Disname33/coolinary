@@ -40,7 +40,8 @@
                         <div class="left-part"></div>
                         <div class="right-part">
                             <div class="col row px-2">
-                                <button type="submit" class="col mx-auto btn btn-success">Добавить</button>
+                                <button id='btn_submit' type="submit" class="col mx-auto btn btn-warning">Просмотр
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -82,6 +83,28 @@
 
             updateFieldsVisibility();
 
+            const btnSubmit = document.getElementById('btn_submit');
+            {#principalAmountField.oncut = principalAmountField.oncopy = principalAmountField.onpaste = principalAmountField.onchange = function () {btnSubmitChange();}#}
+            {#paidAmountField.oncut = paidAmountField.oncopy = paidAmountField.onpaste = paidAmountField.onchange = function () {btnSubmitChange();}#}
+            principalAmountField.addEventListener("input", function () {
+                btnSubmitChange();
+            });
+            paidAmountField.addEventListener("input", function () {
+                btnSubmitChange();
+            });
+
+            function btnSubmitChange() {
+                if (principalAmountField.value === '0' && paidAmountField.value === '0') {
+                    btnSubmit.classList.add('btn-warning')
+                    btnSubmit.classList.remove('btn-success')
+                    btnSubmit.innerHTML = 'Просмотр'
+                } else {
+                    btnSubmit.classList.add('btn-success')
+                    btnSubmit.classList.remove('btn-warning')
+                    btnSubmit.innerHTML = 'Добавить'
+                }
+
+            }
         });
     </script>
 {% endblock %}

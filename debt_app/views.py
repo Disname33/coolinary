@@ -22,8 +22,6 @@ def debt_create(request):
                     current_debt = user_debts.last().current_debt()
                 return render(request, 'debt_app/debt_info.html',
                               {'user_debts': user_debts, 'current_debt': current_debt})
-            else:
-                return redirect('debt_info')
         else:
             form = DebtForm()
         return render(request, 'debt_app/debt_create.html', {'form': form})

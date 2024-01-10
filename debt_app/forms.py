@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 
-from coolinary.forms import BootstrapButtonRadioSelect, DateInputNotLocale
+from coolinary.forms import BootstrapButtonRadioSelect
 from .models import Debt
 
 
@@ -42,25 +42,31 @@ class DebtForm(forms.ModelForm):
                 'step': 'any',
             }),
             'user': forms.Select(attrs={'class': 'form-select'}),
-            'payment_date': DateInputNotLocale(attrs={
+            'payment_date': forms.DateInput(attrs={
                 'class': 'form-control',
-                'min': "1900-01-01",
+                'min': "1992-01-11",
                 'type': "date"
             }),
         }
 
     def __init__(self, *args, **kwargs):
         super(DebtForm, self).__init__(*args, **kwargs)
-        self.fields['interest_rate'].initial = 12
+        last_debt = Debt.objects.order_by("id").last()
+        rate = last_debt.interest_rate if last_debt else 12
+        user = last_debt.user if last_debt else 1
+        self.fields['interest_rate'].initial = rate
+        self.fields['user'].initial = user
         self.fields['principal_amount'].initial = 0
         self.fields['paid_amount'].initial = 0
-        self.fields['payment_date'].initial = timezone.now()
+        self.fields['payment_date'].initial = timezone.now().strftime("%Y-%m-%d")
 
     def clean(self):
         cleaned_data = super().clean()
         transaction_type = cleaned_data.get('transaction_type')
         paid_amount = cleaned_data.get('paid_amount')
         payment_date = cleaned_data.get('payment_date')
+        if payment_date is None:
+            self.add_error('payment_date', forms.ValidationError('Введите дату.'))
         if transaction_type == self.NEW_CONTRIBUTION:
             cleaned_data['principal_amount'] = 0
             if paid_amount != 0:

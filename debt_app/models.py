@@ -9,7 +9,7 @@ class Debt(models.Model):
     principal_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма кредита')
     interest_rate = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Ставка')
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Сумма взноса')
-    payment_date = models.DateField(null=True, blank=True, verbose_name='Дата')
+    payment_date = models.DateField(default='1992-01-11', blank=True, verbose_name='Дата')
 
     def remaining_amount(self):
         if self.principal_amount > self.paid_amount:
