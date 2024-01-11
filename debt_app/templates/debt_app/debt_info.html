@@ -8,7 +8,7 @@
     <div class="container-lg">
         <div class="row text-center">
             <div class="col-xl-7">
-                <h1>Кредитная история</h1>
+                <h1>Кредитная история в Denis Bank</h1>
             </div>
         </div>
 
@@ -19,7 +19,7 @@
                     {% if user_debts %}
                         <tr>
                             <th scope="col">Сумма кредита, руб.</th>
-                            <th scope="col">Ставка, %</th>
+                            <th class='d-none d-md-table-cell' scope="col">Ставка, %</th>
                             <th scope="col">Внесённая сумма, руб.</th>
                             <th scope="col">Оставшаяся сумма, руб.</th>
                             <th scope="col">Дата взноса</th>
@@ -27,7 +27,7 @@
                         {% for debt in user_debts %}
                             <tr>
                                 <td>{{ debt.principal_amount }}</td>
-                                <td>{{ debt.interest_rate }}</td>
+                                <td class='d-none d-md-table-cell'>{{ debt.interest_rate }}</td>
                                 <td>{{ debt.paid_amount }}</td>
                                 <td>{{ debt.remaining_amount }}</td>
                                 <td>{{ debt.payment_date }}</td>
@@ -35,7 +35,7 @@
                         {% endfor %}
                         <tr>
                             <td> -</td>
-                            <td> -</td>
+                            <td class='d-none d-md-table-cell'> -</td>
                             <td> -</td>
                             <td>{{ current_debt|floatformat:2|default:"N/A" }}</td>
                             <td>{% now "" %}</td>
