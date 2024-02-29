@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'games',
     'chatGPT',
     'pole_chudes',
+    'card_games',
     'debt_app',
 ]
 

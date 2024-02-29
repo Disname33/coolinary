@@ -24,7 +24,7 @@ async def davinci(prompt):
 
 async def turbo_3_5(message):
     messages = messages_update([], "user", message)
-    return await get_last_message_from_response(messages)
+    return await get_response(messages)
 
 
 def messages_update(messages, role, content):
@@ -38,17 +38,23 @@ async def get_response(messages):
         model=model_engine,
         messages=messages
     )
-    return response
+    return response.choices[0].message.content
 
 
-async def get_last_message_from_async_response(messages):
-    response = await get_response(messages)
-    return response['choices'][0]['message']['content']
+# async def get_last_message_from_async_response(messages):
+#     response = await get_response(messages)
+#     return response['choices'][0]['message']['content']
+#
+#
+# def get_last_message_from_response(messages):
+#     response = asyncio.run(get_response(messages))
+#     return response['choices'][0]['message']['content']
 
-
-def get_last_message_from_response(messages):
-    response = asyncio.run(get_response(messages))
-    return response['choices'][0]['message']['content']
+def get_welcome_message():
+    file_path = "chatGPT/services/welcomeGPT.txt"
+    with open(file_path, 'r', encoding="utf-8") as file:
+        welcome = file.read()
+    return welcome
 
 
 def get_welcome_message_and_update():
@@ -69,9 +75,7 @@ def get_welcome_message_and_update():
         thread = threading.Thread(target=get_new_welcome_message)
         thread.start()
 
-    with open(file_path, 'r', encoding="utf-8") as file:
-        welcome = file.read()
-    return welcome
+    return get_welcome_message()
 
 
 def test():
@@ -80,8 +84,8 @@ def test():
     ))
     print("----------------------gpt-3.5-turbo-------------------------")
     print(asyncio.run(
-        get_last_message_from_response("Напиши приветственную речь пользователю чата от лица искусственного "
-                                       "интеллекта на 80 слов")
+        get_response("Напиши приветственную речь пользователю чата от лица искусственного "
+                     "интеллекта на 80 слов")
     ))
 
 

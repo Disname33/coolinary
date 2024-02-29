@@ -25,6 +25,7 @@ urlpatterns = [
     path('', views.index, name='home'),
     path('chat/', include('chat.urls')),
     path('chatGPT/', include('chatGPT.urls')),
+    path('accounts/login/', views.secure_login_view, name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/profile/', views.profile, name='profile'),
     # path('profile/', views.profile, name='profile'),

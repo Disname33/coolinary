@@ -1,0 +1,205 @@
+{% extends 'home/header.html' %}
+{% load avatar %}
+{% block inhead %}
+    <style>
+
+        :root {
+            --card-width-size: max(7vw, 5rem);
+            --game-avatar: calc(var(--card-width-size) * 0.75);
+            --card-height-size: calc(var(--card-width-size) * 1.4);
+            --card-margin-size: calc(var(--card-width-size) / (-2));
+            --opponent-avatar: calc(var(--card-width-size) / 2);
+            --card-width-opponent: calc(var(--card-width-size) * 0.75);
+            --card-margin-opponent: calc(var(--card-width-opponent) * (-0.8));
+        }
+
+        .hand {
+            display: flex;
+            overflow: hidden;
+            margin-top: 20px;
+            align-content: center;
+        }
+
+        .hand-opponent {
+            display: flex;
+            overflow: hidden;
+            margin-top: calc(var(--game-avatar) * (-1));
+            align-content: center;
+        }
+
+        .deck {
+            position: relative;
+            width: calc(var(--card-width-size) * 0.7);
+            height: calc(var(--card-height-size) * 2);
+            overflow: hidden;
+        }
+
+        .trump {
+            transform: rotate(-30deg) translateX(calc(var(--card-width-size) * (-0.7))) translateY(calc(var(--card-width-size) * (0.1)));
+        }
+
+        .card {
+            width: var(--card-width-size);
+            margin-right: var(--card-margin-size);
+            position: relative;
+            transition: margin-right 0.2s ease-out;
+        }
+
+        .card img {
+            width: var(--card-width-size);
+        }
+
+        .card-opponent {
+            width: var(--card-width-opponent);
+            margin-right: var(--card-margin-opponent);
+            border: 1px solid white;
+            border-radius: 4px;
+            position: relative;
+            transition: margin-right 0.2s ease-out;
+        }
+
+        .card-opponent img {
+            width: var(--card-width-opponent);
+        }
+
+        .img-right {
+            position: absolute;
+            margin-left: calc(var(--card-margin-size) / (-2));
+            margin-top: var(--card-margin-size);
+        }
+
+        .img-right img {
+            height: var(--card-height-size);
+            transform: rotate(60deg) translateX(calc(var(--card-width-size) * (-1))) translateY(calc(var(--card-width-size) * (0.5)));
+
+        }
+
+        .all-width {
+            width: 100%;
+            margin: 0;
+            scroll-behavior: auto;
+        }
+
+        .hand-height {
+            height: Calc(var(--card-height-size) * 1.1);
+            margin-bottom: -1rem;
+        }
+
+        .selected {
+            border: 2px solid darkorange;
+            margin-right: 0;
+        }
+
+        .game-avatar {
+            width: var(--game-avatar);
+            height: var(--game-avatar);
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+
+        .game-avatar img {
+            width: var(--game-avatar);
+            height: var(--game-avatar);
+        }
+
+        .game-avatar-opponent {
+            width: var(--opponent-avatar);
+            height: var(--opponent-avatar);
+            position: relative;
+        }
+
+        .game-avatar-opponent img {
+            width: var(--opponent-avatar);
+            height: var(--opponent-avatar);
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    Игра "Дурак"
+{% endblock %}
+
+{% block body_block %}
+
+    <h2>Игра "Дурак"</h2>
+    <div class="row m-0 p-0">
+        {% for player in game.players %}
+            <div class="col-4 d-0 m-auto">
+                <div>
+                    <div class="game-avatar z-1">
+                        <img src="{{ player.user.avatar }}" class="object-fit-scale rounded" alt="game avatar">
+                        <span class="z-2 position-absolute top-100 start-50 badge rounded-pill bg-secondary translate-middle">{{ player.user.username }}</span>
+                    </div>
+                </div>
+                <div class="hand-opponent">
+                    {% for card in player.hand %}
+                        <div class="card-opponent">
+                            <img src="/static/card_games/cards/Bee Standard blue/Back.png" alt="{{ card.fullname }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+
+    <div class="row m-0 p-o">
+
+        <div class="col-auto mx-0 my-1 p-0">
+            <div class="deck">
+                <div class="card m-0 trump">
+                    <img src="/static/card_games/cards/Bee Standard blue/{{ game.deck.last.fullname }}.png"
+                         alt="{{ game.deck.last.fullname }}">
+                </div>
+                <div class="img-right">
+                    <img src="/static/card_games/cards/Bee Standard blue/Back.png" alt="Колода">
+                </div>
+                <span class="position-absolute mt-5 start-0 top-0 badge rounded-pill bg-secondary">{{ game.deck.cards | length }}</span>
+            </div>
+        </div>
+        <div class="col mx-auto ">
+            <div class="row m-0 p-0">
+                {% for card in game.players.2.hand %}
+                    <div class="col-4 d-0 m-auto">
+                        <div class="card mt-2">
+                            <img src="/static/card_games/cards/Bee Standard blue/{{ card.fullname }}.png"
+                                 alt="{{ card.fullname }}">
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="position-relative all-width hand-height align-content-center text-center">
+        <div class="hand">
+            {% for card in game.players.0.hand %}
+                <div class="card">
+                    <img src="/static/card_games/cards/Bee Standard blue/{{ card.fullname }}.png"
+                         alt="{{ card.fullname }}">
+                </div>
+            {% endfor %}
+        </div>
+        <div class="z-1 position-absolute bottom-0 all-width bg-secondary bg-opacity-50">
+            <div class="game-avatar">
+                <img src="{{ user|avatar }}" class="object-fit-scale rounded" alt="game avatar">
+                <span class="z-2 position-absolute top-100 start-50 badge rounded-pill bg-secondary translate-middle">{{ user.get_username }}</span>
+            </div>
+            <span class="position-absolute bottom-0 end-0">
+               <div class="btn btn-primary ">Кнопка</div>
+            </span>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $(".hand .card").click(function () {
+                $(this).toggleClass("selected");
+            });
+        });
+
+        {#function handleUpdate(e) {#}
+        {#const cardsInHand = document.querySelectorAll(".hand .card")#}
+        {#cardsInHand.forEach(card => card.style.setProperty('--palatte-padding-left', this.value + 'px'));#}
+        {# } #}
+    </script>
+{% endblock %}

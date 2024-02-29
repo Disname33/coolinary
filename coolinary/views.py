@@ -25,6 +25,12 @@ def work_trip(request):
 
 
 @ratelimit(rate='2/15m', method='POST', block=True)
+def secure_login_view(request):
+    from django.contrib.auth.views import LoginView
+    return LoginView.as_view()(request)
+
+
+@ratelimit(rate='2/15m', method='POST', block=True)
 def register(request):
     if request.user.is_authenticated:
         return render(request, 'home/index.html')
