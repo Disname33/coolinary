@@ -1,4 +1,5 @@
 {% extends 'home/header.html' %}
+{% load group_check %}
 
 {% block inhead %}
 {% endblock %}
@@ -17,9 +18,12 @@
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'chat' %}">Чат</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'debt_info' %}">Кредит</a>
-            </li>
+            {% has_group 'Debtors' as is_debtor %}
+            {% if is_debtor or user.is_superuser %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'debt_info' %}">Кредит</a>
+                </li>
+            {% endif %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'weather' %}">Погода</a>
             </li>

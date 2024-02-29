@@ -1,5 +1,6 @@
 {% load avatar %}
 {% load static %}
+{% load group_check %}
 
 <nav class="navbar navbar-dark bg-gradient user-select-none" aria-label="navbar">
     <div class="row col mx-2">
@@ -37,9 +38,13 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'chat' %}">Чат</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'debt_info' %}">Кредит</a>
-                    </li>
+                    {% has_group 'Debtors' as is_debtor %}
+                    {% if is_debtor or user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'debt_info' %}">Кредит</a>
+                        </li>
+                    {% endif %}
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'weather' %}">Погода</a>
                     </li>
