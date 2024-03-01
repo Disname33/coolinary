@@ -9,13 +9,16 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import datetime
 import os
+from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
 from .secret import secret
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+LOGS_DIR = os.path.join(BASE_DIR, 'logs/')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -160,4 +163,32 @@ DJANGO_CHANNELS_REST_API = {}
 BRAKE_BACKEND = 'brake.backends.cache.CacheBackend'
 BRAKE_GLOBAL_LIMITS = {
     'default': (5, 60),
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'timed_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, 'django.log'),  # Базовое имя файла
+            'when': 'midnight',  # Ротация происходит каждый день в полночь
+            'backupCount': 30,  # Храним последние 30 файлов
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['timed_file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
 }

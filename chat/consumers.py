@@ -101,7 +101,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
 
     @action()
     async def delete_message(self, message_id, **kwargs):
-        await self.send_if_errors("delete", await Message.delete(message_id, self.scope["user"]))
+        await self.send_if_errors("delete", await Message.remove(message_id, self.scope["user"]))
 
     @action()
     async def edit_message(self, message_id, text, **kwargs):

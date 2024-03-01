@@ -12,10 +12,6 @@ def get_response(messages, model_engine="gpt-4"):
     return response.choices[0].message.content
 
 
-# def get_last_message_from_response(messages):
-#     response = get_response(messages)
-#     return response.choices[0].message.content
-
 def set_all_cookies():
     from g4f.cookies import set_cookies
 

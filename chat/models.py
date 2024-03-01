@@ -83,7 +83,7 @@ class Message(models.Model):
             return ["Отказано в доступе"]
 
     @database_sync_to_async
-    def delete(self, message_id, user):
+    def remove(self, message_id, user):
         try:
             message = Message.objects.get(id=message_id)
         except Message.DoesNotExist:
