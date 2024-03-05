@@ -6,4 +6,5 @@ migrations/
 secret/
 /word/
 /media/
+/logs/
 /chatGPT/services/welcomeGPT.txt

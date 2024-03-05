@@ -335,7 +335,7 @@
                             showInfo(`Буква "${data.data.letter.toUpperCase()}"!`, data.data.user);
                         } else if (data.data.full_word) {
                             showInfo(data.data.full_word.toUpperCase() + "!", data.data.user);
-                        } else if (data.data.rotate_wheel) {
+                        } else if (data.data.rotate_wheel && waitToSpin) {
                             rotateWheel(true, true);
                         }
                         break;

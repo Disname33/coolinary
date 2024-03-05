@@ -106,7 +106,7 @@ class GameConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
     async def rotate_wheel(self, pk, **kwargs):
         room: Round = await Round.objects.aget(pk=self.room_subscribe)
         if self.user_is_active_player(room):
-            await self.send_group_message({'rotate_wheel': 'rotate'}, sender=self.scope["user"])
+            await self.send_group_message({'rotate_wheel': 'rotate'})  # , sender=self.scope["user"])
             await database_sync_to_async(pole_chudes_game.rotate_wheel)(room)
 
     @action()
