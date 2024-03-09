@@ -8,8 +8,12 @@ from .models import Round
 from .service import pole_chudes_game
 
 
+# from .service.qa_parser import add_riddles_from_json
+
+
 @login_required
 def lobby(request):
+    # add_riddles_from_json()
     if request.GET.get("create_new_room") and Round.objects.count() < 20:
         new_room = Round.objects.create(is_complete=True)
         new_room.add_player()
