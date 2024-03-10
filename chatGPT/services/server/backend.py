@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.http import JsonResponse, StreamingHttpResponse
 from g4f import ChatCompletion
+# from g4f.gui.server.config import special_instructions
 from requests import get
 
 from .config import special_instructions
@@ -57,21 +58,17 @@ class Backend_Api:
             return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
         try:
-
             json_string = request.body.decode('utf-8')
-
             data = json.loads(json_string)
             conversation_id = data['conversation_id']
             jailbreak = data['jailbreak']
             model = data['model']
             messages = build_messages(data)
 
-            # Generate response
             response = ChatCompletion.create(
                 model=model,
                 chatId=conversation_id,
                 messages=messages,
-
             )
 
             return StreamingHttpResponse(generate_stream(response, jailbreak), content_type='text/event-stream')

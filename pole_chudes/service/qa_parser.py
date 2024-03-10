@@ -11,7 +11,7 @@ def add_riddles_from_json(json_file_path="word/qa_data.json"):
     with open(json_file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
     for item in data['RECORDS']:
-        word = item['answer']
+        word = item['word']
         question = item['question']
         if not Riddle.objects.filter(word=word).exists():
             Riddle.objects.create(word=word, question=question)

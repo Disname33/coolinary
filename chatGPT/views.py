@@ -3,13 +3,12 @@ import uuid
 from time import time
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from .services.chatGPT import get_welcome_message
 from .services.gpt4free import create_image, get_response
-from .services.server import babel
 from .services.server.backend import Backend_Api
 
 
@@ -34,17 +33,3 @@ def chat_gpt_original(request):
 def conversation(request):
     return Backend_Api.conversation(request)
 
-
-def get_languages(request):
-    return babel.get_languages(request)
-
-
-def get_locale(request):
-    return babel.get_locale(request)
-
-
-@csrf_exempt
-def change_language(request):
-    request.session['language'] = request.POST.get('language')
-    request.session.save()
-    return JsonResponse({}, status=204)

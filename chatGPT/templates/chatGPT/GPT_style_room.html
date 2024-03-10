@@ -1,5 +1,4 @@
-{% load static %}
-{% load i18n %}
+{% load static i18n %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -49,20 +48,32 @@
         <div class="sidebar-footer">
             <button class="button" onclick="delete_conversations()">
                 <i class="fa-regular fa-trash"></i>
-                <span>{{ _('Clear Conversations') }}</span>
+                <span>{% trans 'Clear Conversations' %}</span>
             </button>
             <div class="settings-container">
                 <div class="checkbox field">
-                    <span>{{ _('Dark Mode') }}</span>
+                    <span>{% trans 'Dark Mode' %}</span>
                     <input type="checkbox" id="theme-toggler"/>
                     <label for="theme-toggler"></label>
                 </div>
                 <div class="field">
                     <span>{% trans 'Language' %}</span>
-                    <select
-                            class="dropdown"
-                            id="language"
-                            onchange="changeLanguage(this.value)"></select>
+                    <form action="{% url 'set_language' %}" method="post">{% csrf_token %}
+                        {#                        <input name="next" type="hidden" value="">#}
+                        {#                        <input name="next" type="hidden" value="{{ redirect_to }}">#}
+                        <select name="language" class="dropdown" onchange="this.form.submit()">
+                            {% get_current_language as LANGUAGE_CODE %}
+                            {% get_available_languages as LANGUAGES %}
+                            {% get_language_info_list for LANGUAGES as languages %}
+                            {% for language in languages %}
+                                <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %}
+                                        selected{% endif %}>
+                                    {{ language.name_local }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+
                 </div>
             </div>
         </div>
@@ -70,7 +81,7 @@
     <div class="conversation">
         <div class="stop-generating stop-generating-hidden">
             <button class="button" id="cancelButton">
-                <span>{{ _('Stop Generating') }}</span>
+                <span>{% trans 'Stop Generating' %}</span>
             </button>
         </div>
         <div class="box" id="messages"></div>
@@ -100,16 +111,16 @@
                     </div>
                     <div class="field">
                         <select class="dropdown" name="jailbreak" id="jailbreak">
-                            <option value="default" selected>{{ _('Default') }}</option>
-                            <option value="gpt-dan-11.0">{{ _('DAN') }}</option>
-                            <option value="gpt-evil">{{ _('Evil') }}</option>
+                            <option value="default" selected>{% trans 'Default' %}</option>
+                            <option value="gpt-dan-11.0">{% trans 'DAN' %}</option>
+                            <option value="gpt-evil">{% trans 'Evil' %}</option>
                         </select>
                     </div>
                 </div>
                 <div class="field checkbox">
                     <input type="checkbox" id="switch"/>
                     <label for="switch"></label>
-                    <span>{{ _('Web Access') }}</span>
+                    <span>{% trans 'Web Access' %}</span>
                 </div>
             </div>
         </div>
@@ -130,6 +141,5 @@
 <script src="{% static 'chatGPT/js/highlightjs-copy.min.js' %}"></script>
 <script src="{% static 'chatGPT/js/theme-toggler.js' %}"></script>
 <script src="{% static 'chatGPT/js/sidebar-toggler.js' %}"></script>
-<script src="{% static 'chatGPT/js/change-language.js' %}"></script>
 </body>
 </html>

@@ -39,3 +39,10 @@ def create_image(prompt):
 # for chunk in stream:
 #     if chunk.choices[0].delta.content:
 #         print(chunk.choices[0].delta.content or "", end="")
+
+
+if __name__ == '__main__':
+    from g4f.gui import run_gui
+
+    set_all_cookies()
+    run_gui()
