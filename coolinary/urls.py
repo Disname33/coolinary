@@ -24,8 +24,8 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='home'),
-    path('chat/', include('chat.urls')),
-    path('chatGPT/', include('chatGPT.urls')),
+    path('chat/', include('chat.urls'), name='chat_main'),
+    path('chatGPT/', include('chatGPT.urls'), name='chatGPT_main'),
     path('accounts/login/', views.secure_login_view, name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/profile/', views.profile, name='profile'),
@@ -33,17 +33,17 @@ urlpatterns = [
     # path('login/', views.LoginView.as_view(), name='login'),
     # path('logout/', views.LogoutView.as_view(), name='logout'),
     # path('change-password/', views.PasswordChangeView.as_view(), name='change_password'),
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name='admin_panel'),
     path('games/', include('games.urls'), name='games'),
-    path('game/pole_chudes/', include('pole_chudes.urls')),
+    path('game/pole_chudes/', include('pole_chudes.urls'), name='pole_chudes_game'),
     path('game/guess_the_word/', include('guess_the_word_game.urls'), name='guess_the_word'),
     path('guess_the_word/', include('guess_the_word_game.urls'), name='start_guess_the_word_game'),
-    path('game/', include('games.urls')),
+    path('game/', include('games.urls'), name='game'),
     path('weather/', include('weather.urls'), name='weather'),
     path('register/', views.register, name='register'),
     path('device-info/', views.device_info, name='device_info'),
-    path('debt/', include('debt_app.urls')),
-    path('i18n/', include('django.conf.urls.i18n')),
+    path('debt/', include('debt_app.urls'), name='debt'),
+    path('i18n/', include('django.conf.urls.i18n'), name='lang'),
 ]
 urlpatterns += i18n_patterns(
     path('chatGPT/', include('chatGPT.urls')),

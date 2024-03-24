@@ -18,6 +18,7 @@ from django.urls import path
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "coolinary.settings")
 django_asgi_app = get_asgi_application()
 from chat.consumers import RoomConsumer as Chat
+from chatGPT.consumers import ChatGPTConsumer as ChatGPT
 from pole_chudes.consumers import GameConsumer as PoleChudes
 from card_games.consumers import GameConsumer as CardGame
 
@@ -27,6 +28,7 @@ application = ProtocolTypeRouter(
         "websocket": AllowedHostsOriginValidator(
             AuthMiddlewareStack(URLRouter([
                 path('ws/chat/', Chat.as_asgi()),
+                path('ws/chatGPT/', ChatGPT.as_asgi()),
                 path('ws/pole_chudes/', PoleChudes.as_asgi()),
                 path('ws/card_game/', CardGame.as_asgi()),
             ]))

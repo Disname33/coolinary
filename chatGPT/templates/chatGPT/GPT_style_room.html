@@ -35,13 +35,13 @@
 </head>
 
 <body data-urlprefix="{{ url_prefix }}">
+{% language LANGUAGE_COOKIE_NAME %}
 <div class="main-container">
     <div class="box sidebar">
         <div class="top">
             <button class="button" onclick="new_conversation()">
                 <i class="fa-regular fa-plus"></i>
                 <span>{% trans 'New Conversation' %}</span>
-                {#						<span>{{_('New Conversation')}}</span>#}
             </button>
             <div class="spinner"></div>
         </div>
@@ -58,10 +58,8 @@
                 </div>
                 <div class="field">
                     <span>{% trans 'Language' %}</span>
-                    <form action="{% url 'set_language' %}" method="post">{% csrf_token %}
-                        {#                        <input name="next" type="hidden" value="">#}
-                        {#                        <input name="next" type="hidden" value="{{ redirect_to }}">#}
-                        <select name="language" class="dropdown" onchange="this.form.submit()">
+                    <form action="{% url 'set_language' %}" method="post" id="languageForm">{% csrf_token %}
+                        <select name="language" class="dropdown" onchange="submitForm()">
                             {% get_current_language as LANGUAGE_CODE %}
                             {% get_available_languages as LANGUAGES %}
                             {% get_language_info_list for LANGUAGES as languages %}
@@ -73,6 +71,31 @@
                             {% endfor %}
                         </select>
                     </form>
+
+                    <script>
+                        async function submitForm() {
+                            const formData = new FormData(document.getElementById('languageForm'));
+                            const url = "/i18n/setlang/";
+
+                            try {
+                                const response = await fetch(url, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-CSRFToken': '{{ csrf_token }}', // В Django для CSRF-токена обычно требуется этот заголовок
+                                    },
+                                    credentials: 'same-origin' // Для корректной работы с CSRF-токеном
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                window.location.reload();
+                            } catch (error) {
+                                console.error('Ошибка при отправке формы:', error);
+                            }
+                        }
+                    </script>
 
                 </div>
             </div>
@@ -129,7 +152,7 @@
 <div class="menu-button">
     <i class="fa-solid fa-bars"></i>
 </div>
-
+{% endlanguage %}
 <!-- scripts -->
 <script>
     window.conversation_id = "{{ chat_id }}";

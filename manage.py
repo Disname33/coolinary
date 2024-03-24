@@ -4,6 +4,14 @@ import os
 import sys
 
 
+def clear_logs():
+    log_files = ['./logs/django.log']  # Замените пути к файлам логов на свои
+    for log_file in log_files:
+        if os.path.exists(log_file):
+            with open(log_file, 'w') as file:
+                file.write('')
+
+
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'coolinary.settings')
@@ -19,4 +27,5 @@ def main():
 
 
 if __name__ == '__main__':
+    clear_logs()
     main()

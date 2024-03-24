@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ['127.0.0.1',
                  '37.220.84.147',
                  '10.7.0.5',
                  'disname.fun',
+                 'yashurin.ru'
                  'disname33.ru']
 
 # Application definition
