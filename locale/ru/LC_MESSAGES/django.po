@@ -73,3 +73,31 @@ msgstr "Веб-доступ"
 #:
 msgid "Version"
 msgstr "Версия"
+
+#:
+msgid "Image Generator"
+msgstr "Генератор картинок"
+
+#:
+msgid "Disable History"
+msgstr "Отключить историю"
+
+#:
+msgid "Regenerate"
+msgstr "Повторить генерацию"
+
+#:
+msgid "Provider"
+msgstr "Провайдер"
+
+#:
+msgid "Jailbreak"
+msgstr "Поведение"
+
+#:
+msgid "Model"
+msgstr "Модель"
+
+#:
+msgid "System prompt"
+msgstr "Системная подсказка"

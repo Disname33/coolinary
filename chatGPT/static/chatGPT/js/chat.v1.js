@@ -645,7 +645,12 @@ const load_settings_localstorage = async () => {
 }
 
 const say_hello = async () => {
-    tokens = [`При`, `вет`, `!`, ` Чем`, ` я`, ` мо`, `гу`, ` по`, `мочь`, ` Вам`, ` се`, `го`, `дня`, `?`]
+    const tokens = {
+        'ru': [`При`, `вет`, `!`, ` Чем`, ` я`, ` мо`, `гу`, ` по`, `мочь`, ` Вам`, ` се`, `го`, `дня`, `?`],
+        'en': [`Hello`, `!`, ` How`, ` can`, ` I`, ` assist`, ` you`, ` today`, `?`],
+        'fr': [`Bonjour`, `!`, ` Comment`, ` puis-je`, ` vous`, ` aider`, ` aujour`, `d'hui`, `?`],
+        'es': [`¡Hola`, `!`, ` ¿Cómo`, ` puedo`, ` ayud`, `arte`, ` hoy`, `?`]
+    };
 
     message_box.innerHTML += `
         <div class="message">
@@ -660,7 +665,7 @@ const say_hello = async () => {
     `;
 
     to_modify = document.querySelector(`.welcome-message`);
-    for (token of tokens) {
+    for (token of tokens[localStorage.getItem('language')]) {
         await new Promise(resolve => setTimeout(resolve, (Math.random() * (100 - 200) + 100)))
         to_modify.textContent += token;
     }
@@ -831,3 +836,26 @@ fileInput.addEventListener('change', async (event) => {
 systemPrompt?.addEventListener("blur", async () => {
     await save_system_message();
 });
+
+async function submitForm() {
+    const formData = new FormData(document.getElementById('languageForm'));
+    const url = "/i18n/setlang/";
+    localStorage.setItem("language", formData.get('language'));
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}', // В Django для CSRF-токена обычно требуется этот заголовок
+            },
+            credentials: 'same-origin' // Для корректной работы с CSRF-токеном
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        window.location.reload();
+    } catch (error) {
+        console.error('Ошибка при отправке формы:', error);
+    }
+}

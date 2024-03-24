@@ -72,3 +72,32 @@ msgstr "Accès Web"
 #:
 msgid "Version"
 msgstr "Version"
+
+#:
+msgid "Image Generator"
+msgstr "Générateur d'Images"
+
+#:
+msgid "Disable History"
+msgstr "Désactiver l'historique"
+
+#:
+msgid "Regenerate"
+msgstr "Régénérer"
+
+
+#:
+msgid "Provider"
+msgstr "Fournisseur"
+
+#:
+msgid "Jailbreak"
+msgstr "Jailbreak"
+
+#:
+msgid "Model"
+msgstr "Modèle"
+
+#:
+msgid "System prompt"
+msgstr "Invite du système"

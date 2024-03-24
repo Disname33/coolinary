@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load avatar static %}
 
 <!DOCTYPE html>
@@ -56,41 +57,6 @@
         const user_image = '<img src="{{ user|avatar }}" alt="your avatar">';
         const gpt_image = '<img src="{% static 'chatGPT/img/gpt.png'%}" alt="GPT avatar">';
     </script>
-    <style>
-        .hljs {
-            color: #e9e9f4;
-            background: #28293629;
-            border-radius: var(--border-radius-1);
-            border: 1px solid var(--blur-border);
-            font-size: 15px;
-        }
-
-        #message-input {
-            height: 82px;
-            margin-left: 20px;
-        }
-
-        #message-input::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        /* Track */
-        #message-input::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        /* Handle */
-        #message-input::-webkit-scrollbar-thumb {
-            background: #c7a2ff;
-        }
-
-        /* Handle on hover */
-        #message-input::-webkit-scrollbar-thumb:hover {
-            background: #8b3dff;
-        }
-
-
-    </style>
     <script src="{% static 'chatGPT/js/highlight.min.js' %}"></script>
     <script>window.conversation_id = `{{chat_id}}`</script>
     <title>g4f - gui</title>
@@ -103,20 +69,37 @@
         <div class="top">
             <button class="new_convo" onclick="new_conversation()">
                 <i class="fa-regular fa-plus"></i>
-                <span>New Conversation</span>
+                <span>{% trans 'New Conversation' %}</span>
             </button>
         </div>
         <div class="bottom_buttons">
             <button onclick="delete_conversations()">
                 <i class="fa-regular fa-trash"></i>
-                <span>Clear Conversations</span>
+                <span>{% trans 'Clear Conversations' %}</span>
             </button>
+            <div class="field">
+                <span>{% trans 'Language' %}</span>
+                <form action="{% url 'set_language' %}" method="post" id="languageForm">{% csrf_token %}
+                    <select name="language" class="dropdown" onchange="submitForm()">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        {% get_language_info_list for LANGUAGES as languages %}
+                        {% for language in languages %}
+                            <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %}
+                                    selected{% endif %}>
+                                {{ language.name_local }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
 
 
             <div class="buttons">
+                <span>{% trans 'Model' %}</span>
                 <div class="field">
                     <select name="model" id="model">
-                        <option value="" selected>Model: Default</option>
+                        <option value="" selected>{% trans 'Default' %}</option>
                         <option value="gpt-4">gpt-4</option>
                         <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                         <option value="llama2-70b">llama2-70b</option>
@@ -126,9 +109,10 @@
                 </div>
             </div>
             <div class="buttons">
+                <span>{% trans 'Jailbreak' %}</span>
                 <div class="field">
                     <select name="jailbreak" id="jailbreak">
-                        <option value="default" selected>Set Jailbreak</option>
+                        <option value="default" selected>{% trans 'Default' %}</option>
                         <option value="gpt-math-1.0">math 1.0</option>
                         <option value="gpt-dude-1.0">dude 1.0</option>
                         <option value="gpt-dan-1.0">dan 1.0</option>
@@ -139,9 +123,10 @@
                 </div>
             </div>
             <div class="buttons">
+                <span>{% trans 'Provider' %}</span>
                 <div class="field">
                     <select name="provider" id="provider">
-                        <option value="">Provider: Auto</option>
+                        <option value="">{% trans 'Default' %}</option>
                         <option value="Bing" selected>Bing</option>
                         <option value="OpenaiChat">OpenaiChat</option>
                         <option value="Gemini">Gemini</option>
@@ -155,14 +140,14 @@
                 <div class="field">
                     <input type="checkbox" id="switch"/>
                     <label for="switch" title="Add the pages of the first 5 search results to the query."></label>
-                    <span class="about">Web Access</span>
+                    <span class="about">{% trans 'Web Access' %}</span>
                 </div>
             </div>
             <div class="buttons">
                 <div class="field">
                     <input type="checkbox" id="patch"/>
                     <label for="patch" title="Enable create images with Bing."></label>
-                    <span class="about">Image Generator</span>
+                    <span class="about">{% trans 'Image Generator' %}</span>
                 </div>
             </div>
             <div class="buttons">
@@ -170,13 +155,13 @@
                     <input type="checkbox" id="history"/>
                     <label for="history"
                            title="To improve the reaction time or if you have trouble with large conversations."></label>
-                    <span class="about">Disable History</span>
+                    <span class="about">{% trans 'Disable History' %}</span>
                 </div>
             </div>
         </div>
     </div>
     <div class="conversation">
-        <textarea id="systemPrompt" class="box" placeholder="System prompt"></textarea>
+        <textarea id="systemPrompt" class="box" placeholder="{% trans 'System prompt' %}"></textarea>
         <div id="messages" class="box"></div>
         <div class="toolbar">
             <div id="input-count" class="">
@@ -184,13 +169,13 @@
             </div>
             <div class="stop_generating stop_generating-hidden">
                 <button id="cancelButton">
-                    <span>Stop Generating</span>
+                    <span>{% trans 'Stop Generating' %}</span>
                     <i class="fa-regular fa-stop"></i>
                 </button>
             </div>
             <div class="regenerate regenerate-hidden">
                 <button id="regenerateButton">
-                    <span>Regenerate</span>
+                    <span>{% trans 'Regenerate' %}</span>
                     <i class="fa-solid fa-rotate"></i>
                 </button>
             </div>
@@ -198,7 +183,7 @@
         <div class="user-input">
             {% csrf_token %}
             <div class="box input-box">
-                    <textarea id="message-input" placeholder="Ask a question" cols="30" rows="10"
+                    <textarea id="message-input" placeholder="{% trans 'Ask a question' %}" cols="30" rows="10"
                               style="white-space: pre-wrap;resize: none;"></textarea>
                 <label for="image" title="Works with Bing, Gemini, OpenaiChat and You">
                     <input type="file" id="image" name="image" accept="image/*" required/>
