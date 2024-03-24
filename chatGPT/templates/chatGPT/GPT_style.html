@@ -77,10 +77,10 @@
                 <i class="fa-regular fa-trash"></i>
                 <span>{% trans 'Clear Conversations' %}</span>
             </button>
-            <div class="field">
+            <div class="buttons">
                 <span>{% trans 'Language' %}</span>
-                <form action="{% url 'set_language' %}" method="post" id="languageForm">{% csrf_token %}
-                    <select name="language" class="dropdown" onchange="submitForm()">
+                <form class="field" action="{% url 'set_language' %}" method="post" id="languageForm">{% csrf_token %}
+                    <select name="language" onchange="submitForm()">
                         {% get_current_language as LANGUAGE_CODE %}
                         {% get_available_languages as LANGUAGES %}
                         {% get_language_info_list for LANGUAGES as languages %}

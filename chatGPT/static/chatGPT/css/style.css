@@ -73,6 +73,12 @@ body {
     height: 100vh;
 }
 
+@media screen and (max-width: 728px) {
+    body {
+        height: 90vh;
+    }
+}
+
 .row {
     display: flex;
     gap: var(--section-gap);
@@ -579,16 +585,16 @@ select {
     padding: 8px 16px;
 
     appearance: none;
-    width: 160px;
+    width: 100%;
 }
 
 @media only screen and (min-width: 40em) {
     select {
-        width: 200px;
+        width: 200%;
     }
 
     .field {
-        padding-right: 15px
+        padding-right: 0
     }
 }
 

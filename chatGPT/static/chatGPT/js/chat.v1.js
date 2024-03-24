@@ -665,7 +665,7 @@ const say_hello = async () => {
     `;
 
     to_modify = document.querySelector(`.welcome-message`);
-    for (token of tokens[localStorage.getItem('language')]) {
+    for (token of tokens[localStorage.getItem('language') || 'ru']) {
         await new Promise(resolve => setTimeout(resolve, (Math.random() * (100 - 200) + 100)))
         to_modify.textContent += token;
     }
@@ -877,11 +877,12 @@ function handleSwipe(event) {
 
     // Определяем пороговое значение для распознавания свайпа
     const swipeThreshold = 50; // Пороговое значение в пикселях
+    const leftEdgeThreshold = window.innerWidth * 0.3; // Пороговое значение для открывания сайдбара (30% ширины экрана)
 
     // Обрабатываем свайпы
     if (distance > swipeThreshold) {
-        if (direction > -45 && direction < 45) {
-            // Свайп слева направо
+        if (direction > -45 && direction < 45 && startX < leftEdgeThreshold) {
+            // Свайп слева направо с левого края экрана
             sidebar.classList.add("shown");
             sidebar_button.classList.add("rotated");
         } else if (direction > 135 || direction < -135) {
