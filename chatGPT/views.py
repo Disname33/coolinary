@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from g4f.gui.server.api import Api as G4F_Api
 
 from .services.backend import Backend_Api as Backend
 from .services.chatGPT import get_welcome_message
@@ -40,12 +41,18 @@ def conversation(request):
 
 @login_required
 def get_models(request):
-    return JsonResponse(Backend(request).get_models(), safe=False)
+    # return JsonResponse(Backend(request).get_models(), safe=False)
+    return JsonResponse(G4F_Api().get_models(), safe=False)
 
 
 @login_required
 def get_providers(request):
     return JsonResponse(Backend(request).get_providers(), safe=False)
+
+
+@login_required
+def get_provider_models(request, provider=None):
+    return JsonResponse(G4F_Api().get_provider_models(provider), safe=False)
 
 
 @login_required

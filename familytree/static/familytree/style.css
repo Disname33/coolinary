@@ -1,0 +1,307 @@
+
+:root {
+    --text-color: #663300;
+    --link-color: #99CC66;
+    --link-hover: #23527c;
+    --caption-color: #888888;
+    --header-color: #666869;
+    --header-hover: #131213;
+}
+
+.navbar li {
+    display: inline-block;
+    vertical-align: text-top;
+    margin-left: 15px;
+    margin-right: 15px;
+    list-style-type: none;
+    font-size: 1.25em;
+}
+
+.navbar a {
+    color: var(--header-color) !important;
+}
+
+.navbar a:hover {
+    color: var(--header-hover) !important;
+    text-decoration: none;
+}
+
+.navbar-brand {
+    font-size: 1em;
+}
+
+body {
+    color: var(--text-color);
+    font-family: eurostile, arial, sans-serif;
+}
+
+img {
+    border: 0
+}
+
+a {
+    font-size: 1em;
+    text-decoration: underline;
+    color: var(--link-color);
+}
+
+a:hover {
+    text-decoration: underline;
+    color: var(--link-hover);
+}
+
+em {
+    font-style: italic;
+}
+
+.thin {
+    border-width: thin
+}
+
+.groove {
+    border-style: groove
+}
+
+ul {
+    font-size: 12pt;
+    margin-left: 1em;
+}
+
+ul ul {
+    margin-left: 2em
+}
+
+p {
+    font-size: 12pt;
+    text-indent: 1em
+}
+
+h1 {
+    font-size: 1.75em;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+caption {
+    font-size: 14pt;
+    color: var(--caption-color);
+}
+
+.col-md-10 .line {
+    background-color: lightgray;
+    height: 0px;
+    width: 100%;
+}
+
+.circled_section {
+    border-radius: 25px;
+    border: 5px solid var(--link-color);
+    padding: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.mobile {
+    font-size: 16pt;
+}
+
+.one_branch_display {
+    margin: 30px;
+    width: 35%;
+}
+
+.two_branch_display {
+    margin: 20px;
+    width: 35%;
+}
+
+.four_branch_display {
+    margin: 5px;
+    width: 23%;
+}
+
+.container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+    max-width: 1320px !important;
+}
+
+.container:before,
+.container:after {
+    content: " ";
+    display: table;
+}
+
+.container:after {
+    clear: both;
+}
+
+@media (min-width: 768px) {
+    .container {
+        width: 750px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        width: 970px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: 1170px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        width: 1370px;
+    }
+}
+
+.container-fluid {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.container-fluid:before,
+.container-fluid:after {
+    content: " ";
+    display: table;
+}
+
+.container-fluid:after {
+    clear: both;
+}
+
+/* family generation display colors */
+.g3 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #8b8378;
+}
+
+.g4 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #FFCC66;
+}
+
+.g5 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #FF66CC;
+}
+
+.g6 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #99CC66;
+}
+
+.g7 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #000066;
+}
+
+.g8 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #663300;
+}
+
+.g9 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #8A5C8A;
+}
+
+.g10 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #75A3A3;
+}
+
+.g11 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #000000;
+}
+
+.g12 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #8A5C5C;
+}
+
+.g13 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #006699;
+}
+
+.g14 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #CC9933;
+}
+
+.g15 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #5C8A73;
+}
+
+.g16 {
+    font-size: 12pt;
+    text-decoration: underline;
+    color: #CC99B3;
+}
+
+/*Styles for image gallery hover text:*/
+.image_container {
+    position: relative;
+}
+
+.image {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: .5s ease;
+    background-color: var(--link-color);
+}
+
+.image_container:hover .overlay {
+    opacity: 1;
+}
+
+.text {
+    color: white;
+    font-size: 12px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+}

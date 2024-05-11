@@ -11,7 +11,9 @@
 
 {% block body_block %}
     <div class="container text-center mt-5">
-        <h1 class="mt-5">{{ user.get_username }}, добро пожаловать в чаты!</h1>
+        <h1 class="mt-5">
+            {% if user.is_authenticated %}{{ user.get_username }}{% else %}Гость{% endif %}, добро пожаловать в чаты!
+        </h1>
         <hr>
         <h3>Какой чат хотите посетить?</h3>
         <form id="findChatRoomForm" method="POST">

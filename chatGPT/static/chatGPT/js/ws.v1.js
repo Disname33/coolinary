@@ -5,7 +5,7 @@ function webSocket() {
     return protocol + window.location.host + '/ws/chatGPT/'
 }
 
-startNewSocket();
+
 
 function reloadSocket() {
     socket.close(1000, 'restart');
@@ -13,10 +13,11 @@ function reloadSocket() {
     startNewSocket();
 }
 
-function startNewSocket() {
+function startNewSocket(func = null) {
     // Обработчик успешного соединения
     socket.onopen = function (event) {
         console.log('WebSocket connected');
+        if (func !== null) func();
     };
 
     // Обработчик входящих сообщений от сервера
@@ -32,7 +33,7 @@ function startNewSocket() {
     // Обработчик закрытия соединения
     socket.onclose = function (event) {
         console.log('WebSocket disconnected');
-        messageHandlers.error('Соединение с сервером разорвано! Обновите страницу!')
+        // messageHandlers.error('Соединение с сервером разорвано! Обновите страницу!')
     };
 
     // Обработчик ошибок
@@ -42,8 +43,23 @@ function startNewSocket() {
     };
 }
 
+startNewSocket();
+
+function new_connection_if_closed(func) {
+    if (socket.readyState !== socket.OPEN) {
+        socket = new WebSocket(webSocket());
+        startNewSocket(func);
+    } else func();
+}
+
+function close_connection() {
+    socket.close(1000, 'close');
+}
+
 function send_data(data) {
-    socket.send(data);
+    new_connection_if_closed(function () {
+        socket.send(data);
+    });
 }
 
 // Объект с функциями обработки различных типов сообщений
@@ -61,6 +77,7 @@ const messageHandlers = {
     message: function (data) {
         console.error('Error:', data);
         content_inner.innerHTML += `<p><strong>Ошибка:</strong> ${data}</p>`;
+        close_connection();
     },
     content: function (data) {
         // console.log('Content:', data);
@@ -90,6 +107,7 @@ const messageHandlers = {
     error: function (data) {
         console.error('Server error:', data);
         content_inner.innerHTML += `<p><strong>Ошибка:</strong> ${data}</p>`;
+        close_connection();
     },
     finish: function () {
         add_message(window.conversation_id, "assistant", text, provider_result);
@@ -104,7 +122,8 @@ const messageHandlers = {
         for (const key in fileInput.dataset) {
             delete fileInput.dataset[key];
         }
-
+        close_connection();
+        console.log('Message finished');
     }
 };
 

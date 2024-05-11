@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block ga %}
+        {% include "snippets/ga.html" %}
+    {% endblock ga %}
+
+    <meta charset="UTF-8">
+    <title>
+        Our big family tree
+        {% block title %}
+            {{ page_title|default:"Untitled Page" }}
+        {% endblock title %}
+    </title>
+
+    {% load static %}
+    <!-- favicon files-->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'familytree/favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'familytree/favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'familytree/favicon/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'familytree/favicon/site.webmanifest' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'familytree/style.css' %}">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.6.0/dist/united/bootstrap.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
+
+    <script src="{% static 'js/noframework.waypoints.js' %}"></script>
+    <script src="{% static 'js/infinite.js' %}"></script>
+</head>
+
+<body>
+
+{# Top nav#}
+{% include "familytree/top_nav.html" with user_person=user_person %}
+
+{# Page content#}
+<div class="container">
+    {% block content %}
+        <p>Placeholder text in base template- this gets replaced with page content.</p>
+    {% endblock content %}
+</div>
+</body>
+</html>

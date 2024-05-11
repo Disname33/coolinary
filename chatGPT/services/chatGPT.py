@@ -51,10 +51,13 @@ async def get_response(messages):
 #     return response['choices'][0]['message']['content']
 
 def get_welcome_message():
-    file_path = "chatGPT/services/welcomeGPT.txt"
-    with open(file_path, 'r', encoding="utf-8") as file:
-        welcome = file.read()
-    return welcome
+    try:
+        file_path = "chatGPT/services/welcomeGPT.txt"
+        with open(file_path, 'r', encoding="utf-8") as file:
+            welcome = file.read()
+            return welcome
+    except FileNotFoundError as e:
+        return ""
 
 
 def get_welcome_message_and_update():

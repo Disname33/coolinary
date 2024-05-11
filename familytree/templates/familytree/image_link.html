@@ -1,0 +1,31 @@
+{% if image.id %}  {#  shouldn't need this, but there were some records coming through without ID! #}
+
+    <div style="display: inline-block; margin-bottom:10px" ; class="image_container">
+        <a href="{% url 'image_detail' image.id %}">
+            {% if image.little_name %}
+                <img src="{{ media_server }}/image/upload/h_{{ height }},r_20/{{ image.little_name }}" class="image"/>
+            {% else %}
+                <img src="{{ media_server }}/image/upload/h_{{ height }},r_20/{{ image.big_name }}" class="image"/>
+            {% endif %}
+
+            {% if show_hover %}
+                <span class="overlay" style="border-radius: 20px;">
+                    {% if show_hover %}
+                        {% if pictured_list %}
+                            <span class="text">Pictured: {{ pictured_list }}</span>
+                        {% else %}
+                            <span class="text">Pictured: {{ image.pictured_list }}</span>
+                        {% endif %}
+                    {% endif %}
+                </span>
+            {% endif %}
+
+            <div style="padding-left: 8px">
+                {% if image.year %}
+                    ({{ image.year }})
+                {% endif %}
+            </div>
+        </a>
+    </div>
+
+{% endif %}

@@ -157,7 +157,7 @@ body {
     border-radius: calc(0.5 * var(--size));
     background: var(--accent) radial-gradient(circle at center, var(--accent), var(--accent));
     width: 70vw;
-    height: 70vw;
+    height: 70vh;
     top: 50%;
     right: 0;
     transform: translateY(-50%);

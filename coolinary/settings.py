@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'brake',
     'rest_framework',
     'channels',
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
     'pole_chudes',
     'card_games',
     'debt_app',
+    'familytree',
 ]
 
 MIDDLEWARE = [
@@ -162,6 +164,8 @@ MEDIA_DIRS = [
     BASE_DIR / "media",
 ]
 
+MEDIA_SERVER = "https://res.cloudinary.com/dsyxaim4q/"
+
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale')
 ]
@@ -205,3 +209,12 @@ LOGGING = {
         },
     },
 }
+
+# Email settings
+EMAIL_HOST = "smtp.mailgun.org"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "postmaster@mx.disname.fun"
+EMAIL_HOST_PASSWORD = secret.EMAIL_HOST_PASSWORD
+EMAIL_USE_TLS = True
+ADMIN_EMAIL_SEND_FROM = "disname@disname.fun"
+ADMIN_EMAIL_ADDRESS = "amokill33@gmail.com"

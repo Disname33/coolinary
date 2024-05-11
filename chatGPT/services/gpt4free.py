@@ -36,10 +36,16 @@ def create_image(prompt):
 
 def start_gui():
     from g4f.gui import run_gui
-
     set_all_cookies()
     run_gui()
 
 
 if __name__ == '__main__':
+    # from g4f.cookies import set_cookies, load_cookies_from_browsers
+    # bing = load_cookies_from_browsers("bing.com")
+    # set_cookies(".bing.com", bing)
+    # print(bing)
+    # you = load_cookies_from_browsers("you.com")
+    # set_cookies(".you.com", you)
+    # print(you)
     start_gui()

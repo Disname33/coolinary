@@ -227,6 +227,17 @@ const ask_gpt = async () => {
     content_inner = content.querySelector('.content_inner');
     content_count = content.querySelector('.count');
 
+    content_inner.addEventListener('click', function () {
+        const text = element.textContent;
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                console.log('Text copied to clipboard');
+            })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+    });
+
     message_box.scrollTop = message_box.scrollHeight;
     window.scrollTo(0, 0);
 
@@ -263,6 +274,7 @@ const ask_gpt = async () => {
                 }
 
                 formData['json'] = body;
+
                 send_data(JSON.stringify(formData));
             };
             reader.readAsDataURL(input.files[0]);
