@@ -33,10 +33,10 @@ def remaining_attempts(current_session: CurrentSession) -> int:
 
 
 def get_meaning_word(word: str) -> str:
-    with open(russian_nouns_with_definition_json, "r", encoding="utf-8") as file:
+    with open(russian_nouns_with_definition_lite_json, "r", encoding="utf-8") as file:
         # Загружаем данные из файла
         meaning = json.load(file)
-    return meaning[word]["definition"]
+    return meaning[word]
 
 
 def _find_next_word(word: str, string: str) -> str | None:
@@ -86,7 +86,7 @@ def get_full_meaning_word(word: str) -> str:
 
 
 def is_there_a_word_meaning(word: str) -> bool:
-    with open(russian_nouns_with_definition_json, "r", encoding="utf-8") as file:
+    with open(russian_nouns_with_definition_lite_json, "r", encoding="utf-8") as file:
         meaning = json.load(file)
     return word in meaning
 
@@ -123,7 +123,7 @@ def is_russian(text: str) -> bool:
 
 
 def is_meaning(text: str) -> bool:
-    with open(russian_nouns_with_definition_json, "r", encoding="utf-8") as file:
+    with open(russian_nouns_with_definition_lite_json, "r", encoding="utf-8") as file:
         # Загружаем данные из файла
         meaning = json.load(file)
     return text in meaning

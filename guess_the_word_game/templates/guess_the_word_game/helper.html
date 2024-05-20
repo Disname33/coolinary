@@ -1,0 +1,67 @@
+{% extends 'guess_the_word_game/game.html' %}
+{% load static %}
+
+
+{% block start_game %}
+
+    <div class="row text-center">
+        <div class="col text-center">
+            <h2>Игра "Отгадай слово"</h2>
+            <h5 class="link-success">Подбор слова</h5>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block entered_words %}
+    <h4 class="link-success my-4">Какое слово хотите получить, {{ user.get_username }}?</h4>
+    <form id="getPatternForm">
+        {% csrf_token %}
+        <input type="text" name="letters" id="letters" autofocus placeholder="Введите дополнительные буквы"
+               class="form-control border-success text-success focus-ring focus-ring-success"
+               aria-label="дополнительные буквы" aria-describedby="letters" value="{{ letters }}"
+               pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы без запятых и пробелов">
+        <div class="input-group mb-3 my-4">
+            <input type="text" name="pattern" id="pattern" autofocus placeholder="Введите маску слова, например: Сл*в*"
+                   class="form-control border-success text-success focus-ring focus-ring-success"
+                   aria-label="Введите маску слова" aria-describedby="pattern" value="{{ pattern }}"
+                   pattern="[а-яёА-ЯЁ/*]+" title="Пожалуйста, введите только русские буквы и *, от 4 до 7 символов"
+                   minlength="4" maxlength="7" required>
+            <button class="btn btn-success btn-lg" type="submit" id="get_mean_btn">Найти слова
+            </button>
+        </div>
+    </form>
+    <div class="row">
+        {% for word in matches %}
+            <div class="col col-auto "> {{ word }} </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+{% block input_word %}
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <div class=" col-xl-2 p-2">
+            <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game' %}" role="button">
+                Назад в игру
+            </a>
+        </div>
+    </div>
+    <div class="toast-container top-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <svg class="bd-placeholder-img rounded me-2" width="20" height="20" xmlns="http://www.w3.org/2000/svg"
+                     aria-hidden="true" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <rect width="100%" height="100%" fill="#007aff"></rect>
+                </svg>
+                <strong class="me-auto toast-title">Системное сообщение</strong>
+                <small>Только что</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Внимание!
+                Спасибо за внимание!
+            </div>
+        </div>
+    </div>
+{% endblock %}

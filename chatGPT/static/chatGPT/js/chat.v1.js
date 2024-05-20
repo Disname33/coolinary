@@ -1,5 +1,4 @@
 const colorThemes = document.querySelectorAll('[name="theme"]');
-const markdown = window.markdownit();
 const message_box = document.getElementById(`messages`);
 const messageInput = document.getElementById(`message-input`);
 const box_conversations = document.querySelector(`.top`);
@@ -11,14 +10,21 @@ const sendButton = document.getElementById("send-button");
 const imageInput = document.getElementById("image");
 const cameraInput = document.getElementById("camera");
 const fileInput = document.getElementById("file");
-const inputCount = document.getElementById("input-count")
+const microLabel = document.querySelector(".micro-label");
+const inputCount = document.getElementById("input-count").querySelector(".text");
+const providerSelect = document.getElementById("provider");
 const modelSelect = document.getElementById("model");
-const systemPrompt = document.getElementById("systemPrompt")
-const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+const modelProvider = document.getElementById("model2");
+const systemPrompt = document.getElementById("systemPrompt");
+const settings = document.querySelector(".settings");
+const chat = document.querySelector(".conversation");
+const album = document.querySelector(".images");
 
 let prompt_lock = false;
 
-// hljs.addPlugin(new CopyButtonPlugin());
+let content, content_inner, content_count = null;
+
+const optionElements = document.querySelectorAll(".settings input, .settings textarea, #model, #model2, #provider")
 
 messageInput.addEventListener("blur", () => {
     window.scrollTo(0, 0);
@@ -28,15 +34,30 @@ messageInput.addEventListener("focus", () => {
     document.documentElement.scrollTop = document.documentElement.scrollHeight;
 });
 
+appStorage = window.localStorage || {
+    setItem: (key, value) => self[key] = value,
+    getItem: (key) => self[key],
+    removeItem: (key) => delete self[key],
+    length: 0
+}
+
+const markdown = window.markdownit();
 const markdown_render = (content) => {
     return markdown.render(content
-        .replaceAll(/<!--.+-->/gm, "")
+        .replaceAll(/<!-- generated images start -->|<!-- generated images end -->/gm, "")
         .replaceAll(/<img data-prompt="[^>]+">/gm, "")
     )
         .replaceAll("<a href=", '<a target="_blank" href=')
         .replaceAll('<code>', '<code class="language-plaintext">')
 }
 
+function filter_message(text) {
+    return text.replaceAll(
+        /<!-- generated images start -->[\s\S]+<!-- generated images end -->/gm, ""
+    )
+}
+
+hljs.addPlugin(new CopyButtonPlugin());
 let typesetPromise = Promise.resolve();
 const highlight = (container) => {
     container.querySelectorAll('code:not(.hljs)').forEach((el) => {
@@ -44,14 +65,16 @@ const highlight = (container) => {
             hljs.highlightElement(el);
         }
     });
-    typesetPromise = typesetPromise.then(
-        () => MathJax.typesetPromise([container])
-    ).catch(
-        (err) => console.log('Typeset failed: ' + err.message)
-    );
+    if (window.MathJax) {
+        typesetPromise = typesetPromise.then(
+            () => MathJax.typesetPromise([container])
+        ).catch(
+            (err) => console.log('Typeset failed: ' + err.message)
+        );
+    }
 }
 
-const register_remove_message = async () => {
+const register_message_buttons = async () => {
     document.querySelectorAll(".message .fa-xmark").forEach(async (el) => {
         if (!("click" in el.dataset)) {
             el.dataset.click = "true";
@@ -65,15 +88,123 @@ const register_remove_message = async () => {
             })
         }
     });
+    document.querySelectorAll(".message .fa-clipboard").forEach(async (el) => {
+        if (!("click" in el.dataset)) {
+            el.dataset.click = "true";
+            el.addEventListener("click", async () => {
+                const message_el = el.parentElement.parentElement.parentElement;
+                const copyText = await get_message(window.conversation_id, message_el.dataset.index);
+                navigator.clipboard.writeText(copyText);
+                el.classList.add("clicked");
+                setTimeout(() => el.classList.remove("clicked"), 1000);
+            })
+        }
+    });
+    document.querySelectorAll(".message .fa-volume-high").forEach(async (el) => {
+        if (!("click" in el.dataset)) {
+            el.dataset.click = "true";
+            el.addEventListener("click", async () => {
+                let playlist = [];
+
+                function play_next() {
+                    const next = playlist.shift();
+                    if (next && el.dataset.do_play) {
+                        next.play();
+                    }
+                }
+
+                if (el.dataset.stopped) {
+                    el.classList.remove("blink")
+                    delete el.dataset.stopped;
+                    return;
+                }
+                if (el.dataset.running) {
+                    el.dataset.stopped = true;
+                    el.classList.add("blink")
+                    playlist = [];
+                    return;
+                }
+                el.dataset.running = true;
+                el.classList.add("blink")
+                el.classList.add("active")
+                const content_el = el.parentElement.parentElement;
+                const message_el = content_el.parentElement;
+                let speechText = await get_message(window.conversation_id, message_el.dataset.index);
+
+                speechText = speechText.replaceAll(/([^0-9])\./gm, "$1.;");
+                speechText = speechText.replaceAll("?", "?;");
+                speechText = speechText.replaceAll(/\[(.+)\]\(.+\)/gm, "($1)");
+                speechText = speechText.replaceAll(/```[A-Za-zА-Яа-я]+/gm, "");
+                speechText = filter_message(speechText.replaceAll("`", "").replaceAll("#", ""))
+                const lines = speechText.trim().split(/\n|;/).filter(v => count_words(v));
+
+                window.onSpeechResponse = (url) => {
+                    if (!el.dataset.stopped) {
+                        el.classList.remove("blink")
+                    }
+                    if (url) {
+                        var sound = document.createElement('audio');
+                        sound.controls = 'controls';
+                        sound.src = url;
+                        sound.type = 'audio/wav';
+                        sound.onended = function () {
+                            el.dataset.do_play = true;
+                            setTimeout(play_next, 1000);
+                        };
+                        sound.onplay = function () {
+                            delete el.dataset.do_play;
+                        };
+                        var container = document.createElement('div');
+                        container.classList.add("audio");
+                        container.appendChild(sound);
+                        content_el.appendChild(container);
+                        if (!el.dataset.stopped) {
+                            playlist.push(sound);
+                            if (el.dataset.do_play) {
+                                play_next();
+                            }
+                        }
+                    }
+                    let line = lines.length > 0 ? lines.shift() : null;
+                    if (line && !el.dataset.stopped) {
+                        handleGenerateSpeech(line);
+                    } else {
+                        el.classList.remove("active");
+                        el.classList.remove("blink");
+                        delete el.dataset.running;
+                    }
+                }
+                el.dataset.do_play = true;
+                let line = lines.shift();
+                handleGenerateSpeech(line);
+            });
+        }
+    });
+    document.querySelectorAll(".message .fa-rotate").forEach(async (el) => {
+        if (!("click" in el.dataset)) {
+            el.dataset.click = "true";
+            el.addEventListener("click", async () => {
+                const message_el = el.parentElement.parentElement.parentElement;
+                el.classList.add("clicked");
+                setTimeout(() => el.classList.remove("clicked"), 1000);
+                prompt_lock = true;
+                await hide_message(window.conversation_id, message_el.dataset.index);
+                window.token = message_id();
+                await ask_gpt(message_el.dataset.index);
+            })
+        }
+    });
 }
 
 const delete_conversations = async () => {
-    for (let i = 0; i < localStorage.length; i++) {
-        let key = localStorage.key(i);
+    const remove_keys = [];
+    for (let i = 0; i < appStorage.length; i++) {
+        let key = appStorage.key(i);
         if (key.startsWith("conversation:")) {
-            localStorage.removeItem(key);
+            remove_keys.push(key);
         }
     }
+    remove_keys.forEach((key) => appStorage.removeItem(key));
     await hide_sidebar();
     await new_conversation();
 };
@@ -84,48 +215,52 @@ const handle_ask = async () => {
     window.scrollTo(0, 0);
 
     message = messageInput.value
-    if (message.length > 0) {
-        messageInput.value = "";
-        prompt_lock = true;
-        await count_input()
-        await add_conversation(window.conversation_id, message);
-        if ("text" in fileInput.dataset) {
-            message += '\n```' + fileInput.dataset.type + '\n';
-            message += fileInput.dataset.text;
-            message += '\n```'
-        }
-        let message_index = await add_message(window.conversation_id, "user", message);
-        window.token = message_id();
+    if (message.length <= 0) {
+        return;
+    }
+    messageInput.value = "";
+    prompt_lock = true;
+    count_input()
+    await add_conversation(window.conversation_id, message);
 
-        if (imageInput.dataset.src) URL.revokeObjectURL(imageInput.dataset.src);
-        const input = imageInput && imageInput.files.length > 0 ? imageInput : cameraInput
-        if (input.files.length > 0) imageInput.dataset.src = URL.createObjectURL(input.files[0]);
-        else delete imageInput.dataset.src
+    if ("text" in fileInput.dataset) {
+        message += '\n```' + fileInput.dataset.type + '\n';
+        message += fileInput.dataset.text;
+        message += '\n```'
+    }
+    let message_index = await add_message(window.conversation_id, "user", message);
+    window.token = message_id();
 
-        model = modelSelect.options[modelSelect.selectedIndex].value
-        message_box.innerHTML += `
-            <div class="message" data-index="${message_index}">
-                <div class="user">
-                    ${user_image}
-                    <i class="fa-solid fa-xmark"></i>
-                    <i class="fa-regular fa-phone-arrow-up-right"></i>
+    if (imageInput.dataset.src) URL.revokeObjectURL(imageInput.dataset.src);
+    const input = imageInput && imageInput.files.length > 0 ? imageInput : cameraInput
+    if (input.files.length > 0) imageInput.dataset.src = URL.createObjectURL(input.files[0]);
+    else delete imageInput.dataset.src
+
+    message_box.innerHTML += `
+        <div class="message" data-index="${message_index}">
+            <div class="user">
+                ${user_image}
+                <i class="fa-solid fa-xmark"></i>
+                <i class="fa-regular fa-phone-arrow-up-right"></i>
+            </div>
+            <div class="content" id="user_${token}"> 
+                <div class="content_inner">
+                ${markdown_render(message)}
+                ${imageInput.dataset.src
+        ? '<img src="' + imageInput.dataset.src + '" alt="Image upload">'
+        : ''
+    }
                 </div>
-                <div class="content" id="user_${token}"> 
-                    <div class="content_inner">
-                    ${markdown_render(message)}
-                    ${imageInput.dataset.src
-            ? '<img src="' + imageInput.dataset.src + '" alt="Image upload">'
-            : ''
-        }
-                    </div>
-                    <div class="count">${count_words_and_tokens(message, model)}</div>
+                <div class="count">
+                    ${count_words_and_tokens(message, get_selected_model())}
+                    <i class="fa-solid fa-volume-high"></i>
+                    <i class="fa-regular fa-clipboard"></i>
                 </div>
             </div>
-        `;
-        await register_remove_message();
-        highlight(message_box);
-        await ask_gpt();
-    }
+        </div>
+    `;
+    highlight(message_box);
+    await ask_gpt();
 };
 
 const remove_cancel_button = async () => {
@@ -137,9 +272,9 @@ const remove_cancel_button = async () => {
     }, 300);
 };
 
-const prepare_messages = (messages, filter_last_message = true) => {
+const prepare_messages = (messages, message_index = -1) => {
     // Removes none user messages at end
-    if (filter_last_message) {
+    if (message_index === -1) {
         let last_message;
         while (last_message = messages.pop()) {
             if (last_message["role"] === "user") {
@@ -147,59 +282,57 @@ const prepare_messages = (messages, filter_last_message = true) => {
                 break;
             }
         }
+    } else if (message_index >= 0) {
+        messages = messages.filter((_, index) => message_index >= index);
     }
 
     // Remove history, if it's selected
     if (document.getElementById('history')?.checked) {
-        if (filter_last_message) {
-            messages = [messages.pop()];
-        } else {
+        if (message_index == null) {
             messages = [messages.pop(), messages.pop()];
+        } else {
+            messages = [messages.pop()];
         }
     }
 
     let new_messages = [];
-    if (messages) {
-        for (i in messages) {
-            new_message = messages[i];
-            // Remove generated images from history
-            new_message.content = new_message.content.replaceAll(
-                /<!-- generated images start -->[\s\S]+<!-- generated images end -->/gm,
-                ""
-            )
-            delete new_message["provider"];
-            // Remove regenerated messages
-            if (!new_message.regenerate) {
-                new_messages.push(new_message)
-            }
-        }
-    }
-
-    // Add system message
-    system_content = systemPrompt?.value;
-    if (system_content) {
-        new_messages.unshift({
+    if (systemPrompt?.value) {
+        new_messages.push({
             "role": "system",
-            "content": system_content
+            "content": systemPrompt.value
         });
     }
-
+    messages.forEach((new_message) => {
+        // Include only not regenerated messages
+        if (new_message && !new_message.regenerate) {
+            // Remove generated images from history
+            new_message.content = filter_message(new_message.content);
+            delete new_message.provider;
+            new_messages.push(new_message)
+        }
+    });
     return new_messages;
 }
 
-const ask_gpt = async () => {
+cameraInput?.addEventListener("click", (e) => {
+    if (window?.pywebview) {
+        e.preventDefault();
+        pywebview.api.take_picture();
+    }
+});
+
+imageInput?.addEventListener("click", (e) => {
+    if (window?.pywebview) {
+        e.preventDefault();
+        pywebview.api.choose_image();
+    }
+});
+
+const ask_gpt = async (message_index = -1) => {
     regenerate.classList.add(`regenerate-hidden`);
     messages = await get_messages(window.conversation_id);
     total_messages = messages.length;
-
-    messages = prepare_messages(messages);
-
-    window.scrollTo(0, 0);
-    window.controller = new AbortController();
-
-    jailbreak = document.getElementById("jailbreak");
-    provider = document.getElementById("provider");
-    window.text = '';
+    messages = prepare_messages(messages, message_index);
 
     stop_generating.classList.remove(`stop_generating-hidden`);
 
@@ -223,42 +356,48 @@ const ask_gpt = async () => {
             </div>
         </div>
     `;
+
+    window.controller = new AbortController();
+    window.text = "";
+    window.error = null;
+    window.abort = false;
+    window.provider_result = null;
+
     content = document.getElementById(`gpt_${window.token}`);
     content_inner = content.querySelector('.content_inner');
     content_count = content.querySelector('.count');
 
-    content_inner.addEventListener('click', function () {
-        const text = element.textContent;
-        navigator.clipboard.writeText(text)
-            .then(() => {
-                console.log('Text copied to clipboard');
-            })
-            .catch(err => {
-                console.error('Failed to copy text: ', err);
-            });
-    });
-
     message_box.scrollTop = message_box.scrollHeight;
     window.scrollTo(0, 0);
-
-    error = provider_result = null;
     try {
+        const input = imageInput && imageInput.files.length > 0 ? imageInput : cameraInput;
+        const file = input && input.files.length > 0 ? input.files[0] : null;
+        let provider = providerSelect.options[providerSelect.selectedIndex].value;
+        const auto_continue = document.getElementById("auto_continue")?.checked;
+        if (file && !provider)
+            provider = "Bing";
+        let api_key = null;
+        if (provider) {
+            api_key = document.getElementById(`${provider}-api_key`)?.value || null;
+            if (api_key == null)
+                api_key = document.querySelector(`.${provider}-api_key`)?.value || null;
+        }
         let body = JSON.stringify({
             id: window.token,
             conversation_id: window.conversation_id,
-            model: modelSelect.options[modelSelect.selectedIndex].value,
+            model: get_selected_model(),
             jailbreak: jailbreak.options[jailbreak.selectedIndex].value,
             web_search: document.getElementById(`switch`).checked,
-            provider: provider.options[provider.selectedIndex].value,
-            patch_provider: document.getElementById('patch').checked,
+            provider: provider,
+            auto_continue: auto_continue,
+            api_key: api_key,
+            // patch_provider: document.getElementById('patch').checked,
             messages: messages
         });
         const headers = {
-            'X-CSRFToken': csrftoken,
-            // 'accept': 'text/event-stream',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             'content-type': 'application/json'
         }
-        const input = imageInput && imageInput.files.length > 0 ? imageInput : cameraInput
         if (input && input.files.length > 0) {
             let formData = {};
             const reader = new FileReader();
@@ -306,7 +445,7 @@ const ask_gpt = async () => {
     window.scrollTo(0, 0);
     message_box.scrollTop = message_box.scrollHeight;
     await remove_cancel_button();
-    await register_remove_message();
+    await register_message_buttons();
     prompt_lock = false;
     await load_conversations();
     regenerate.classList.remove("regenerate-hidden");
@@ -337,12 +476,35 @@ const clear_conversation = async () => {
     }
 };
 
+async function set_conversation_title(conversation_id, title) {
+    conversation = await get_conversation(conversation_id)
+    conversation.new_title = title;
+    appStorage.setItem(
+        `conversation:${conversation.id}`,
+        JSON.stringify(conversation)
+    );
+}
+
 const show_option = async (conversation_id) => {
     const conv = document.getElementById(`conv-${conversation_id}`);
     const choi = document.getElementById(`cho-${conversation_id}`);
 
     conv.style.display = "none";
     choi.style.display = "block";
+
+    const el = document.getElementById(`convo-${conversation_id}`);
+    const trash_el = el.querySelector(".fa-trash");
+    const title_el = el.querySelector("span.convo-title");
+    if (title_el) {
+        const left_el = el.querySelector(".left");
+        const input_el = document.createElement("input");
+        input_el.value = title_el.innerText;
+        input_el.classList.add("convo-title");
+        input_el.onfocus = () => trash_el.style.display = "none";
+        input_el.onchange = () => set_conversation_title(conversation_id, input_el.value);
+        left_el.removeChild(title_el);
+        left_el.appendChild(input_el);
+    }
 };
 
 const hide_option = async (conversation_id) => {
@@ -351,10 +513,23 @@ const hide_option = async (conversation_id) => {
 
     conv.style.display = "block";
     choi.style.display = "none";
+
+    const el = document.getElementById(`convo-${conversation_id}`);
+    el.querySelector(".fa-trash").style.display = "";
+    const input_el = el.querySelector("input.convo-title");
+    if (input_el) {
+        const left_el = el.querySelector(".left");
+        const span_el = document.createElement("span");
+        span_el.innerText = input_el.value;
+        span_el.classList.add("convo-title");
+        span_el.onclick = () => set_conversation(conversation_id);
+        left_el.removeChild(input_el);
+        left_el.appendChild(span_el);
+    }
 };
 
 const delete_conversation = async (conversation_id) => {
-    localStorage.removeItem(`conversation:${conversation_id}`);
+    appStorage.removeItem(`conversation:${conversation_id}`);
 
     const conversation = document.getElementById(`convo-${conversation_id}`);
     conversation.remove();
@@ -372,8 +547,8 @@ const set_conversation = async (conversation_id) => {
 
     await clear_conversation();
     await load_conversation(conversation_id);
-    await load_conversations();
-    await hide_sidebar();
+    load_conversations();
+    hide_sidebar();
 };
 
 const new_conversation = async () => {
@@ -384,9 +559,9 @@ const new_conversation = async () => {
     if (systemPrompt) {
         systemPrompt.value = "";
     }
-    await load_conversations();
-    await hide_sidebar();
-    await say_hello();
+    load_conversations();
+    hide_sidebar();
+    say_hello();
 };
 
 const load_conversation = async (conversation_id, scroll = true) => {
@@ -404,8 +579,8 @@ const load_conversation = async (conversation_id, scroll = true) => {
         last_model = item.provider?.model;
         let next_i = parseInt(i) + 1;
         let next_provider = item.provider ? item.provider : (messages.length > next_i ? messages[next_i].provider : null);
-
-        let provider_link = item.provider?.name ? `<a href="${item.provider.url}" target="_blank">${item.provider.name}</a>` : "";
+        let provider_label = item.provider?.label ? item.provider.label : item.provider?.name;
+        let provider_link = item.provider?.name ? `<a href="${item.provider.url}" target="_blank">${provider_label}</a>` : "";
         let provider = provider_link ? `
             <div class="provider">
                 ${provider_link}
@@ -425,25 +600,31 @@ const load_conversation = async (conversation_id, scroll = true) => {
                 <div class="content">
                     ${provider}
                     <div class="content_inner">${markdown_render(item.content)}</div>
-                    <div class="count">${count_words_and_tokens(item.content, next_provider?.model)}</div>
+                    <div class="count">
+                        ${count_words_and_tokens(item.content, next_provider?.model)}
+                        <i class="fa-solid fa-volume-high"></i>
+                        <i class="fa-regular fa-clipboard"></i>
+                    </div>
                 </div>
             </div>
         `;
     }
 
-    const filtered = prepare_messages(messages, false);
-    if (filtered.length > 0) {
-        last_model = last_model?.startsWith("gpt-4") ? "gpt-4" : "gpt-3.5-turbo"
-        let count_total = GPTTokenizer_cl100k_base?.encodeChat(filtered, last_model).length
-        if (count_total > 0) {
-            elements += `<div class="count_total">(${count_total} tokens used)</div>`;
+    if (window.GPTTokenizer_cl100k_base) {
+        const filtered = prepare_messages(messages, null);
+        if (filtered.length > 0) {
+            last_model = last_model?.startsWith("gpt-4") ? "gpt-4" : "gpt-3.5-turbo"
+            let count_total = GPTTokenizer_cl100k_base?.encodeChat(filtered, last_model).length
+            if (count_total > 0) {
+                elements += `<div class="count_total">(${count_total} tokens used)</div>`;
+            }
         }
     }
 
     message_box.innerHTML = elements;
-
-    register_remove_message();
+    register_message_buttons();
     highlight(message_box);
+    regenerate.classList.remove("regenerate-hidden");
 
     if (scroll) {
         message_box.scrollTo({top: message_box.scrollHeight, behavior: "smooth"});
@@ -456,56 +637,56 @@ const load_conversation = async (conversation_id, scroll = true) => {
 
 async function get_conversation(conversation_id) {
     return await JSON.parse(
-        localStorage.getItem(`conversation:${conversation_id}`)
+        appStorage.getItem(`conversation:${conversation_id}`)
     );
 }
 
 async function save_conversation(conversation_id, conversation) {
-    localStorage.setItem(
+    conversation.updated = Date.now();
+    appStorage.setItem(
         `conversation:${conversation_id}`,
         JSON.stringify(conversation)
     );
 }
 
 async function get_messages(conversation_id) {
-    let conversation = await get_conversation(conversation_id);
+    const conversation = await get_conversation(conversation_id);
     return conversation?.items || [];
 }
 
 async function add_conversation(conversation_id, content) {
-    if (content.length > 17) {
-        title = content.substring(0, 17) + '...'
-    } else {
-        title = content + '&nbsp;'.repeat(19 - content.length)
-    }
-
-    if (localStorage.getItem(`conversation:${conversation_id}`) == null) {
+    if (appStorage.getItem(`conversation:${conversation_id}`) == null) {
         await save_conversation(conversation_id, {
             id: conversation_id,
-            title: title,
+            title: "",
+            added: Date.now(),
             system: systemPrompt?.value,
             items: [],
         });
     }
-
     history.pushState({}, null, `/chatGPT/chat/${conversation_id}`);
 }
 
 async function save_system_message() {
-    if (!window.conversation_id) return;
+    if (!window.conversation_id) {
+        return;
+    }
     const conversation = await get_conversation(window.conversation_id);
-    conversation.system = systemPrompt?.value;
-    await save_conversation(window.conversation_id, conversation);
+    if (conversation) {
+        conversation.system = systemPrompt?.value;
+        await save_conversation(window.conversation_id, conversation);
+    }
 }
 
-const hide_last_message = async (conversation_id) => {
+const hide_message = async (conversation_id, message_index = -1) => {
     const conversation = await get_conversation(conversation_id)
-    const last_message = conversation.items.pop();
+    message_index = message_index === -1 ? conversation.items.length - 1 : message_index
+    const last_message = message_index in conversation.items ? conversation.items[message_index] : null;
     if (last_message !== null) {
         if (last_message["role"] === "assistant") {
             last_message["regenerate"] = true;
         }
-        conversation.items.push(last_message);
+        conversation.items[message_index] = last_message;
     }
     await save_conversation(conversation_id, conversation);
 };
@@ -527,9 +708,14 @@ const remove_message = async (conversation_id, index) => {
     await save_conversation(conversation_id, conversation);
 };
 
+const get_message = async (conversation_id, index) => {
+    const messages = await get_messages(conversation_id);
+    if (index in messages)
+        return messages[index]["content"];
+};
+
 const add_message = async (conversation_id, role, content, provider) => {
     const conversation = await get_conversation(conversation_id);
-
     conversation.items.push({
         role: role,
         content: content,
@@ -541,51 +727,85 @@ const add_message = async (conversation_id, role, content, provider) => {
 
 const load_conversations = async () => {
     let conversations = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        if (localStorage.key(i).startsWith("conversation:")) {
-            let conversation = localStorage.getItem(localStorage.key(i));
+    for (let i = 0; i < appStorage.length; i++) {
+        if (appStorage.key(i).startsWith("conversation:")) {
+            let conversation = appStorage.getItem(appStorage.key(i));
             conversations.push(JSON.parse(conversation));
         }
     }
+    conversations.sort((a, b) => (b.updated || 0) - (a.updated || 0));
 
     await clear_conversations();
 
-    for (conversation of conversations) {
-        box_conversations.innerHTML += `
+    let html = "";
+    conversations.forEach((conversation) => {
+        if (conversation?.items.length > 0 && !conversation.new_title) {
+            let new_value = (conversation.items[0]["content"]).trim();
+            let new_lenght = new_value.indexOf("\n");
+            new_lenght = new_lenght > 200 || new_lenght < 0 ? 200 : new_lenght;
+            conversation.new_title = new_value.substring(0, new_lenght);
+            appStorage.setItem(
+                `conversation:${conversation.id}`,
+                JSON.stringify(conversation)
+            );
+        }
+        let updated = "";
+        if (conversation.updated) {
+            const date = new Date(conversation.updated);
+            updated = date.toLocaleString('en-GB', {dateStyle: 'short', timeStyle: 'short', monthStyle: 'short'});
+            updated = updated.replace("/" + date.getFullYear(), "")
+        }
+        html += `
             <div class="convo" id="convo-${conversation.id}">
-                <div class="left" onclick="set_conversation('${conversation.id}')">
+                <div class="left">
                     <i class="fa-regular fa-comments"></i>
-                    <span class="convo-title">${conversation.title}</span>
+                    <span class="datetime" onclick="set_conversation('${conversation.id}')">${updated}</span>
+                    <span class="convo-title" onclick="set_conversation('${conversation.id}')">${conversation.new_title}</span>
                 </div>
-                <i onclick="show_option('${conversation.id}')" class="fa-regular fa-trash" id="conv-${conversation.id}"></i>
+                <i onclick="show_option('${conversation.id}')" class="fa-solid fa-ellipsis-vertical" id="conv-${conversation.id}"></i>
                 <div id="cho-${conversation.id}" class="choise" style="display:none;">
-                    <i onclick="delete_conversation('${conversation.id}')" class="fa-regular fa-check"></i>
+                    <i onclick="delete_conversation('${conversation.id}')" class="fa-regular fa-trash"></i>
                     <i onclick="hide_option('${conversation.id}')" class="fa-regular fa-x"></i>
                 </div>
             </div>
         `;
-    }
+    });
+    box_conversations.innerHTML += html;
 };
 
-document.getElementById(`cancelButton`).addEventListener(`click`, async () => {
-    // window.controller.abort();
-    reloadSocket();
+document.getElementById("cancelButton").addEventListener("click", async () => {
+    window.controller.abort();
+    if (!window.abort) {
+        window.abort = true;
+        content_inner.innerHTML += " [aborted]";
+        if (window.text) window.text += " [aborted]";
+    }
     console.log(`aborted ${window.conversation_id}`);
 });
 
-document.getElementById(`regenerateButton`).addEventListener(`click`, async () => {
+document.getElementById("regenerateButton").addEventListener("click", async () => {
     prompt_lock = true;
-    reloadSocket();
-    await hide_last_message(window.conversation_id);
+    await hide_message(window.conversation_id);
     window.token = message_id();
     await ask_gpt();
+});
+
+const hide_input = document.querySelector(".toolbar .hide-input");
+hide_input.addEventListener("click", async (e) => {
+    const icon = hide_input.querySelector("i");
+    const func = icon.classList.contains("fa-angles-down") ? "add" : "remove";
+    const remv = icon.classList.contains("fa-angles-down") ? "remove" : "add";
+    icon.classList[func]("fa-angles-up");
+    icon.classList[remv]("fa-angles-down");
+    document.querySelector(".conversation .user-input").classList[func]("hidden");
+    document.querySelector(".conversation .buttons").classList[func]("hidden");
 });
 
 const uuid = () => {
     return `xxxxxxxx-xxxx-4xxx-yxxx-${Date.now().toString(16)}`.replace(
         /[xy]/g,
         function (c) {
-            let r = (Math.random() * 16) | 0,
+            var r = (Math.random() * 16) | 0,
                 v = c === "x" ? r : (r & 0x3) | 0x8;
             return v.toString(16);
         }
@@ -604,43 +824,76 @@ const message_id = () => {
 async function hide_sidebar() {
     sidebar.classList.remove("shown");
     sidebar_button.classList.remove("rotated");
+    settings.classList.add("hidden");
+    chat.classList.remove("hidden");
 }
 
+window.addEventListener('popstate', hide_sidebar, false);
+
 sidebar_button.addEventListener("click", (event) => {
+    settings.classList.add("hidden");
     if (sidebar.classList.contains("shown")) {
         hide_sidebar();
     } else {
         sidebar.classList.add("shown");
         sidebar_button.classList.add("rotated");
     }
-
     window.scrollTo(0, 0);
 });
 
-const register_settings_localstorage = async () => {
-    for (let id of ["switch", "model", "jailbreak", "patch", "provider", "history"]) {
-        let element = document.getElementById(id);
-        element.addEventListener('change', ((id) => {
-            return (event) => {
-                switch (event.target.type) {
+function open_settings() {
+    if (settings.classList.contains("hidden")) {
+        chat.classList.add("hidden");
+        sidebar.classList.remove("shown");
+        settings.classList.remove("hidden");
+    } else {
+        settings.classList.add("hidden");
+        chat.classList.remove("hidden");
+    }
+}
+
+function open_album() {
+    if (album.classList.contains("hidden")) {
+        sidebar.classList.remove("shown");
+        settings.classList.add("hidden");
+        album.classList.remove("hidden");
+    } else {
+        album.classList.add("hidden");
+    }
+}
+
+const register_settings_storage = async () => {
+    optionElements.forEach((element) => {
+        if (element.type === "textarea") {
+            element.addEventListener('input', async (event) => {
+                appStorage.setItem(element.id, element.value);
+            });
+        } else {
+            element.addEventListener('change', async (event) => {
+                switch (element.type) {
                     case "checkbox":
-                        localStorage.setItem(id, event.target.checked);
+                        appStorage.setItem(element.id, element.checked);
                         break;
                     case "select-one":
-                        localStorage.setItem(id, event.target.selectedIndex);
+                        appStorage.setItem(element.id, element.selectedIndex);
+                        break;
+                    case "text":
+                    case "number":
+                        appStorage.setItem(element.id, element.value);
                         break;
                     default:
                         console.warn("Unresolved element type");
                 }
-            };
-        })(id));
-    }
+            });
+        }
+    });
 }
 
-const load_settings_localstorage = async () => {
-    for (id of ["switch", "model", "jailbreak", "patch", "provider", "history"]) {
-        element = document.getElementById(id);
-        value = localStorage.getItem(element.id);
+const load_settings_storage = async () => {
+    optionElements.forEach((element) => {
+        if (!(value = appStorage.getItem(element.id))) {
+            return;
+        }
         if (value) {
             switch (element.type) {
                 case "checkbox":
@@ -649,11 +902,16 @@ const load_settings_localstorage = async () => {
                 case "select-one":
                     element.selectedIndex = parseInt(value);
                     break;
+                case "text":
+                case "number":
+                case "textarea":
+                    element.value = value;
+                    break;
                 default:
                     console.warn("Unresolved element type");
             }
         }
-    }
+    });
 }
 
 const say_hello = async () => {
@@ -685,12 +943,12 @@ const say_hello = async () => {
 
 // Theme storage for recurring viewers
 const storeTheme = function (theme) {
-    localStorage.setItem("theme", theme);
+    appStorage.setItem("theme", theme);
 };
 
 // set theme when visitor returns
 const setTheme = function () {
-    const activeTheme = localStorage.getItem("theme");
+    const activeTheme = appStorage.getItem("theme");
     colorThemes.forEach((themeOption) => {
         if (themeOption.id === activeTheme) {
             themeOption.checked = true;
@@ -710,32 +968,44 @@ colorThemes.forEach((themeOption) => {
 
 function count_tokens(model, text) {
     if (model) {
-        if (model.startsWith("llama2") || model.startsWith("codellama")) {
-            return llamaTokenizer?.encode(text).length;
-        }
-        if (model.startsWith("mistral") || model.startsWith("mixtral")) {
-            return mistralTokenizer?.encode(text).length;
-        }
+        if (window.llamaTokenizer)
+            if (model.startsWith("llama") || model.startsWith("codellama")) {
+                return llamaTokenizer.encode(text).length;
+            }
+        if (window.mistralTokenizer)
+            if (model.startsWith("mistral") || model.startsWith("mixtral")) {
+                return mistralTokenizer.encode(text).length;
+            }
     }
-    return GPTTokenizer_cl100k_base?.encode(text).length;
+    if (window.GPTTokenizer_cl100k_base) {
+        return GPTTokenizer_cl100k_base.encode(text).length;
+    }
 }
 
 function count_words(text) {
     return text.trim().match(/[\w\u4E00-\u9FA5]+/gu)?.length || 0;
 }
 
+function count_chars(text) {
+    return text.match(/[^\s\p{P}]/gu)?.length || 0;
+}
+
 function count_words_and_tokens(text, model) {
-    return `(${count_words(text)} words, ${count_tokens(model, text)} tokens)`;
+    text = filter_message(text);
+    return `(${count_words(text)} words, ${count_chars(text)} chars, ${count_tokens(model, text)} tokens)`;
 }
 
 let countFocus = messageInput;
+let timeoutId;
 const count_input = async () => {
-    if (countFocus.value) {
-        model = modelSelect.options[modelSelect.selectedIndex].value;
-        inputCount.innerText = count_words_and_tokens(countFocus.value, model);
-    } else {
-        inputCount.innerHTML = "&nbsp;"
-    }
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        if (countFocus.value) {
+            inputCount.innerText = count_words_and_tokens(countFocus.value, get_selected_model());
+        } else {
+            inputCount.innerText = "";
+        }
+    }, 100);
 };
 messageInput.addEventListener("keyup", count_input);
 systemPrompt.addEventListener("keyup", count_input);
@@ -743,14 +1013,26 @@ systemPrompt.addEventListener("focus", function () {
     countFocus = systemPrompt;
     count_input();
 });
-systemPrompt.addEventListener("blur", function () {
+systemPrompt.addEventListener("input", function () {
     countFocus = messageInput;
     count_input();
 });
 
-window.onload = async () => {
-    setTheme();
+window.addEventListener('load', async function () {
+    await on_load();
+    if (window.conversation_id === "{{chat_id}}") {
+        window.conversation_id = uuid();
+    } else {
+        await on_api();
+    }
+});
 
+window.addEventListener('pywebviewready', async function () {
+    await on_api();
+});
+
+async function on_load() {
+    setTheme();
     count_input();
 
     if (/\/chat\/.+/.test(window.location.href)) {
@@ -758,57 +1040,97 @@ window.onload = async () => {
     } else {
         say_hello()
     }
-
     load_conversations();
+}
 
+async function on_api() {
     messageInput.addEventListener("keydown", async (evt) => {
         if (prompt_lock) return;
 
-        if (evt.keyCode === 13 && !evt.shiftKey) {
-            evt.preventDefault();
-            console.log("pressed enter");
-            await handle_ask();
-        } else {
-            messageInput.style.removeProperty("height");
-            messageInput.style.height = messageInput.scrollHeight + "px";
-        }
+        // If not mobile
+        if (!window.matchMedia("(pointer:coarse)").matches)
+            if (evt.keyCode === 13 && !evt.shiftKey) {
+                evt.preventDefault();
+                console.log("pressed enter");
+                await handle_ask();
+            } else {
+                messageInput.style.removeProperty("height");
+                messageInput.style.height = messageInput.scrollHeight + "px";
+            }
     });
-
     sendButton.addEventListener(`click`, async () => {
         console.log("clicked send");
         if (prompt_lock) return;
         await handle_ask();
     });
-
     messageInput.focus();
 
-    register_settings_localstorage();
-};
+    register_settings_storage();
 
-(async () => {
-    response = await fetch('/chatGPT/backend-api/v2/models')
-    models = await response.json()
-
-    for (model of models) {
-        let option = document.createElement('option');
+    models = await api("models");
+    models.forEach((model) => {
+        let option = document.createElement("option");
         option.value = option.text = model;
         modelSelect.appendChild(option);
+    });
+
+    providers = await api("providers")
+    Object.entries(providers).forEach(([provider, label]) => {
+        let option = document.createElement("option");
+        option.value = provider;
+        option.text = label;
+        providerSelect.appendChild(option);
+    })
+
+    await load_provider_models(appStorage.getItem("provider"));
+    await load_settings_storage()
+
+    const hide_systemPrompt = document.getElementById("hide-systemPrompt")
+    const slide_systemPrompt_icon = document.querySelector(".slide-systemPrompt i");
+    if (hide_systemPrompt.checked) {
+        systemPrompt.classList.add("hidden");
+        slide_systemPrompt_icon.classList.remove("fa-angles-up");
+        slide_systemPrompt_icon.classList.add("fa-angles-down");
     }
-
-    response = await fetch('/chatGPT/backend-api/v2/providers')
-    providers = await response.json()
-    select = document.getElementById('provider');
-
-    for (provider of providers) {
-        let option = document.createElement('option');
-        option.value = option.text = provider;
-        select.appendChild(option);
+    hide_systemPrompt.addEventListener('change', async (event) => {
+        if (event.target.checked) {
+            systemPrompt.classList.add("hidden");
+        } else {
+            systemPrompt.classList.remove("hidden");
+        }
+    });
+    document.querySelector(".slide-systemPrompt")?.addEventListener("click", () => {
+        hide_systemPrompt.click();
+        let checked = hide_systemPrompt.checked;
+        systemPrompt.classList[checked ? "add" : "remove"]("hidden");
+        slide_systemPrompt_icon.classList[checked ? "remove" : "add"]("fa-angles-up");
+        slide_systemPrompt_icon.classList[checked ? "add" : "remove"]("fa-angles-down");
+    });
+    const messageInputHeight = document.getElementById("message-input-height");
+    if (messageInputHeight) {
+        if (messageInputHeight.value) {
+            messageInput.style.maxHeight = `${messageInputHeight.value}px`;
+        }
+        messageInputHeight.addEventListener('change', async () => {
+            messageInput.style.maxHeight = `${messageInputHeight.value}px`;
+        });
     }
+    const darkMode = document.getElementById("darkMode");
+    if (darkMode) {
+        if (!darkMode.checked) {
+            document.body.classList.add("white");
+        }
+        darkMode.addEventListener('change', async (event) => {
+            if (event.target.checked) {
+                document.body.classList.remove("white");
+            } else {
+                document.body.classList.add("white");
+            }
+        });
+    }
+}
 
-    await load_settings_localstorage()
-})();
-
-for (const el of [imageInput, cameraInput]) {
+[imageInput, cameraInput].forEach((el) => {
     el.addEventListener('click', async () => {
         el.value = '';
         if (imageInput.dataset.src) {
@@ -816,12 +1138,13 @@ for (const el of [imageInput, cameraInput]) {
             delete imageInput.dataset.src
         }
     });
-}
+});
 
 fileInput.addEventListener('click', async (event) => {
     fileInput.value = '';
     delete fileInput.dataset.text;
 });
+
 fileInput.addEventListener('change', async (event) => {
     if (fileInput.files.length) {
         type = fileInput.files[0].type;
@@ -836,8 +1159,21 @@ fileInput.addEventListener('change', async (event) => {
         }
         fileInput.dataset.type = type
         const reader = new FileReader();
-        reader.addEventListener('load', (event) => {
+        reader.addEventListener('load', async (event) => {
             fileInput.dataset.text = event.target.result;
+            if (type === "json") {
+                const data = JSON.parse(fileInput.dataset.text);
+                if ("g4f" in data.options) {
+                    Object.keys(data).forEach(key => {
+                        if (key !== "options" && !localStorage.getItem(key)) {
+                            appStorage.setItem(key, JSON.stringify(data[key]));
+                        }
+                    });
+                    delete fileInput.dataset.text;
+                    await load_conversations();
+                    fileInput.value = "";
+                }
+            }
         });
         reader.readAsText(fileInput.files[0]);
     } else {
@@ -845,73 +1181,186 @@ fileInput.addEventListener('change', async (event) => {
     }
 });
 
-systemPrompt?.addEventListener("blur", async () => {
+systemPrompt?.addEventListener("input", async () => {
     await save_system_message();
 });
 
-async function submitForm() {
-    const formData = new FormData(document.getElementById('languageForm'));
-    const url = "/i18n/setlang/";
-    localStorage.setItem("language", formData.get('language'));
-    try {
-        const response = await fetch(url, {
+function get_selected_model() {
+    if (modelProvider.selectedIndex >= 0) {
+        return modelProvider.options[modelProvider.selectedIndex].value;
+    } else if (modelSelect.selectedIndex >= 0) {
+        return modelSelect.options[modelSelect.selectedIndex].value;
+    }
+}
+
+async function api(ressource, args = null, file = null) {
+    if (window?.pywebview) {
+        if (args !== null) {
+            if (ressource === "models") {
+                ressource = "provider_models";
+            }
+            return pywebview.api[`get_${ressource}`](args);
+        }
+        return pywebview.api[`get_${ressource}`]();
+    }
+    if (ressource === "models" && args) {
+        ressource = `${ressource}/${args}`;
+    }
+    const url = `/chatGPT/backend-api/v2/${ressource}`;
+    if (ressource === "conversation") {
+        let body = JSON.stringify(args);
+        const headers = {
+            accept: 'text/event-stream'
+        }
+        if (file !== null) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('json', body);
+            body = formData;
+        } else {
+            headers['content-type'] = 'application/json';
+        }
+        response = await fetch(url, {
             method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}', // В Django для CSRF-токена обычно требуется этот заголовок
-            },
-            credentials: 'same-origin' // Для корректной работы с CSRF-токеном
+            signal: window.controller.signal,
+            headers: headers,
+            body: body
         });
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        window.location.reload();
-    } catch (error) {
-        console.error('Ошибка при отправке формы:', error);
+        return read_response(response);
     }
+    response = await fetch(url);
+    return await response.json();
 }
 
-// Определяем начальные координаты касания
-let startX = 0;
-let startY = 0;
-
-// Функция для обработки свайпов
-function handleSwipe(event) {
-    const touch = event.changedTouches[0];
-    const deltaX = touch.pageX - startX;
-    const deltaY = touch.pageY - startY;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-    // Определяем направление свайпа
-    const angle = Math.atan2(deltaY, deltaX);
-    const direction = angle * (180 / Math.PI);
-
-    // Определяем пороговое значение для распознавания свайпа
-    const swipeThreshold = 50; // Пороговое значение в пикселях
-    const leftEdgeThreshold = window.innerWidth * 0.3; // Пороговое значение для открывания сайдбара (30% ширины экрана)
-
-    // Обрабатываем свайпы
-    if (distance > swipeThreshold) {
-        if (direction > -45 && direction < 45 && startX < leftEdgeThreshold) {
-            // Свайп слева направо с левого края экрана
-            sidebar.classList.add("shown");
-            sidebar_button.classList.add("rotated");
-        } else if (direction > 135 || direction < -135) {
-            // Свайп справа налево
-            hide_sidebar();
+async function read_response(response) {
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = ""
+    while (true) {
+        const {value, done} = await reader.read();
+        if (done) {
+            break;
+        }
+        for (const line of value.split("\n")) {
+            if (!line) {
+                continue;
+            }
+            try {
+                add_message_chunk(JSON.parse(buffer + line))
+                buffer = "";
+            } catch {
+                buffer += line
+            }
         }
     }
 }
 
+async function load_provider_models(providerIndex = null) {
+    if (!providerIndex) {
+        providerIndex = providerSelect.selectedIndex;
+    }
+    modelProvider.innerHTML = '';
+    const provider = providerSelect.options[providerIndex].value;
+    if (!provider) {
+        modelProvider.classList.add("hidden");
+        modelSelect.classList.remove("hidden");
+        return;
+    }
+    const models = await api('models', provider);
+    if (models.length > 0) {
+        modelSelect.classList.add("hidden");
+        modelProvider.classList.remove("hidden");
+        models.forEach((model) => {
+            let option = document.createElement('option');
+            option.value = option.text = model.model;
+            option.selected = model.default;
+            modelProvider.appendChild(option);
+        });
+    } else {
+        modelProvider.classList.add("hidden");
+        modelSelect.classList.remove("hidden");
+    }
+}
 
-// Обработчики событий для свайпов
-document.addEventListener("touchstart", function (event) {
-    const touch = event.touches[0];
-    startX = touch.pageX;
-    startY = touch.pageY;
-});
+providerSelect.addEventListener("change", () => load_provider_models());
 
-document.addEventListener("touchend", function (event) {
-    handleSwipe(event);
-});
+function save_storage() {
+    let filename = `chat ${new Date().toLocaleString()}.json`.replaceAll(":", "-");
+    let data = {"options": {"g4f": ""}};
+    for (let i = 0; i < appStorage.length; i++) {
+        let key = appStorage.key(i);
+        let item = appStorage.getItem(key);
+        if (key.startsWith("conversation:")) {
+            data[key] = JSON.parse(item);
+        } else if (!key.includes("api_key")) {
+            data["options"][key] = item;
+        }
+    }
+    data = JSON.stringify(data, null, 4);
+    const blob = new Blob([data], {type: 'application/json'});
+    if (window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveBlob(blob, filename);
+    } else {
+        const elem = window.document.createElement('a');
+        elem.href = window.URL.createObjectURL(blob);
+        elem.download = filename;
+        document.body.appendChild(elem);
+        elem.click();
+        document.body.removeChild(elem);
+    }
+}
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+    const mircoIcon = microLabel.querySelector("i");
+    mircoIcon.classList.add("fa-microphone");
+    mircoIcon.classList.remove("fa-microphone-slash");
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    let startValue;
+    let lastDebounceTranscript;
+    recognition.onstart = function () {
+        microLabel.classList.add("recognition");
+        startValue = messageInput.value;
+        lastDebounceTranscript = "";
+    };
+    recognition.onend = function () {
+        messageInput.focus();
+    };
+    recognition.onresult = function (event) {
+        if (!event.results) {
+            return;
+        }
+        let result = event.results[event.resultIndex];
+        let isFinal = result.isFinal && (result[0].confidence > 0);
+        let transcript = result[0].transcript;
+        if (isFinal) {
+            if (transcript === lastDebounceTranscript) {
+                return;
+            }
+            lastDebounceTranscript = transcript;
+        }
+        if (transcript) {
+            messageInput.value = `${startValue ? startValue + "\n" : ""}${transcript.trim()}`;
+            if (isFinal) {
+                startValue = messageInput.value;
+            }
+            messageInput.style.height = messageInput.scrollHeight + "px";
+            messageInput.scrollTop = messageInput.scrollHeight;
+        }
+    };
+
+    microLabel.addEventListener("click", () => {
+        if (microLabel.classList.contains("recognition")) {
+            recognition.stop();
+            microLabel.classList.remove("recognition");
+        } else {
+            const lang = document.getElementById("recognition-language")?.value;
+            recognition.lang = lang || navigator.language;
+            recognition.start();
+        }
+    });
+}

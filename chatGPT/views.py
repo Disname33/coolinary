@@ -41,18 +41,22 @@ def conversation(request):
 
 @login_required
 def get_models(request):
-    # return JsonResponse(Backend(request).get_models(), safe=False)
-    return JsonResponse(G4F_Api().get_models(), safe=False)
+    return JsonResponse(G4F_Api.get_models(), safe=False)
 
 
 @login_required
 def get_providers(request):
-    return JsonResponse(Backend(request).get_providers(), safe=False)
+    return JsonResponse(G4F_Api.get_providers(), safe=False)
 
 
 @login_required
 def get_provider_models(request, provider=None):
-    return JsonResponse(G4F_Api().get_provider_models(provider), safe=False)
+    return JsonResponse(G4F_Api.get_provider_models(provider), safe=False)
+
+
+@login_required
+def get_image_models(request):
+    return JsonResponse(G4F_Api.get_image_models(), safe=False)
 
 
 @login_required
@@ -64,10 +68,11 @@ def handle_conversation(request):
 @login_required
 @csrf_exempt
 def generate_title(request):
-    return JsonResponse(Backend(request).generate_title())
+    return JsonResponse(G4F_Api().generate_title())
 
 
 @login_required
 @csrf_exempt
 def handle_error(request):
-    return JsonResponse(Backend(request).handle_error(), safe=False)
+    print(request.body)
+    return JsonResponse({'ok', 200}, safe=False)

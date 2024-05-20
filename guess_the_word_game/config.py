@@ -5,7 +5,8 @@ colors = {"R": "<div class='col-1 letter letter-red'><span>{}</span></div>",
           "G": "<div class='col-1 letter letter-green'><span>{}</span></div>",
           }
 
-russian_nouns_with_definition_json = "word/russian_nouns_with_definition.json"
+# russian_nouns_with_definition_json = "word/russian_nouns_with_definition.json"
+russian_nouns_with_definition_lite_json = "word/russian_nouns_with_definition_lite.json"
 
 notice_wrong_len = "Введите слово из {} букв!"
 notice_not_Cyrillic = "Введите только кириллицу"

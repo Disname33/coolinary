@@ -1,103 +1,36 @@
-# Spanish (Spain) translations for FreeGPT WebUI.
-# Copyright (C) 2023 FreeGPT WebUI.
-# This file is distributed under the same license as the FreeGPT WebUI
-# project.
-# Contributors:
-# example name - github.com/example/
-# example name2 - github.com/example2/
-#
-msgid ""
-msgstr ""
-"Report-Msgid-Bugs-To: https://github.com/ramonvc/freegpt-webui/issues"
+# Spanish translations
+msgid "" msgstr ""
+"Report-Msgid-Bugs-To: https://github.com/ramonvc/freegpt-webui/issues\n"
 "MIME-Version: 1.0\n"
-"Language: es_ES\n"
-"Language-Team: es_ES <LL@li.org>\n"
+"Language: es\n"
+"Language-Team: es LL@li.org\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
-#:
-msgid "New Conversation"
-msgstr "Nueva conversación"
-
-#:
-msgid "Clear Conversations"
-msgstr "Borrar conversaciones"
-
-#:
-msgid "API Key"
-msgstr "Clave API"
-
-#:
-msgid "Ok"
-msgstr "Ok"
-
-#:
-msgid "Dark Mode"
-msgstr "Modo oscuro"
-
-#:
-msgid "Language"
-msgstr "Idioma"
-
-#:
-msgid "Stop Generating"
-msgstr "Dejar de generar"
-
-#:
-msgid "Ask a question"
-msgstr "Haz una pregunta"
-
-#:
-msgid "IMAGE"
-msgstr "IMAGEN"
-
-#:
-msgid "Default"
-msgstr "Predeterminado"
-
-#:
-msgid "DAN"
-msgstr "DAN"
-
-#:
-msgid "Evil"
-msgstr "Mal"
-
-#:
-msgid "Web Access"
-msgstr "Acceso web"
-
-#:
-msgid "Version"
-msgstr "Versión"
-#:
-msgid "Image Generator"
-msgstr "Generador de Imágenes"
-
-#:
-msgid "Disable History"
-msgstr "Desactivar Historial"
-
-#:
-msgid "Regenerate"
-msgstr "Regenerar"
-
-
-#:
-msgid "Provider"
-msgstr "Proveedor"
-
-#:
-msgid "Jailbreak"
-msgstr "Jailbreak"
-
-#:
-msgid "Model"
-msgstr "Modelo"
-
-#:
-msgid "System prompt"
-msgstr "Prompts del sistema"
-
+msgid "New Conversation" msgstr "Nueva conversación"
+msgid "Clear Conversations" msgstr "Borrar conversaciones"
+msgid "API Key" msgstr "Clave API"
+msgid "Ok" msgstr "Ok"
+msgid "Dark Mode" msgstr "Modo oscuro"
+msgid "Language" msgstr "Idioma"
+msgid "Stop Generating" msgstr "Detener generación"
+msgid "Ask a question" msgstr "Haz una pregunta"
+msgid "IMAGE" msgstr "IMAGEN"
+msgid "Default" msgstr "Predeterminado"
+msgid "Web Access" msgstr "Acceso web"
+msgid "Image Generator" msgstr "Generador de imágenes"
+msgid "Disable History" msgstr "Deshabilitar historial"
+msgid "Regenerate" msgstr "Regenerar"
+msgid "Provider" msgstr "Proveedor"
+msgid "Jailbreak" msgstr "Jailbreak"
+msgid "Model" msgstr "Modelo"
+msgid "System prompt" msgstr "Sistema de aviso"
+msgid "Hide System-prompt" msgstr "Ocultar sistema de aviso"
+msgid "Enable Dark Mode" msgstr "Activar modo oscuro"
+msgid "Open Settings" msgstr "Abrir configuración"
+msgid "Input max. height" msgstr "Altura máx. de entrada"
+msgid "Speech recognition lang" msgstr "Idioma de reconocimiento de voz"
+msgid "Auto continue" msgstr "Continuar automáticamente"
+msgid "Settings" msgstr "Configuraciones"

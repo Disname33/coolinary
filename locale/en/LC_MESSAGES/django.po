@@ -1,10 +1,4 @@
 # English (United States) translations for FreeGPT WebUI.
-# Copyright (C) 2023 FreeGPT WebUI.
-# This file is distributed under the same license as the FreeGPT WebUI
-# project.
-# Contributors:
-# Ramon - github.com/ramonvc/
-# ...
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: https://github.com/ramonvc/freegpt-webui/issues"
@@ -57,20 +51,8 @@ msgid "Default"
 msgstr "Default"
 
 #:
-msgid "DAN"
-msgstr "DAN"
-
-#:
-msgid "Evil"
-msgstr "Evil"
-
-#:
 msgid "Web Access"
 msgstr "Web Access"
-
-#:
-msgid "Version"
-msgstr "Version"
 
 #:
 msgid "Image Generator"
@@ -100,3 +82,31 @@ msgstr "Model"
 #:
 msgid "System prompt"
 msgstr "System prompt"
+
+#:
+msgid "Hide System-prompt"
+msgstr "Hide System-prompt"
+
+#:
+msgid "Enable Dark Mode"
+msgstr "Enable Dark Mode"
+
+#:
+msgid "Open Settings"
+msgstr "Open Settings"
+
+#:
+msgid "Input max. height"
+msgstr "Input max. height"
+
+#:
+msgid "Speech recognition lang"
+msgstr "Speech recognition lang"
+
+#:
+msgid "Auto continue"
+msgstr "Auto continue"
+
+#:
+msgid "Settings"
+msgstr "Settings"

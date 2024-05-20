@@ -7,7 +7,6 @@ from django.http import StreamingHttpResponse
 from g4f import get_last_provider, ChatCompletion
 from g4f import models
 from g4f.Provider import __providers__
-from g4f.Provider.bing.create_images import patch_provider
 from g4f.gui.server.internet import get_search_message
 from g4f.image import is_allowed_extension, to_image
 
@@ -79,14 +78,14 @@ class Backend_Api:
 
         model = json_data.get('model')
         model = model if model else models.default
-        patch = patch_provider if json_data.get('patch_provider') else None
+        # patch = patch_provider if json_data.get('patch_provider') else None
         return {
             "model": model,
             "provider": provider,
             "messages": messages,
             "stream": True,
             "ignore_stream": True,
-            "patch_provider": patch,
+            # "patch_provider": patch,
             **kwargs
         }
 

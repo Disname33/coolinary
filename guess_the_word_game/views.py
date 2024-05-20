@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 from .models import GameScore
-from .services import guess_the_word_game
+from .services import guess_the_word_game, find_word_at_mask
 from .services.timer import elapsed_time, start_timer
 
 
@@ -121,3 +121,19 @@ def remove(request):
         return HttpResponse(json.dumps(data), content_type='application/json')
 
     return render(request, 'guess_the_word_game/remove_word.html')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def helper(request):
+    matches = None
+    letters = request.GET.get('letters', '')
+    if pattern := request.GET.get('pattern'):
+        words = find_word_at_mask.get_all_words_at_length(len(pattern))
+        matches = find_word_at_mask.find_matches_with_letters(pattern.lower(), words, letters)
+    return render(request, 'guess_the_word_game/helper.html',
+                  {
+                      'matches': matches,
+                      'pattern': pattern or '',
+                      'letters': letters
+                  }
+                  )

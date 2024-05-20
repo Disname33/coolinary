@@ -64,12 +64,14 @@ function send_data(data) {
 
 // Объект с функциями обработки различных типов сообщений
 const messageHandlers = {
+    conversation: function (data) {
+        console.info("Conversation used:", data)
+    },
     provider: function (data) {
-        // console.log('Provider:', data);
         provider_result = data
         content.querySelector('.provider').innerHTML = `
                         <a href="${provider_result.url}" target="_blank">
-                            ${provider_result.name}
+                            ${message.provider.label ? message.provider.label : message.provider.name}
                         </a>
                         ${provider_result.model ? ' with ' + provider_result.model : ''}
                     `
@@ -78,6 +80,9 @@ const messageHandlers = {
         console.error('Error:', data);
         content_inner.innerHTML += `<p><strong>Ошибка:</strong> ${data}</p>`;
         close_connection();
+    },
+    preview: function (data) {
+        content_inner.innerHTML = markdown_render(data);
     },
     content: function (data) {
         // console.log('Content:', data);

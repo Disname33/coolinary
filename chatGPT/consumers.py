@@ -4,10 +4,12 @@ import logging
 from channels.generic.websocket import WebsocketConsumer
 from g4f import get_last_provider, ChatCompletion
 from g4f import models
-from g4f.Provider.bing.create_images import patch_provider
+from g4f.gui.server.api import conversations
 from g4f.gui.server.config import special_instructions
 from g4f.gui.server.internet import get_search_message
-from g4f.image import to_image
+from g4f.image import to_image, ImagePreview
+from g4f.providers.base_provider import FinishReason
+from g4f.providers.conversation import BaseConversation
 
 from chatGPT.services.gpt4free import set_all_cookies
 from coolinary.services.image_crop import decode64
@@ -21,19 +23,28 @@ class ChatGPTConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         self.send_json('message', 'Соединение с сервером разорвано!')
 
-    def _create_response_stream(self, kwargs):
+    def _create_response_stream(self, kwargs: dict):
         try:
+            provider = kwargs.get('provider')
+            conversation_id = kwargs.get('conversation_id')
             first = True
             for chunk in ChatCompletion.create(**kwargs):
                 if chunk:
                     if first:
                         first = False
                         self.send_json('provider', get_last_provider(True))
-                    if isinstance(chunk, Exception):
+                    if isinstance(chunk, BaseConversation):
+                        if provider not in conversations:
+                            conversations[provider] = {}
+                        conversations[provider][conversation_id] = chunk
+                        self.send_json("conversation", conversation_id)
+                    elif isinstance(chunk, Exception):
                         logging.exception(chunk)
-                        self.send_json('message', get_error_message(chunk))
-                    else:
-                        self.send_json('content', str(chunk))
+                        self.send_json("message", get_error_message(chunk))
+                    elif isinstance(chunk, ImagePreview):
+                        self.send_json("preview", chunk.to_string())
+                    elif not isinstance(chunk, FinishReason):
+                        self.send_json("content", str(chunk))
             self.send_json('finish', 'done')
         except Exception as e:
             logging.exception(e)
@@ -46,6 +57,7 @@ class ChatGPTConsumer(WebsocketConsumer):
     def send_json(self, message_type, data):
         return self.send(text_data=json.dumps({'type': message_type, 'data': data}))
 
+
     def _prepare_conversation_kwargs(self, data):
         kwargs = {}
         if file := data.get("image"):
@@ -56,8 +68,7 @@ class ChatGPTConsumer(WebsocketConsumer):
         else:
             json_data = data
         set_all_cookies()
-        provider = json_data.get('provider', '').replace('g4f.Provider.', '')
-        provider = provider if provider and provider != "Auto" else None
+        provider = json_data.get('provider')
 
         if "image" in kwargs and not provider:
             provider = "Bing"
@@ -68,22 +79,27 @@ class ChatGPTConsumer(WebsocketConsumer):
 
         if jailbreak := json_data.get('jailbreak', ''):
             messages = special_instructions.get(jailbreak, '') + messages
+        model = json_data.get('model') or models.default
+        # patch = patch_provider if json_data.get('patch_provider') else None
+        api_key = json_data.get("api_key")
+        if api_key is not None:
+            kwargs["api_key"] = api_key
         if json_data.get('web_search'):
-            if provider == "Bing":
+            if provider in ("Bing", "HuggingChat"):
                 kwargs['web_search'] = True
             else:
-                # ResourceWarning: unclosed event loop
                 messages[-1]["content"] = get_search_message(messages[-1]["content"])
 
-        model = json_data.get('model')
-        model = model if model else models.default
-        patch = patch_provider if json_data.get('patch_provider') else None
+        conversation_id = json_data.get("conversation_id")
+        if conversation_id and provider in conversations and conversation_id in conversations[provider]:
+            kwargs["conversation"] = conversations[provider][conversation_id]
         return {
             "model": model,
             "provider": provider,
             "messages": messages,
             "stream": True,
             "ignore_stream": True,
-            "patch_provider": patch,
+            "return_conversation": True,
+            'conversation_id': conversation_id,
             **kwargs
         }
