@@ -2,7 +2,7 @@ import re
 
 
 def get_all_words_at_length(length=5):
-    with open(f"D:/Программирование/IDEA/coolinary/word/{length}_letter_word.txt", "r", encoding="utf-8") as file:
+    with open(f"word/{length}_letter_word.txt", "r", encoding="utf-8") as file:
         return [word[:length] for word in file.readlines()]
 
 

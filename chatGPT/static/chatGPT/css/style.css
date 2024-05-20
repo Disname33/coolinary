@@ -711,19 +711,15 @@ select {
     select {
         width: 100%;
     }
-
     .field {
         /*padding-right: 15px*/
     }
-
     .message {
         flex-direction: row;
     }
-
     .settings .bottom_buttons {
         flex-direction: row;
     }
-
     .count_total {
         padding-left: 98px;
     }
@@ -1097,12 +1093,10 @@ a:-webkit-any-link {
 ::-webkit-scrollbar-track {
     background: var(--scrollbar);
 }
-
 ::-webkit-scrollbar-thumb {
     background: var(--scrollbar-thumb);
     border-radius: 2px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent);
 }

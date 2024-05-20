@@ -36,6 +36,8 @@
         {% for word in matches %}
             <div class="col col-auto "> {{ word }} </div>
         {% endfor %}
+        {% if not matches %}
+            <div class="col col-auto "> Не смогли подобрать слова!</div> {% endif %}
     </div>
 {% endblock %}
 {% block input_word %}
