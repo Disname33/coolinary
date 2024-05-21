@@ -18,12 +18,12 @@ function handleSwipe(event) {
     const leftEdgeThreshold = window.innerWidth * 0.3; // Пороговое значение для открывания сайдбара (30% ширины экрана)
 
     // Обрабатываем свайпы
-    if (distance > swipeThreshold) {
-        if (direction > -45 && direction < 45 && startX < leftEdgeThreshold) {
+    if (distance > swipeThreshold && Math.abs()) {
+        if (direction > -30 && direction < 30 && startX < leftEdgeThreshold) {
             // Свайп слева направо с левого края экрана
             sidebar.classList.add("shown");
             sidebar_button.classList.add("rotated");
-        } else if (direction > 135 || direction < -135) {
+        } else if (direction > 150 || direction < -150) {
             // Свайп справа налево
             hide_sidebar();
         }

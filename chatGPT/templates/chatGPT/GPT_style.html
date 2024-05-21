@@ -9,12 +9,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="description" content="A conversational AI system that listens, learns, and challenges">
-    <link rel="stylesheet" href="{% static 'chatGPT/css/style.css' %}?v5">
+    <link rel="stylesheet" href="{% static 'chatGPT/css/style.css' %}?v6">
     <link rel="stylesheet" href="{% static 'css/header.css' %}">
     <link rel="shortcut icon" href="{% static "key-d-32.png" %}" type="image/png">
-    {#    <link rel="manifest" href="{% static 'chatGPT/img/site.webmanifest' %}"/>#}
     <script src="{% static 'chatGPT/js/icons.js' %}"></script>
-    <script src="{% static 'chatGPT/js/swipe.js' %}"></script>
+    <script src="{% static 'chatGPT/js/swipe.js' %}?v2"></script>
     <script src="{% static 'chatGPT/js/langs.js' %}"></script>
     <script src="{% static 'chatGPT/js/image_create.js' %}?v2"></script>
     <script src="{% static 'chatGPT/js/chat.v1.js' %}?v5" defer></script>
@@ -54,12 +53,20 @@
 <div class="gradient"></div>
 <div class="row">
     <div class="box conversations">
-        <div class="top">
-            <button class="new_convo" onclick="new_conversation()">
-                <i class="fa-regular fa-plus"></i>
-                <span>{% trans 'New Conversation' %}</span>
-            </button>
+        <button class="new_convo close" onclick="hide_sidebar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div>
+            <div class="top">
+                <button class="new_convo" onclick="new_conversation()">
+                    <i class="fa-regular fa-plus"></i>
+                    <span>{% trans 'New Conversation' %}</span>
+                </button>
+            </div>
+
         </div>
+
+
         <div class="bottom_buttons">
             <button onclick="delete_conversations()">
                 <i class="fa-regular fa-trash"></i>
@@ -120,6 +127,9 @@
 
     </div>
     <div class="settings hidden">
+        <button class="new_convo close" onclick="open_settings()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
         <div class="paper">
             <h3>{% trans 'Settings' %}</h3>
             <div class="field">
