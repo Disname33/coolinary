@@ -1,5 +1,6 @@
 import random
 
+from g4f import ChatCompletion
 from g4f.client import Client
 
 from coolinary.secret.secret import BING_U_LIST, GOOGLE_Secure_1PSID
@@ -23,14 +24,25 @@ def set_all_cookies():
     set_cookies(".google.com", {"__Secure-1PSID": GOOGLE_Secure_1PSID})
 
 
-def create_image(prompt):
+def create_image(prompt: str):
     client = Client()
     set_all_cookies()
-    response = client.images.generate(
-        model="dall-e-3",
-        prompt=prompt,
-    )
-    image_url = response.data[0].url
+    # response = client.images.generate(
+    #     model="gpt-4o",
+    #     prompt=prompt,
+    # )
+    kwargs = {}
+    image_url = ChatCompletion.create(**{
+        "model": "gpt-4o",
+        "provider": 'BingCreateImages',
+        "messages": [{'role': 'user', 'content': prompt}],
+        "stream": False,
+        "ignore_stream": True,
+        "return_conversation": True,
+        **kwargs,
+    })
+    print(image_url)
+    # image_url = response.data[0].url
     return image_url
 
 

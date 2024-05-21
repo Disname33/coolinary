@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
-
     const imageGeneratorCheckbox = document.getElementById("imageGenerator");
-
+    providerSelect.addEventListener("click", () => {
+        imageGeneratorCheckbox.checked = false;
+    })
     imageGeneratorCheckbox.addEventListener("click", async () => {
         const providerSelect = document.getElementById("provider");
         const modelSelect = document.getElementById("model");
         const model2Select = document.getElementById("model2");
-        console.info('click')
         if (imageGeneratorCheckbox.checked) {
             let options = providerSelect.options;
 
@@ -40,9 +40,9 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             model2Select.classList.add("hidden");
             modelSelect.classList.remove("hidden");
-            providerSelect.selectedIndex = 0;
-            modelSelect.selectedIndex = 0;
-            model2Select.selectedIndex = 0;
+            providerSelect.selectedIndex = appStorage.getItem("provider");
+            modelSelect.selectedIndex = appStorage.getItem("model");
+            model2Select.selectedIndex = appStorage.getItem("model2");
         }
     });
 });
