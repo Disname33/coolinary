@@ -12,6 +12,7 @@ def replace_stars_with_russian_letters(pattern: str) -> str:
     return regex_pattern
 
 
+
 def find_matches_in_list(pattern: str, word_list: list) -> list:
     regex_pattern = replace_stars_with_russian_letters(pattern)
     compiled_regex = re.compile(regex_pattern)
@@ -19,14 +20,33 @@ def find_matches_in_list(pattern: str, word_list: list) -> list:
     return matches
 
 
-def find_matches_with_letters(pattern: str, word_list: list, letters: list | None = None) -> list:
+def find_matches_with_letters(pattern: str, word_list: list, letters="") -> list:
     regex_pattern = replace_stars_with_russian_letters(pattern)
-    if letters:
-        for letter in letters:
-            regex_pattern = f"(?=.*{letter.lower()})" + regex_pattern
+    for letter in letters:
+        regex_pattern = f"(?=.*{letter.lower()})" + regex_pattern
     compiled_regex = re.compile(regex_pattern)
-    matches = [word for word in word_list if compiled_regex.fullmatch(word)]
-    return matches
+    return [word for word in word_list if compiled_regex.fullmatch(word)]
+
+
+def replace_non_russian_letters(pattern: str) -> str:
+    regex_pattern = ''.join(
+        '[а-я]' if not re.match(r'[а-я]', char) else char
+        for char in pattern
+    )
+    return regex_pattern
+    # escaped_pattern = re.escape(pattern)
+    # regex_pattern = escaped_pattern.replace(r'[^а-я]', '[а-я]')
+    # return regex_pattern
+
+
+def find_matches_with_conditions(pattern: str, word_list, letters="", excluded_letters=""):
+    regex_pattern = replace_non_russian_letters(pattern)
+    for letter in letters.lower():
+        regex_pattern = f"(?=.*{letter})" + regex_pattern
+    for excluded_letter in excluded_letters.lower():
+        regex_pattern = f"(?!.*{excluded_letter})" + regex_pattern
+    compiled_regex = re.compile(regex_pattern)
+    return [word for word in word_list if compiled_regex.fullmatch(word)]
 
 
 if __name__ == '__main__':

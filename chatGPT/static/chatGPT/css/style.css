@@ -1174,6 +1174,10 @@ a:-webkit-any-link {
         max-width: calc(100% - 4em);
         padding-left: var(--section-gap);;
     }
+
+    .paper h3 {
+        padding-top: 15px;
+    }
 }
 
 @media screen and (min-width: 990px) {

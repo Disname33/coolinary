@@ -18,8 +18,14 @@
     <h4 class="link-success my-4">Какое слово хотите получить, {{ user.get_username }}?</h4>
     <form id="getPatternForm">
         {% csrf_token %}
-        <input type="text" name="letters" id="letters" autofocus placeholder="Введите дополнительные буквы"
-               class="form-control border-success text-success focus-ring focus-ring-success"
+        <input type="text" name="excluded_letters" id="excluded_letters"
+               placeholder="Введите буквы, которых нет в слове"
+               class="form-control border-danger text-danger focus-ring focus-ring-danger"
+               aria-label="буквы, которых нет в слове" aria-describedby="excluded letters"
+               value="{{ excluded_letters }}"
+               pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы без запятых и пробелов">
+        <input type="text" name="letters" id="letters" placeholder="Введите дополнительные буквы"
+               class="form-control border-primary text-primary focus-ring focus-ring-primary  mt-4"
                aria-label="дополнительные буквы" aria-describedby="letters" value="{{ letters }}"
                pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы без запятых и пробелов">
         <div class="input-group mb-3 my-4">
@@ -39,6 +45,28 @@
         {% if not matches %}
             <div class="col col-auto "> Не смогли подобрать слова!</div> {% endif %}
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const patternEl = document.querySelector("#pattern");
+            const lettersEl = document.querySelector("#letters");
+            const excludedLettersEl = document.querySelector("#excluded_letters");
+
+            const handleInputChange = (event) => {
+                let {id, value} = event.target;
+                if (id === 'pattern') {
+                    event.target.value = event.target.value.replace(/[^а-яА-Я/*]/g, "*");
+                } else {
+                    event.target.value = event.target.value.replace(/[^а-яА-Я]/g, "");
+                }
+            };
+
+            [patternEl, lettersEl, excludedLettersEl].forEach(el => {
+                el.addEventListener('input', handleInputChange);
+            });
+        });
+
+    </script>
 {% endblock %}
 {% block input_word %}
 
