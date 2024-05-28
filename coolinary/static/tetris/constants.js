@@ -2,7 +2,8 @@
 
 const COLS = 10;
 const ROWS = 20;
-const BLOCK_SIZE = (window.innerWidth < 390) ? (window.innerWidth - 90) / 10 : 30;
+const WIDTH = document.querySelector('header').offsetWidth;
+const BLOCK_SIZE = (WIDTH < 390) ? (WIDTH - 90) / COLS : 30;
 const BLOCK_SIZE_NEXT = 15;
 const LINES_PER_LEVEL = 10;
 const COLORS = [

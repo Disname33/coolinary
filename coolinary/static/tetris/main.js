@@ -35,7 +35,7 @@ moves = {
 };
 
 let board = new Board(ctx, ctxNext);
-addEventListener();
+addKeyEventListener();
 initNext();
 
 function initNext() {
@@ -44,7 +44,7 @@ function initNext() {
     ctxNext.scale(BLOCK_SIZE_NEXT, BLOCK_SIZE_NEXT);
 }
 
-function addEventListener() {
+function addKeyEventListener() {
     document.addEventListener('keydown', event => {
         if (event.code === "KeyP") {
             pause();
