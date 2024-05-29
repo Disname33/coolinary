@@ -68,12 +68,11 @@ const messageHandlers = {
         console.info("Conversation used:", data)
     },
     provider: function (data) {
-        provider_result = data
         content.querySelector('.provider').innerHTML = `
-                        <a href="${provider_result.url}" target="_blank">
-                            ${message.provider.label ? message.provider.label : message.provider.name}
+                        <a href="${data.url}" target="_blank">
+                            ${data.label ? data.label : data.name}
                         </a>
-                        ${provider_result.model ? ' with ' + provider_result.model : ''}
+                        ${data.model ? ' with ' + data.model : ''}
                     `
     },
     message: function (data) {
