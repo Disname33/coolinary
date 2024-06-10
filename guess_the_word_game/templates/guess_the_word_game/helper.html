@@ -50,10 +50,16 @@
     </div>
 
     <script>
+        let clearAllInput;
         document.addEventListener("DOMContentLoaded", () => {
             const patternEl = document.querySelector("#pattern");
             const lettersEl = document.querySelector("#letters");
             const excludedLettersEl = document.querySelector("#excluded_letters");
+            const warningTextEl = document.querySelector(".text-warning")
+
+            clearAllInput = function () {
+                patternEl.value = lettersEl.value = excludedLettersEl.value = '';
+            }
 
             const handleInputChange = (event) => {
                 let {id, value} = event.target;
@@ -71,7 +77,6 @@
 
             function checkRepeatedLetters() {
                 const combinedValue = patternEl.value + lettersEl.value;
-                const warningTextEl = document.querySelector(".text-warning")
                 for (let letter of excludedLettersEl.value) {
                     if (combinedValue.includes(letter)) {
                         warningTextEl.classList.remove("visually-hidden");
@@ -87,6 +92,11 @@
 {% block input_word %}
 
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <div class=" col-xl-2 p-2">
+            <div class="btn btn-outline-warning d-flex text-center" role="button" onclick="clearAllInput();">
+                Очистить ввод
+            </div>
+        </div>
         <div class=" col-xl-2 p-2">
             <a class="btn btn-outline-success d-flex text-center" href="{% url 'guess_the_word_game' %}" role="button">
                 Назад в игру
