@@ -254,7 +254,7 @@ const handle_ask = async () => {
                 <div class="count">
                     ${count_words_and_tokens(message, get_selected_model())}
                     <i class="fa-solid fa-volume-high"></i>
-                    <i class="fa-regular fa-clipboard"></i>
+                    <i class="fa-regular fa-clipboard" onclick="copyContent(this.parentElement)"></i>
                 </div>
             </div>
         </div>

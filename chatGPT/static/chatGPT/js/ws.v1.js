@@ -118,6 +118,7 @@ const messageHandlers = {
         // load_conversation(window.conversation_id);
         html = markdown_render(text);
         content_inner.innerHTML = html;
+        content_count.innerHTML += `<i class="fa-regular fa-clipboard" data-click="true" onclick="copyContent(this.parentElement)"></i>`
         highlight(content_inner);
 
         imageInput.value = "";
@@ -131,3 +132,12 @@ const messageHandlers = {
     }
 };
 
+function copyContent(content) {
+    navigator.clipboard.writeText(content.parentElement.querySelector(".content_inner").innerText)
+        .then(function () {
+            console.log("Текст скопирован в буфер обмена");
+        })
+        .catch(function (error) {
+            console.error("Не удалось скопировать текст: ", error);
+        });
+}
