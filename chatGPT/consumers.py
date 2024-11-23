@@ -9,7 +9,7 @@ from g4f.gui.server.config import special_instructions
 from g4f.gui.server.internet import get_search_message
 from g4f.image import to_image, ImagePreview
 from g4f.providers.base_provider import FinishReason
-from g4f.providers.conversation import BaseConversation
+from g4f.providers.response import BaseConversation
 
 from chatGPT.services.gpt4free import set_all_cookies
 from coolinary.services.image_crop import decode64
