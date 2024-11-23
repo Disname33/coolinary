@@ -29,7 +29,7 @@ class GameScore(models.Model):
         game_score_obj.user = source_obj.user
         game_score_obj.difficulty = source_obj.difficulty
         game_score_obj.hidden_word = source_obj.hidden_word
-        game_score_obj.attempts = len(source_obj.entered_words_list)
+        game_score_obj.attempts = source_obj.entered_words_list.count(',') + 1
         game_score_obj.elapsed_time = int(elapsed_time(source_obj.start_time))
         return game_score_obj
 
