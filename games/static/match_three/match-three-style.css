@@ -13,6 +13,7 @@
     background-position: center;
     border-radius: 10%;
     position: relative;
+    overflow: hidden;
 }
 
 .gem {
@@ -26,6 +27,18 @@
     position: absolute;
     border-radius: 50%;
     overflow: hidden;
+}
+
+.beam {
+    position: absolute;
+    background-image: url("/static/match_three/beam_bolt.gif");
+    pointer-events: none;
+    background-size: 100% 100%;
+    z-index: 10;
+}
+
+.rotate90 {
+    transform: rotate(90deg);
 }
 
 .rainbow-border::before {

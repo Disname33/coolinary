@@ -7,6 +7,7 @@ const GAME_FIELD = "#game-field";
 const GameStates = {PICK: 'pick', REVERT: 'revert', SWITCH: 'switch', REMOVE: 'remove', REFILL: 'refill', FALL: 'fall'};
 const Flash = {HORIZONTAL: 'horizontal-flash', VERTICAL: 'vertical-flash', DOUBLE: 'double-flash', RAINBOW: 'rainbow'};
 const GEM_CLASS = "gem";
+const BEAM_CLASS = "beam";
 const GEM_ID_PREFIX = "gem";
 const bgColors = ["magenta", "mediumblue", "yellow", "lime", "cyan", "orange", "crimson", "gray"];
 let difficulty = 4;
@@ -42,16 +43,16 @@ function getImg(index) {
     const url = 'https://cache.foreca.net/static/img/symb-100x100/';
     const img_class = `<img class = "img-fluid pointer-events" src="`
     const img = [
-        img_class + url + `d440.png" alt="Гроза">`,
-        img_class + url + `n000.png" alt="Месяц">`,
-        img_class + url + `d000.png" alt="Солнце">`,
-        img_class + url + `d400.png" alt="Тучи">`,
-        img_class + url + `d430.png" alt="Дождь">`,
-        img_class + url + `d432.png" alt="Снег">`,
-        img_class + url + `d220.png" alt="Пасмурно">`,
-        img_class + url + `n220.png" alt="Пасмурно ночь">`,
+        `d440.png" alt="Гроза">`,
+        `n000.png" alt="Месяц">`,
+        `d000.png" alt="Солнце">`,
+        `d400.png" alt="Тучи">`,
+        `d430.png" alt="Дождь">`,
+        `d432.png" alt="Снег">`,
+        `d220.png" alt="Пасмурно">`,
+        `n220.png" alt="Пасмурно ночь">`,
     ];
-    return img [index];
+    return img_class + url + img [index];
 }
 
 

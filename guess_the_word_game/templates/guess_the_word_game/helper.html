@@ -76,8 +76,8 @@
             });
 
             function checkRepeatedLetters() {
-                const combinedValue = patternEl.value + lettersEl.value;
-                for (let letter of excludedLettersEl.value) {
+                const combinedValue = patternEl.value.toLowerCase() + lettersEl.value.toLowerCase();
+                for (let letter of excludedLettersEl.value.toLowerCase()) {
                     if (combinedValue.includes(letter)) {
                         warningTextEl.classList.remove("visually-hidden");
                         return;

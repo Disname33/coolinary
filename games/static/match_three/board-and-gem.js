@@ -1,5 +1,7 @@
 class Board {
     grid = [];
+    flashRemoveQueue = [];
+    newGemQueue = [];
 
     constructor(map = Array(NUM_ROWS).fill(Array(NUM_COLS).fill(-1))) {
         if (Board.instance) {
@@ -29,6 +31,27 @@ class Board {
         }
     }
 
+    addFlashToRemove(row, col) {
+        let gem = this.grid[row][col];
+        gem.row = row;
+        gem.col = col;
+        this.flashRemoveQueue.push(gem)
+    }
+
+    addNewFlashGemAtQueue(gem, row, col) {
+        gem.row = row;
+        gem.col = col;
+        this.newGemQueue.push(gem)
+    }
+
+    addNewFlashGemAtBoard() {
+        while (this.newGemQueue.length) {
+            let gem = this.newGemQueue.pop();
+            $("#" + Gem.getID(gem.row, gem.col)).remove();
+            this.grid[gem.row][gem.col] = gem;
+            this.createGemDiv(gem.row, gem.col);
+        }
+    }
 
     createGemDiv(row, col) {
         const gem = this.grid[row][col];
@@ -40,6 +63,38 @@ class Board {
             "height": (GEM_SIZE - BORDER) + "px",
             "background-color": bgColors[gem.value]
         });
+    }
+
+    createBeamDiv(row, col, type) {
+        let boardWidth = $(GAME_FIELD).width();
+        if (type === Flash.HORIZONTAL || type === Flash.DOUBLE) {
+            let beamId = 'beam_' + Flash.HORIZONTAL + '_' + row + '_' + col;
+            $(GAME_FIELD).append('<div class = "beam" id = "' + beamId + `"></div>`);
+
+            $("#" + beamId).css({
+                "top": (row * GEM_SIZE) + BORDER + "px",
+                "left": ((col + 0.5) * GEM_SIZE) + BORDER - boardWidth + "px",
+                "width": (boardWidth * 2) + "px",
+                "height": (GEM_SIZE - BORDER) + "px",
+            });
+            setTimeout(() => {
+                $("#" + beamId).remove()
+            }, 1000);
+        }
+        if (type === Flash.VERTICAL || type === Flash.DOUBLE) {
+            let beamId = 'beam_' + Flash.VERTICAL + '_' + row + '_' + col;
+            $(GAME_FIELD).append('<div class = "beam rotate90" id = "' + beamId + `"></div>`);
+            let boardHeight = $(GAME_FIELD).height();
+            $("#" + beamId).css({
+                "top": (row * GEM_SIZE) + BORDER + "px",
+                "left": ((col + 1.5) * GEM_SIZE) + BORDER - boardWidth + "px",
+                "height": (GEM_SIZE - BORDER) + "px",
+                "width": (boardHeight * 2) + "px"
+            });
+            setTimeout(() => {
+                $("#" + beamId).remove()
+            }, 1000);
+        }
     }
 
     clear() {
@@ -97,6 +152,8 @@ class Board {
 
 
 class Gem {
+    col;
+    row;
 
     constructor(value = Math.floor(Math.random() * difficulty), type = GEM_CLASS, flash = '') {
         this.value = value;
@@ -162,4 +219,11 @@ class Gem {
     }
 
 
+}
+
+class Cell {
+    constructor(row, col) {
+        this.row = row;
+        this.col = col;
+    }
 }

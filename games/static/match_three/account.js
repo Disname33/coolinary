@@ -22,6 +22,7 @@ function is_lose() {
 
 function checkAccount() {
     if (is_win()) {
+        accountValues.score += 100 * accountValues.moves
         clearInterval(idleTimeout);
         gameOver("Поздравляем с победой! Ваш результат: " + accountValues.score, "Вы победили!", true);
         sendScore(accountValues.score, accountValues.level);

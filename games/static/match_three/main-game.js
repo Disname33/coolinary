@@ -126,22 +126,37 @@ function checkMoving() {
                     }
                     afterAction()
                 } else if (Gem.is_double_flash(selectedRow, selectedCol) && Gem.is_double_flash(posY, posX)) {
-                    if (selectedRow > 0) removeRow(selectedRow - 1);
+                    if (selectedRow > 0) {
+                        removeRow(selectedRow - 1);
+                        if (selectedCol > 0) board.createBeamDiv(selectedRow - 1, selectedCol - 1, Flash.DOUBLE);
+                        if (selectedCol < NUM_COLS) board.createBeamDiv(selectedRow - 1, NUM_COLS + 1, Flash.DOUBLE);
+                    }
                     removeRow(selectedRow);
-                    if (selectedRow < NUM_ROWS) removeRow(selectedRow + 1);
-                    if (selectedCol > 0) removeCol(selectedCol - 1);
+                    if (selectedRow < NUM_ROWS) {
+                        removeRow(selectedRow + 1);
+                        if (selectedCol > 0) board.createBeamDiv(selectedRow + 1, selectedCol - 1, Flash.DOUBLE);
+                        if (selectedCol < NUM_COLS) board.createBeamDiv(selectedRow + 1, NUM_COLS + 1, Flash.DOUBLE);
+                    }
+                    if (selectedCol > 0) {
+                        removeCol(selectedCol - 1);
+                    }
                     removeCol(selectedCol);
-                    if (selectedCol < NUM_COLS) removeCol(selectedCol + 1);
+                    if (selectedCol < NUM_COLS) {
+                        removeCol(selectedCol + 1);
+                    }
                     afterAction()
                 } else if ((Gem.is_double_flash(selectedRow, selectedCol) && Gem.is_line_flash(posY, posX)) || ((Gem.is_line_flash(selectedRow, selectedCol) && Gem.is_double_flash(posY, posX)))) {
                     removeRow(selectedRow);
                     removeRow(posY);
                     removeCol(selectedCol);
                     removeCol(posX);
+                    board.createBeamDiv(selectedRow, selectedCol, Flash.DOUBLE);
+                    board.createBeamDiv(posY, posX, Flash.DOUBLE);
                     afterAction()
                 } else if (Gem.is_line_flash(selectedRow, selectedCol) && Gem.is_line_flash(posY, posX)) {
                     removeRow(selectedRow);
                     removeCol(selectedCol);
+                    board.createBeamDiv(selectedRow, selectedCol, Flash.DOUBLE);
                     afterAction()
                 } else if (board.isStreak(selectedRow, selectedCol) || board.isStreak(posY, posX)) {
                     if (board.isStreak(selectedRow, selectedCol)) {
@@ -174,21 +189,32 @@ function checkMoving() {
     }
 }
 
+function afterRemoveGems() {
+    while (board.flashRemoveQueue.length) {
+        let gem = board.flashRemoveQueue.pop();
+        flash_explode(gem.row, gem.col, true, true)
+    }
+    board.addNewFlashGemAtBoard();
+}
+
 function afterAction() {
     account.moves--;
     multiplyScore = 1;
+    afterRemoveGems();
     gameState = GameStates.REMOVE;
     gemFade();
 }
 
 function removeColor(row, col, rainbow_row, rainbow_col) {
-    const gemClass = Gem.getElementByID(row, col).classList[1];
+    const gemClass = board.grid[row][col].flash;
     const gem = new Gem(board.grid[row][col].value);
     for (let i = 0; i < NUM_ROWS; i++) {
         for (let j = 0; j < NUM_COLS; j++) {
             if (board.grid[i][j].equals(gem)) {
-                Gem.getElementByID(i, j).classList.add(gemClass);
-
+                if (gemClass.length) {
+                    Gem.getElementByID(i, j).classList.add(gemClass);
+                    board.grid[i][j].flash = gemClass;
+                }
                 flash_explode(i, j);
                 board.grid[i][j].forDel();
             }
@@ -199,6 +225,7 @@ function removeColor(row, col, rainbow_row, rainbow_col) {
 }
 
 function placeNewGems() {
+
     let gemsPlaced = 0;
     for (let i = 0; i < NUM_COLS; i++) {
         if (!board.inGame(0, i)) {
@@ -211,7 +238,7 @@ function placeNewGems() {
         gameState = GameStates.REMOVE;
         checkFalling();
     } else {
-        findCombos()
+        findCombos();
     }
 }
 
@@ -246,6 +273,7 @@ function findCombos() {
     }
     if (combo > 0) {
         gameState = GameStates.REMOVE;
+        afterRemoveGems();
         gemFade();
     } else if (!checkingForMoves().length) {
         setTimeout(shuffleGems, 500)
@@ -337,19 +365,16 @@ function removeGems(row, col) {
     const h_streak = board.horizontalStreak(row, col);
     const gemElement = $("#" + Gem.getID(row, col));
     const copyGem = board.grid[row][col].copy();
+    let flash_str = "";
     if (board.inGame(row, col)) {
-        let flash_str = flash_explode(row, col);
+        checkIsFlashAndRemove(row, col)
         for (let v_row of v_streak) {
-            flash_str = flash_explode(v_row, col);
-            if (flash_str === Flash.DOUBLE || flash_str === Flash.VERTICAL) {
-                break;
-            }
+            if (v_row === row) continue;
+            checkIsFlashAndRemove(v_row, col)
         }
         for (let h_col of h_streak) {
-            flash_str = flash_explode(row, h_col);
-            if (flash_str === Flash.DOUBLE || flash_str === Flash.HORIZONTAL) {
-                break;
-            }
+            if (h_col === col) continue;
+            checkIsFlashAndRemove(row, h_col)
         }
         account.score += multiplyScore;
         if (v_streak.length > 3 || h_streak.length > 3) {
@@ -363,19 +388,27 @@ function removeGems(row, col) {
         } else {
             copyGem.flash = '';
         }
+
         if (copyGem.flash !== '') {
-            gemElement.remove();
-            board.grid[row][col] = copyGem;
-            board.createGemDiv(row, col);
+            // gemElement.remove();
+            board.addNewFlashGemAtQueue(copyGem, row, col);
         }
 
     }
 }
 
-function flash_explode(row, col, del_self = true) {
-    let flash_str = ''
+function checkIsFlashAndRemove(row, col) {
+    if (Gem.is_flash(row, col)) {
+        board.addFlashToRemove(row, col);
+    } else {
+        removeGem(row, col);
+    }
+}
+
+function flash_explode(row, col, del_self = true, ignoreInGame = false) {
     const gemElement = Gem.getElementByID(row, col);
-    if (gemElement !== null && board.inGame(row, col)) {
+    const gem = board.grid[row][col];
+    if (gemElement !== null && (ignoreInGame || board.inGame(row, col))) {
         if (Gem.is_rainbow(row, col)) {
             removeGem(row, col)
             const gemValue = Math.floor(Math.random() * difficulty);
@@ -388,24 +421,23 @@ function flash_explode(row, col, del_self = true) {
                 }
             }
             account.score += 150;
-        } else if (Gem.is_double_flash(row, col)) {
+        } else if (gem.flash === Flash.DOUBLE) {
             removeGem(row, col)
+            board.createBeamDiv(row, col, gem.flash);
             removeRow(row);
             removeCol(col);
-            flash_str = Flash.DOUBLE
-        } else if (gemElement.classList.contains(Flash.HORIZONTAL)) {
+        } else if (gem.flash === Flash.HORIZONTAL) {
             removeGem(row, col)
+            board.createBeamDiv(row, col, gem.flash);
             removeRow(row);
-            flash_str = Flash.HORIZONTAL
-        } else if (gemElement.classList.contains(Flash.VERTICAL)) {
+        } else if (gem.flash === Flash.VERTICAL) {
             removeGem(row, col)
+            board.createBeamDiv(row, col, gem.flash);
             removeCol(col);
-            flash_str = Flash.VERTICAL
         } else if (del_self) {
             removeGem(row, col)
         }
     }
-    return flash_str
 }
 
 function removeGem(row, col) {
