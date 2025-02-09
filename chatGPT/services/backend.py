@@ -4,9 +4,10 @@ from typing import Generator
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import StreamingHttpResponse
-from g4f import get_last_provider, ChatCompletion
+from g4f import ChatCompletion
 from g4f import models
 from g4f.Provider import __providers__
+from g4f.client.service import get_last_provider
 from g4f.gui.server.internet import get_search_message
 from g4f.image import is_allowed_extension, to_image
 

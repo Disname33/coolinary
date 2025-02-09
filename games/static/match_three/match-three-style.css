@@ -29,14 +29,6 @@
     overflow: hidden;
 }
 
-.beam {
-    position: absolute;
-    background-image: url("/static/match_three/beam_bolt.gif");
-    pointer-events: none;
-    background-size: 100% 100%;
-    z-index: 10;
-}
-
 .rotate90 {
     transform: rotate(90deg);
 }
@@ -137,3 +129,39 @@
     animation-iteration-count: 3;
 }
 
+.beam-pulse-horizontal {
+    background: linear-gradient(0, rgba(0, 0, 255, 0) 0%, rgba(0, 0, 255, 0.8) 20%, rgba(255, 255, 255, 1) 50%, rgba(00, 00, 255, 0.8) 80%, rgba(0, 0, 255, 0) 100%);
+    position: absolute;
+    pointer-events: none;
+    border-radius: 0 25% 25% 0;
+    animation: beam-pulse-anim 0.5s 1;
+    z-index: 10;
+}
+
+.beam-pulse-vertical {
+    background: linear-gradient(90deg, rgba(0, 0, 255, 0) 0%, rgba(0, 0, 255, 0.6) 20%, rgba(255, 255, 255, 1) 50%, rgba(00, 00, 255, 0.6) 80%, rgba(0, 0, 255, 0) 100%);
+    position: absolute;
+    pointer-events: none;
+    border-radius: 25% 0 0 25%;
+    animation: beam-pulse-anim 0.5s 1;
+    z-index: 10;
+}
+
+@keyframes beam-pulse-anim {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    1% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    99% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}

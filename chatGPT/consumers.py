@@ -2,13 +2,15 @@ import json
 import logging
 
 from channels.generic.websocket import WebsocketConsumer
-from g4f import get_last_provider, ChatCompletion
+from g4f import ChatCompletion
 from g4f import models
+from g4f.client.service import get_last_provider
 from g4f.gui.server.api import conversations
 from g4f.gui.server.config import special_instructions
 from g4f.gui.server.internet import get_search_message
-from g4f.image import to_image, ImagePreview
-from g4f.providers.base_provider import FinishReason
+from g4f.image import to_image
+# from g4f.image import to_image, ImagePreview
+# from g4f.providers.base_provider import FinishReason
 from g4f.providers.response import BaseConversation
 
 from chatGPT.services.gpt4free import set_all_cookies
@@ -41,10 +43,10 @@ class ChatGPTConsumer(WebsocketConsumer):
                     elif isinstance(chunk, Exception):
                         logging.exception(chunk)
                         self.send_json("message", get_error_message(chunk))
-                    elif isinstance(chunk, ImagePreview):
-                        self.send_json("preview", chunk.to_string())
-                    elif not isinstance(chunk, FinishReason):
-                        self.send_json("content", str(chunk))
+                    # elif isinstance(chunk, ImagePreview):
+                    #     self.send_json("preview", chunk.to_string())
+                    # elif not isinstance(chunk, FinishReason):
+                    #     self.send_json("content", str(chunk))
             self.send_json('finish', 'done')
         except Exception as e:
             logging.exception(e)

@@ -68,32 +68,41 @@ class Board {
     createBeamDiv(row, col, type) {
         let boardWidth = $(GAME_FIELD).width();
         if (type === Flash.HORIZONTAL || type === Flash.DOUBLE) {
+            // const beamimg = new Div((boardWidth * 2), (GEM_SIZE - BORDER));
+            // beamimg.classList.add("beam");
+            // beamimg.style.marginTop = (row * GEM_SIZE) + BORDER + "px";
+            // beamimg.style.marginLeft = ((col - 3) * GEM_SIZE) + BORDER - boardWidth + "px";
+            // beamimg.src = "/static/match_three/beam_bolt.gif";
+            // beamimg.onload = () => {
+            //     setTimeout(() => {
+            //         beamimg.remove()
+            //     }, 1120);
+            // }
             let beamId = 'beam_' + Flash.HORIZONTAL + '_' + row + '_' + col;
-            $(GAME_FIELD).append('<div class = "beam" id = "' + beamId + `"></div>`);
-
+            $(GAME_FIELD).append('<div class = "beam-pulse-horizontal" id = "' + beamId + `"></div>`);
             $("#" + beamId).css({
                 "top": (row * GEM_SIZE) + BORDER + "px",
-                "left": ((col + 0.5) * GEM_SIZE) + BORDER - boardWidth + "px",
+                "left": ((col) * GEM_SIZE) + BORDER - boardWidth + "px",
                 "width": (boardWidth * 2) + "px",
-                "height": (GEM_SIZE - BORDER) + "px",
+                "height": (GEM_SIZE - BORDER) + "px"
             });
             setTimeout(() => {
                 $("#" + beamId).remove()
-            }, 1000);
+            }, 500);
         }
         if (type === Flash.VERTICAL || type === Flash.DOUBLE) {
             let beamId = 'beam_' + Flash.VERTICAL + '_' + row + '_' + col;
-            $(GAME_FIELD).append('<div class = "beam rotate90" id = "' + beamId + `"></div>`);
+            $(GAME_FIELD).append('<div class = "beam-pulse-vertical" id = "' + beamId + `"></div>`);
             let boardHeight = $(GAME_FIELD).height();
             $("#" + beamId).css({
-                "top": (row * GEM_SIZE) + BORDER + "px",
-                "left": ((col + 1.5) * GEM_SIZE) + BORDER - boardWidth + "px",
-                "height": (GEM_SIZE - BORDER) + "px",
-                "width": (boardHeight * 2) + "px"
+                "top": (row * GEM_SIZE) + BORDER - boardHeight + "px",
+                "left": ((col) * GEM_SIZE) + BORDER + "px",
+                "width": (GEM_SIZE - BORDER) + "px",
+                "height": (boardHeight * 2) + "px"
             });
             setTimeout(() => {
                 $("#" + beamId).remove()
-            }, 1000);
+            }, 500);
         }
     }
 

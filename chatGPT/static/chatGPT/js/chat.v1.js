@@ -1067,20 +1067,80 @@ async function on_api() {
 
     register_settings_storage();
 
+    let provider_options = [];
     models = await api("models");
     models.forEach((model) => {
         let option = document.createElement("option");
-        option.value = option.text = model;
+        option.value = model.name;
+        option.text = model.name + (model.image ? " (Image Generation)" : "") + (model.vision ? " (Image Upload)" : "");
+        option.dataset.providers = model.providers.join(" ");
         modelSelect.appendChild(option);
+        is_demo = model.demo;
     });
+    let login_urls;
 
     providers = await api("providers")
-    Object.entries(providers).forEach(([provider, label]) => {
+    providers.sort((a, b) => a.label.localeCompare(b.label));
+    login_urls = {};
+    providers.forEach((provider) => {
         let option = document.createElement("option");
-        option.value = provider;
-        option.text = label;
+        option.value = provider.name;
+        option.dataset.label = provider.label;
+        option.text = provider.label
+            + (provider.vision ? " (Image Upload)" : "")
+            + (provider.image ? " (Image Generation)" : "")
+            + (provider.nodriver ? " (Browser)" : "")
+            + (!provider.nodriver && provider.auth ? " (Auth)" : "");
+        if (provider.parent)
+            option.dataset.parent = provider.parent;
         providerSelect.appendChild(option);
-    })
+
+        if (provider.parent) {
+            if (!login_urls[provider.parent]) {
+                login_urls[provider.parent] = [provider.label, provider.login_url, [provider.name]];
+            } else {
+                login_urls[provider.parent][2].push(provider.name);
+            }
+        } else if (provider.login_url) {
+            if (!login_urls[provider.name]) {
+                login_urls[provider.name] = [provider.label, provider.login_url, []];
+            } else {
+                login_urls[provider.name][0] = provider.label;
+                login_urls[provider.name][1] = provider.login_url;
+            }
+        }
+    });
+
+    let providersContainer = document.createElement("div");
+    providersContainer.classList.add("field", "collapsible");
+    providersContainer.innerHTML = `
+            <div class="collapsible-header">
+                <span class="label">Providers (Enable/Disable)</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="collapsible-content hidden"></div>
+        `;
+    settings.querySelector(".paper").appendChild(providersContainer);
+
+    providers.forEach((provider) => {
+        if (!provider.parent) {
+            let option = document.createElement("div");
+            option.classList.add("provider-item");
+            option.innerHTML = `
+                    <span class="label">Enable ${provider.label}</span>
+                    <input id="Provider${provider.name}" type="checkbox" name="Provider${provider.name}" value="${provider.name}" class="provider" checked="">
+                    <label for="Provider${provider.name}" class="toogle" title="Remove provider from dropdown"></label>
+                `;
+            option.querySelector("input").addEventListener("change", (event) => load_provider_option(event.target, provider.name));
+            providersContainer.querySelector(".collapsible-content").appendChild(option);
+            provider_options[provider.name] = option;
+        }
+    });
+
+    providersContainer.querySelector(".collapsible-header").addEventListener('click', (e) => {
+        providersContainer.querySelector(".collapsible-content").classList.toggle('hidden');
+        providersContainer.querySelector(".collapsible-header").classList.toggle('active');
+    });
 
     await load_provider_models(appStorage.getItem("provider"));
     await load_settings_storage()
