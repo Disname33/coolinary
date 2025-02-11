@@ -128,21 +128,23 @@ function checkMoving() {
                 } else if (Gem.is_double_flash(selectedRow, selectedCol) && Gem.is_double_flash(posY, posX)) {
                     if (selectedRow > 0) {
                         removeRow(selectedRow - 1);
-                        if (selectedCol > 0) board.createBeamDiv(selectedRow - 1, selectedCol - 1, Flash.DOUBLE);
-                        if (selectedCol < NUM_COLS) board.createBeamDiv(selectedRow - 1, NUM_COLS + 1, Flash.DOUBLE);
+                        board.createBeamDiv(selectedRow - 1, selectedCol, Flash.HORIZONTAL);
                     }
                     removeRow(selectedRow);
-                    if (selectedRow < NUM_ROWS) {
+                    board.createBeamDiv(selectedRow, selectedCol, Flash.HORIZONTAL);
+                    if (selectedRow + 1 < NUM_ROWS) {
                         removeRow(selectedRow + 1);
-                        if (selectedCol > 0) board.createBeamDiv(selectedRow + 1, selectedCol - 1, Flash.DOUBLE);
-                        if (selectedCol < NUM_COLS) board.createBeamDiv(selectedRow + 1, NUM_COLS + 1, Flash.DOUBLE);
+                        board.createBeamDiv(selectedRow + 1, selectedCol, Flash.HORIZONTAL);
                     }
                     if (selectedCol > 0) {
                         removeCol(selectedCol - 1);
+                        board.createBeamDiv(selectedRow, selectedCol - 1, Flash.VERTICAL);
                     }
                     removeCol(selectedCol);
-                    if (selectedCol < NUM_COLS) {
+                    board.createBeamDiv(selectedRow, selectedCol, Flash.VERTICAL);
+                    if (selectedCol + 1 < NUM_COLS) {
                         removeCol(selectedCol + 1);
+                        board.createBeamDiv(selectedRow, selectedCol + 1, Flash.VERTICAL);
                     }
                     afterAction()
                 } else if ((Gem.is_double_flash(selectedRow, selectedCol) && Gem.is_line_flash(posY, posX)) || ((Gem.is_line_flash(selectedRow, selectedCol) && Gem.is_double_flash(posY, posX)))) {
