@@ -70,7 +70,7 @@
             remove_duplicate = function () {
                 const charToRemove = new Set([...patternEl.value.toLowerCase(), ...lettersEl.value.toLowerCase()]);
                 let letter_result = '';
-                for (let char of excludedLettersEl.value) {
+                for (let char of excludedLettersEl.value.toLowerCase()) {
                     if (!charToRemove.has(char)) {
                         letter_result += char;
                     }
