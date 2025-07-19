@@ -48,10 +48,14 @@
                         </tr>
                         </thead>
                     {% endif %}
-
                 </table>
 
             </div>
+            {# Ссылка для администратора #}
+            {% if user.is_superuser %}
+                <div><a href="{% url 'debt_admin' id=product.id slug=product.slug %}">Переход в режим
+                    Админа</a></div>
+            {% endif %}
         </div>
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <div class=" col-xl-2 p-2">

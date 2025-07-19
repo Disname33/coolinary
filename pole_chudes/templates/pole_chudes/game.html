@@ -4,126 +4,7 @@
 {% load group_check %}
 
 {% block inhead %}
-    <style>
-
-        body {
-            padding: 0;
-        }
-
-        .hide-letter, .letter {
-            align-items: center;
-            vertical-align: center;
-            justify-content: center;
-        }
-
-        .hide-letter {
-            background: linear-gradient(45deg, #000000, #3f3f3f);
-        }
-
-        .letter {
-            background: linear-gradient(45deg, #bbbbbb, #ffffff);
-            position: relative;
-            font: 42px Arial bold normal;
-            font-weight: 900;
-            color: black;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        .letter span {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            margin: 0 -50% 0 0;
-            transform: translate(-50%, -50%)
-        }
-
-        @media (min-width: 992px) {
-            .hide-letter, .letter {
-                width: 60px;
-                height: 60px;
-                margin: 4px;
-            }
-        }
-
-        @media (max-width: 991px) {
-            .hide-letter, .letter {
-                width: 50px;
-                height: 50px;
-                margin: 2px;
-            }
-        }
-
-        #keyboard, #keyboard_toggle {
-            max-width: 600px;
-
-        }
-
-        #keyboard .border {
-            align-items: center;
-            justify-content: center;
-            padding: 1px !important;
-        }
-
-        .wheel {
-            margin: 0 auto;
-            float: left;
-            width: 566px;
-            height: 303px;
-            overflow: hidden;
-            user-select: none;
-            -moz-user-select: none;
-            -webkit-user-select: none;
-            cursor: default;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .wheel-info {
-            max-height: 80px;
-            overflow: auto;
-            width: 80vw;
-        }
-
-        #wheel {
-            position: relative;
-            top: -283px;
-            -webkit-transform: rotate(0deg);
-            -moz-transform: rotate(0deg);
-            -ms-transform: rotate(0deg);
-            -o-transform: rotate(0deg);
-            transform: rotate(0deg);
-            transition: transform 3s ease-out;
-        }
-
-        .border-warning {
-            box-shadow: 0 0 10px 5px rgba(255, 100, 0, 0.5),
-            0 0 10px 5px rgba(255, 255, 0, 0.3),
-            0 0 10px 5px rgba(0, 255, 0, 0.2) !important;
-        }
-
-        .pole-chudes-logo img {
-            width: 140px;
-            height: 60px;
-        }
-
-        @media (max-width: 568px) {
-            .wheel {
-                width: 100%;
-                height: 50vw;
-            }
-
-            #wheel {
-                top: -55vw;
-                width: 100%;
-            }
-
-            .wheel .arrow img {
-                width: 33px;
-                height: 33px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'pole_chudes/pole_chudes.css' %}">
 {% endblock %}
 
 
@@ -133,6 +14,16 @@
 
 {% block body_block %}
     <audio id="wheelSound" src="{% static "/pole_chudes/wheel_sound.mp3" %}" muted="muted" loop="loop"></audio>
+    <audio id="letterCorrectSound" src="{% static "/pole_chudes/letter_correct.mp3" %}" muted="muted"
+           preload="auto"></audio>
+    <audio id="letterWrongSound" src="{% static "/pole_chudes/letter_wrong.mp3" %}" muted="muted"
+           preload="auto"></audio>
+    <audio id="spinWheelSound" src="{% static "/pole_chudes/spin_wheel.mp3" %}" muted="muted" preload="auto"></audio>
+    <audio id="winnerSound" src="{% static "/pole_chudes/winner_of_tour.mp3" %}" muted="muted" preload="auto"></audio>
+    <audio id="bankrotSound" src="{% static "/pole_chudes/bankrot.mp3" %}" muted="muted" preload="auto"></audio>
+    <audio id="prizeSound" src="{% static "/pole_chudes/sector_prize.mp3" %}" muted="muted" preload="auto"></audio>
+    <audio id="zeroSound" src="{% static "/pole_chudes/sector_zero.mp3" %}" muted="muted" preload="auto"></audio>
+    <audio id="wrongWordSound" src="{% static "/pole_chudes/wrong_word.mp3" %}" muted="muted" preload="auto"></audio>
     <div class="container-xl" id="game-field">
 
         <div class="row text-center">
@@ -266,8 +157,17 @@
         </div>
     </div>
     <script>
+        const allAudioElements = document.querySelectorAll('audio');
         const keyboard = document.getElementById('keyboard');
         const wheelSound = document.getElementById('wheelSound');
+        const spinWheelSound = document.getElementById('spinWheelSound');
+        const letterCorrectSound = document.getElementById('letterCorrectSound');
+        const letterWrongSound = document.getElementById('letterWrongSound');
+        const winnerSound = document.getElementById('winnerSound');
+        const bankrotSound = document.getElementById('bankrotSound');
+        const prizeSound = document.getElementById('prizeSound');
+        const zeroSound = document.getElementById('zeroSound');
+        const wrongWordSound = document.getElementById('wrongWordSound');
         const fullWordFInput = document.getElementById('full_word');
         const wheel = document.getElementById('wheel');
         const playersInfo = document.querySelector('.players');
@@ -352,32 +252,47 @@
             isWaitingResponse = false;
             console.log(response);
             if (isSpinning) {
-                wordMask = response.word_mask;
+
                 stopDegree = response.wheel_angle;
                 stopWheelFunction = function () {
-                    if (response.active_player_index !== activePlayerIndex) updateActivePlayer(response);
-                    openLetter(response.word_mask);
+                    if (response.wheel_sector === "Банкрот") restartSound(bankrotSound);
+                    else if (response.wheel_sector === "0") restartSound(zeroSound);
+                    else if (response.wheel_sector === "Приз") restartSound(prizeSound);
+
+                    if (response.active_player_index !== activePlayerIndex) {
+                        updateActivePlayer(response);
+                    }
+                    if (wordMask !== response.word_mask) {
+                        restartSound(letterCorrectSound);
+                        openLetter(response.word_mask);
+                    }
                     updatePlayerInfo(response);
                     waitToSpin = response.wait_to_spin;
                     updateCheckedLetter(response.checked_letters);
-                    if (response.is_complete) win(response.comment);
-                    else startBot(response);
+                    if (response.is_complete) {
+                        win(response.comment);
+                    } else startBot(response);
                 }
             } else {
                 if (response.active_player_index === activePlayerIndex) {
                     if (wordMask === response.word_mask) {
                         showInfo(response.comment, 'Ведущий');
+                        restartSound(letterWrongSound);
                     } else {
-                        wordMask = response.word_mask;
-                        openLetter(wordMask);
+                        restartSound(letterCorrectSound);
+                        openLetter(response.word_mask);
                     }
                 } else {
                     updateActivePlayer(response);
+                    if (response.comment.endsWith("покидает игру")) {
+                        restartSound(wrongWordSound);
+                    } else restartSound(letterWrongSound);
                 }
                 updatePlayerInfo(response);
                 updateCheckedLetter(response.checked_letters);
-                if (response.is_complete) win(response.comment);
-                else startBot(response);
+                if (response.is_complete) {
+                    win(response.comment);
+                } else startBot(response);
                 waitToSpin = response.wait_to_spin;
             }
         }
@@ -422,13 +337,17 @@
         }
 
         function mute(muteButton) {
-            if (wheelSound.muted) {
-                wheelSound.muted = false;
+            const isMuted = wheelSound.muted
+            if (isMuted) {
+                {#wheelSound.muted = false;#}
                 muteButton.src = "/static/svg/volume-on.svg";
             } else {
-                wheelSound.muted = true;
+                {#wheelSound.muted = true;#}
                 muteButton.src = "/static/svg/volume-off.svg";
             }
+            allAudioElements.forEach(audio => {
+                audio.muted = !isMuted;
+            });
         }
 
         wheel.addEventListener('touchstart', function (e) {
@@ -535,7 +454,8 @@
                             showInfo("Дождитесь ответа ведущего!");
                         }
                     } else {
-                        showInfo("Крутите барабан!", 'Ведущий');
+                        showInfo("Вращайте барабан!", 'Ведущий');
+                        restartSound(spinWheelSound);
                     }
 
                 });
@@ -551,6 +471,7 @@
         }
 
         function win(comment) {
+            restartSound(winnerSound);
             setTimeout(function () {
                 alert(comment);
             }, 1500);
@@ -590,6 +511,7 @@
         }
 
         function openLetter(word_mask) {
+            wordMask = word_mask;
             let wordbordHTML = '';
             for (let i = 0; i < word_mask.length; i++) {
                 if (word_mask[i] === '*') {
@@ -647,6 +569,12 @@
                     else alert("Спецсимволы в имени игрока запрещены!")
                 } else alert("Имя слишком длинное!");
             } else alert("Введите имя!");
+        }
+
+        function restartSound(sound) {
+            sound.pause();
+            sound.currentTime = 0;
+            sound.play();
         }
 
         createNewKeyboard();
