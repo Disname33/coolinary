@@ -1,0 +1,24 @@
+{% extends 'shop/shop_base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if product %}Редактировать товар: {{ product.name }}{% else %}Добавить товар{% endif %}
+{% endblock %}
+
+{% block content %}
+    <h1>{% if product %}Редактировать товар{% else %}Добавить товар{% endif %}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <h2>Варианты</h2>
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="variant-form">
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Сохранить</button>
+    </form>
+{% endblock %}

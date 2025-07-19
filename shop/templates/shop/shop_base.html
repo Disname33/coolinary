@@ -1,0 +1,37 @@
+{% extends 'home/header.html' %}
+{% load static %}
+
+{% block inhead %}
+
+{% endblock %}
+
+{% block title %}
+    Магазин 3D Печати
+{% endblock %}
+
+{% block body_block %}
+    <div class="container text-center mt-5">
+
+        <form action="{% url 'shop:search_results' %}" method="get">
+            {% csrf_token %}
+            <div class="input-group mb-3 my-4">
+                <input type="text" name="q" id="room-name-input" autofocus placeholder="Поиск товаров..."
+                       class="form-control active border-primary focus-ring" aria-label="Поиск товаров"
+                       pattern="[а-яёА-ЯЁa-zA-Z0-9\s]+" title=""
+                       aria-describedby="shop-search-submit" maxlength="100" required>
+                <button type="submit" class="btn btn-outline-primary">Искать</button>
+            </div>
+        </form>
+
+        {% block content %}
+            <h1 class="mt-5">
+                {% if user.is_authenticated %}{{ user.get_username }}{% else %}Гость{% endif %}, добро пожаловать в
+                магазин!
+            </h1>
+            <a href="{% url 'shop:product_list' %}">Все товары</a>
+            {% for category in categories %}
+                <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+            {% endfor %}
+        {% endblock %}
+    </div>
+{% endblock %}

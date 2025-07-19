@@ -1,0 +1,83 @@
+{% extends 'shop/shop_base.html' %}
+
+{% block title %}
+    Ваша Корзина
+{% endblock %}
+
+{% block content %}
+    <h1>Ваша Корзина</h1>
+
+    {% if cart.items.count > 0 %}
+        <table>
+            <thead>
+            <tr>
+                <th>Изображение</th>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Всего</th>
+                <th></th>
+                {# Для кнопок действий #}
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in cart.items.all %}
+                <tr>
+                    <td>
+                        {% if item.product.image %}
+                            <a href="{{ item.product.get_absolute_url }}">
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
+                                     style="width: 50px; height: auto;">
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ item.product.get_absolute_url }}">
+                            {{ item.product.name }}
+                        </a>
+                        {% if item.variant %}
+                            <br>
+                            <small>
+                                {% if item.variant.color %}Цвет: {{ item.variant.color.name }}{% endif %}
+                                {% if item.variant.color and item.variant.size %}, {% endif %}
+                                {% if item.variant.size %}Размер: {{ item.variant.size.name }}{% endif %}
+                            </small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {# Форма для обновления количества #}
+                        <form action="{% url 'shop:update_cart' item.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                                   style="width: 50px;">
+                            <button type="submit">Обновить</button>
+                        </form>
+                    </td>
+                    <td>{{ item.get_item_price }} ₽</td>
+                    <td>{{ item.get_total_price }} ₽</td>
+                    <td>
+                        {# Форма для удаления товара #}
+                        <form action="{% url 'shop:remove_from_cart' item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Итого: {{ cart.get_total_price }} ₽</h3>
+
+        <p>
+            <a href="{% url 'shop:product_list' %}">Продолжить покупки</a>
+            {# Здесь можно добавить кнопку "Оформить заказ" #}
+            {# <a href="{% url 'shop:checkout' %}">Оформить заказ</a> #}
+        </p>
+
+    {% else %}
+        <p>Ваша корзина пуста.</p>
+        <p><a href="{% url 'shop:product_list' %}">Перейти к каталогу</a></p>
+    {% endif %}
+
+{% endblock %}

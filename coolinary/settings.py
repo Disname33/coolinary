@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'pole_chudes',
     'card_games',
     'debt_app',
+    'shop'
     # 'familytree',
 ]
 

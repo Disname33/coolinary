@@ -1,0 +1,245 @@
+{% extends 'shop/shop_base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ product.name }} - Магазин 3D Печати
+{% endblock %}
+
+{% block inhead %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="product-detail">
+        <div class="row">
+            <div class="col col-lg-auto offset-xl-1">
+                <div class="mx-auto product-image position-relative">
+                    <img class="avatar object-fit-cover border rounded"
+                            {% if product.image %}
+                         src="{{ product.image.url }}" alt="{{ product.name }}"
+                            {% else %}
+                         src="{% static 'no_image.png' %}" alt="Нет изображения"
+                            {% endif %}
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div class="product-info">
+            <h1>{{ product.name }}</h1>
+            <p class="price">
+                Цена: <span id="product-price">{{ product.price }}</span> ₽
+            </p>
+
+            <div class="description">
+                <h2>Описание</h2>
+                {{ product.description|linebreaks }} {# Отобразит переносы строк #}
+            </div>
+
+            {% if product.variants.exists %}
+                <div class="product-variants">
+                    <h3>Варианты</h3>
+                    <form id="add-to-cart-form" action="{% url 'shop:add_to_cart' product.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="row mt-2 me-2">
+                            <div class="col-4"><label for="variant-select">Выберите вариант:</label></div>
+                            <div class="col">
+
+
+                                <select class="form-select" name="variant_id" id="variant-select">
+                                    <option value="">-- Выберите вариант --</option>
+                                    {# Опционально, чтобы требовать выбор #}
+                                    {% for variant in product.variants.all %}
+                                        <option
+                                                value="{{ variant.id }}"
+                                                data-price="{{ variant.get_price }}"
+                                                data-stock="{{ variant.stock }}"
+                                                {% if not variant.available %}disabled{% endif %}
+                                        >
+                                            {% if variant.color %}Цвет: {{ variant.color.name }}{% endif %}
+                                            {% if variant.color and variant.size %}, {% endif %}
+                                            {% if variant.size %}Размер: {{ variant.size.name }}{% endif %}
+                                            {% if not variant.available %} (Нет в наличии){% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div id="variant-stock"></div>
+                        {# Здесь будем отображать остаток на складе #}
+                        <div class="row mt-2 me-2">
+                            <div class="col-4"><label for="quantity">Количество:</label></div>
+                            <div class="col">
+
+                                <input class="form-control active border-primary focus-ring"
+                                       type="number" name="quantity" id="quantity" value="1" min="1">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2 me-2" id="add-to-cart-btn">Добавить в
+                            корзину
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                {# Если вариантов нет, форма для добавления в корзину для базового продукта #}
+                <form id="add-to-cart-form" action="{% url 'shop:add_to_cart' product.id %}" method="post">
+                    {% csrf_token %}
+                    <label for="quantity">Количество:</label>
+                    <input class="form-control active border-primary focus-ring"
+                           type="number" name="quantity" id="quantity" value="1" min="1" style="width: 50px;">
+
+                    {% if product.stock > 0 %}
+                        <p>В наличии: {{ product.stock }}</p>
+                        <button type="submit" class="btn btn-primary mt-2 me-2" id="add-to-cart-btn">Добавить в
+                            корзину
+                        </button>
+                    {% else %}
+                        <p>Нет в наличии</p>
+                        <button type="submit" class="btn btn-primary mt-2 me-2" id="add-to-cart-btn" disabled>Добавить в
+                            корзину
+                        </button>
+                    {% endif %}
+                </form>
+            {% endif %}
+
+            {# Кнопки Поделиться #}
+            <br>
+            <div class="share-buttons">
+                <h3>Поделиться</h3>
+                <script src="https://yastatic.net/share2/share.js"></script>
+                <div class="ya-share2" data-curtain data-shape="round" data-limit="2" data-more-button-type="short"
+                     data-services="vkontakte,telegram,viber,whatsapp"></div>
+
+            </div>
+
+            {# Ссылка для администратора #}
+            {% if user.is_staff or user.is_superuser %}
+                <p><a href="{% url 'shop:edit_product' id=product.id slug=product.slug %}">Редактировать этот товар
+                    (Админ)</a></p>
+            {% endif %}
+
+        </div>
+        {# Конец product-info #}
+    </div> {# Конец product-detail #}
+
+    {# Блок Отзывов #}
+    <div class="product-reviews">
+        <h2>Отзывы</h2>
+        {% if product.reviews.count > 0 %}
+            <ul>
+                {% for review in product.reviews.all %}
+                    <li>
+                        <strong>{{ review.user.username }}</strong> (Рейтинг: {{ review.rating }}/5)
+                        <p>{{ review.text }}</p>
+                        <small>{{ review.created_at|date:"d M Y H:i" }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Пока нет отзывов об этом товаре.</p>
+        {% endif %}
+
+        {# Форма для добавления отзыва #}
+        {% if user.is_authenticated %}
+            <h3>Оставить отзыв</h3>
+            <form action="{% url 'shop:add_review' product.id %}" method="post">
+                {% csrf_token %}
+                <div class="row mt-2 me-2">
+                    <div class="col-4"><label for="rating">Рейтинг:</label></div>
+                    <div class="col">
+
+                        <select name="rating" id="rating" class="form-select" aria-label="rating">
+                            <option value="1">Очень плохо</option>
+                            <option value="2">Плохо</option>
+                            <option value="3">Нормально</option>
+                            <option value="4">Хорошо</option>
+                            <option value="5" selected>Очень хорошо</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="text">Ваш отзыв:</label>
+                    <textarea class="form-control" name="text" id="text" rows="4" cols="50"></textarea>
+                </div>
+                <button class="btn btn-primary mt-2 me-2" type="submit">Отправить отзыв</button>
+            </form>
+        {% else %}
+            <p><a href="{% url 'login' %}?next={{ request.get_full_path }}">Войдите</a>, чтобы оставить отзыв.</p>
+            {# Замените 'login' на ваш URL логина #}
+        {% endif %}
+    </div> {# Конец product-reviews #}
+
+
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // JavaScript для обновления цены и наличия при выборе варианта
+        const variantSelect = document.getElementById('variant-select');
+        const productPrice = document.getElementById('product-price');
+        const variantStockDiv = document.getElementById('variant-stock');
+        const addToCartBtn = document.getElementById('add-to-cart-btn');
+        const quantityInput = document.getElementById('quantity');
+
+        if (variantSelect) { // Проверяем, существуют ли варианты
+            variantSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                const price = selectedOption.getAttribute('data-price');
+                const stock = selectedOption.getAttribute('data-stock');
+                const variantAvailable = selectedOption.value !== "" ? selectedOption.getAttribute('data-stock') > 0 : false;
+
+
+                if (price) {
+                    productPrice.textContent = price;
+                } else {
+                    // Если выбран "-- Выберите вариант --" или вариант без цены, показываем цену продукта
+                    productPrice.textContent = "{{ product.price }}";
+                }
+
+                if (stock !== null) { // stock может быть 0, что не falsy
+                    variantStockDiv.textContent = `В наличии: ${stock}`;
+                    if (stock <= 0 || !variantAvailable) {
+                        addToCartBtn.disabled = true;
+                        quantityInput.value = 1; // Сбрасываем количество
+                        quantityInput.min = 0; // Нельзя добавить 0
+                    } else {
+                        addToCartBtn.disabled = false;
+                        quantityInput.min = 1; // Можно добавить минимум 1
+                    }
+                } else {
+                    variantStockDiv.textContent = ''; // Очищаем информацию о наличии, если вариант не выбран или нет данных
+                    addToCartBtn.disabled = true; // Делаем кнопку неактивной, пока не выбран вариант
+                    quantityInput.min = 0;
+                }
+
+                // Также отключаем кнопку "Добавить в корзину" если не выбран конкретный вариант
+                if (selectedOption.value === "") {
+                    addToCartBtn.disabled = true;
+                    quantityInput.min = 0;
+                }
+            });
+
+            // При загрузке страницы, если выбран вариант по умолчанию, обновляем инфо
+            // variantSelect.dispatchEvent(new Event('change')); // Можно вызвать событие change при загрузке
+        } else { // Если вариантов нет, логика для базового продукта
+            if (parseInt(addToCartBtn.dataset.stock) <= 0) { // Предполагаем, что stock продукта добавлен как data-атрибут к кнопке
+                addToCartBtn.disabled = true;
+                quantityInput.min = 0;
+            } else {
+                quantityInput.min = 1;
+            }
+        }
+
+
+        // JavaScript для кнопки "Копировать ссылку"
+        document.getElementById('copy-link-btn').addEventListener('click', function () {
+            const productUrl = "{{ request.build_absolute_uri }}";
+            navigator.clipboard.writeText(productUrl).then(function () {
+                alert('Ссылка на товар скопирована в буфер обмена!');
+            }).catch(function (err) {
+                console.error('Не удалось скопировать ссылку: ', err);
+                // Можно предоставить альтернативный способ копирования
+            });
+        });
+    </script>
+{% endblock %}

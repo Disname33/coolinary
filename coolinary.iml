@@ -26,6 +26,7 @@
     <orderEntry type="library" name="jquery" level="application" />
     <orderEntry type="library" name="jquery-3.2.1" level="application" />
     <orderEntry type="library" name="cropperjs" level="application" />
+    <orderEntry type="library" name="share" level="application" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />

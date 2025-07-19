@@ -1,0 +1,43 @@
+
+.mail_change, .pass_change {
+    padding-top: 1rem;
+}
+
+@media (min-width: 768px) {
+    .left-part {
+        text-align: right;
+        width: 150px;
+        float: left;
+        font-size: 14px;
+        padding-right: 10px;
+        padding-top: 10px;
+    }
+
+    .right-part {
+        width: 350px;
+        float: left;
+    }
+}
+
+@media (max-width: 767px) {
+    #image-crop {
+        max-width: calc(100vw - 24px);
+    }
+}
+
+@media (min-width: 768px) {
+    #image-crop {
+        max-width: 500px;
+    }
+}
+
+.avatar {
+    height: 330px;
+    width: 330px;
+}
+
+
+hr {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}

@@ -42,6 +42,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('device-info/', views.device_info, name='device_info'),
     path('debt/', include('debt_app.urls'), name='debt'),
+    path('shop/', include('shop.urls')),
     # path('familytree/', include('familytree.urls'), name='familytree'),
     path('i18n/', include('django.conf.urls.i18n'), name='lang'),
 ]

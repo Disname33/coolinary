@@ -1,0 +1,33 @@
+{% extends 'shop/shop_base.html' %}
+
+{% load static %}
+
+{% block title %}
+    {% if category %}{{ category.name }}{% else %}Все товары{% endif %}
+{% endblock %}
+
+
+{% block content %}
+    <h1>{% if category %}{{ category.name }}{% else %}Все товары{% endif %}</h1>
+    <div class="product-list">
+        {% if user.is_staff or user.is_superuser %}
+            <p><a href="{% url 'shop:create_product' %}">Добавить новый товар</a></p>
+        {% endif %}
+        {% for product in products %}
+            <div class="product-item">
+                <a href="{{ product.get_absolute_url }}">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" width="128" height="128" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="{% static 'no_image.png' %}" width="128" height="128" alt="Нет изображения">
+                    {% endif %}
+                </a>
+                <h2><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h2>
+                <p>{{ product.price }} ₽</p>
+                {% if user.is_staff or user.is_superuser %}
+                    <p><a href="{% url 'shop:edit_product' id=product.id slug=product.slug %}">Редактировать</a></p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
