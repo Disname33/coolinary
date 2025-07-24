@@ -18,21 +18,29 @@
     <h4 class="link-success my-4">Какое слово хотите получить, {{ user.get_username }}?</h4>
     <form id="getPatternForm">
         {% csrf_token %}
+        <input type="text" name="wrong_words" id="wrong_words"
+               placeholder="Введите слова, которые не подошли"
+               class="form-control border-white text-white focus-ring focus-ring-light mt-4"
+               aria-label="слова, которые не подошли" aria-describedby="wrong words"
+               value="{{ wrong_words|join:"," }}"
+               title="Пожалуйста, введите слова русскими буквами, разделяя их запятыми или пробелами">
+        <div class="row mt-4">
+            {% for word in frequent_words %}
+                <div class="col-auto frequent_word {% if word in wrong_words %}visually-hidden{% endif %}">
+                    <a class="btn btn-outline-light text-center" onclick="transferTextAndHide(event)" role="button">
+                        {{ word }}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
         <input type="text" name="excluded_letters" id="excluded_letters"
                placeholder="Введите буквы, которых нет в слове"
-               class="form-control border-danger text-danger focus-ring focus-ring-danger"
+               class="form-control border-danger text-danger focus-ring focus-ring-danger mt-4"
                aria-label="буквы, которых нет в слове" aria-describedby="excluded letters"
                value="{{ excluded_letters }}"
                pattern="[а-яёА-ЯЁ]+" title="Пожалуйста, введите только русские буквы без запятых и пробелов">
         <div class="visually-hidden text-warning">
-            <div class="m-4">Присутствуют одинаковые буквы в искомых и исключённых. Мы не
-                сможем найти подходящих слов!
-            </div>
-            <div class="row m-auto">
-                <button class="btn btn-warning col-md-12" onclick="remove_duplicate()" id="get_mean_btn">Удалить
-                    повторяющиеся
-                </button>
-            </div>
+            <div class="m-4">Присутствуют одинаковые буквы в искомых и исключённых.</div>
         </div>
 
         <input type="text" name="letters" id="letters" placeholder="Введите дополнительные буквы"
@@ -43,9 +51,10 @@
             <input type="text" name="pattern" id="pattern" autofocus placeholder="Введите маску слова, например: Сл*в*"
                    class="form-control border-success text-success focus-ring focus-ring-success"
                    aria-label="Введите маску слова" aria-describedby="pattern" value="{{ pattern }}"
-                   pattern="[а-яёА-ЯЁ/*]+" title="Пожалуйста, введите только русские буквы и *, от 4 до 7 символов"
+                   title="Пожалуйста, введите только русские буквы и *, от 4 до 7 символов"
                    minlength="4" maxlength="7" required>
-            <button class="btn btn-success btn-lg" type="submit" id="get_mean_btn">Найти слова
+            <button class="btn btn-success btn-lg visually-hidden" type="submit" id="get_mean_btn">Найти слова</button>
+            <button class="btn btn-success btn-lg" onclick="remove_duplicate()" id="find_mean_btn">Подобрать Слова
             </button>
         </div>
     </form>
@@ -59,13 +68,24 @@
     </div>
 
     <script>
-        let clearAllInput, remove_duplicate;
+        let clearAllInput, remove_duplicate, transferTextAndHide;
 
         document.addEventListener("DOMContentLoaded", () => {
+            const wrongWordsEl = document.querySelector("#wrong_words");
             const patternEl = document.querySelector("#pattern");
             const lettersEl = document.querySelector("#letters");
             const excludedLettersEl = document.querySelector("#excluded_letters");
             const warningTextEl = document.querySelector(".text-warning")
+
+            transferTextAndHide = function (event) {
+                const callingElement = event.target;
+                if (wrongWordsEl.value) wrongWordsEl.value += ',';
+                const callingElementText = callingElement.textContent.trim().toLowerCase();
+                wrongWordsEl.value += callingElementText;
+                const combinedString = excludedLettersEl.value.toLowerCase() + callingElementText;
+                excludedLettersEl.value = Array.from(new Set(combinedString)).join('');
+                callingElement.parentElement.classList.add("visually-hidden");
+            }
 
             remove_duplicate = function () {
                 const charToRemove = new Set([...patternEl.value.toLowerCase(), ...lettersEl.value.toLowerCase()]);
@@ -80,12 +100,20 @@
 
 
             clearAllInput = function () {
-                patternEl.value = lettersEl.value = excludedLettersEl.value = '';
+                wrongWordsEl.value = patternEl.value = lettersEl.value = excludedLettersEl.value = '';
+                for (const el of document.querySelectorAll(".frequent_word")) {
+                    el.classList.remove("visually-hidden");
+                }
             }
 
             const handleInputChange = (event) => {
                 let {id, value} = event.target;
-                if (id === 'pattern') {
+                if (id === 'wrong_words') {
+                    let wrong_words_str = event.target.value.replace(/[^А-Яа-я]+/g, ',').toLowerCase();
+                    event.target.value = wrong_words_str.startsWith(',') ? wrong_words_str.slice(1) : wrong_words_str;
+                    const combinedString = excludedLettersEl.value.toLowerCase() + event.target.value.replaceAll(',', "");
+                    excludedLettersEl.value = Array.from(new Set(combinedString)).join('');
+                } else if (id === 'pattern') {
                     event.target.value = event.target.value.replace(/[^а-яА-Я/*]/g, "*");
                 } else {
                     event.target.value = event.target.value.replace(/[^а-яА-Я]/g, "");
@@ -93,7 +121,7 @@
                 checkRepeatedLetters();
             };
 
-            [patternEl, lettersEl, excludedLettersEl].forEach(el => {
+            [wrongWordsEl, patternEl, lettersEl, excludedLettersEl].forEach(el => {
                 el.addEventListener('input', handleInputChange);
             });
 

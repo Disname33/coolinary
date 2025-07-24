@@ -49,6 +49,44 @@ def find_matches_with_conditions(pattern: str, word_list, letters="", excluded_l
     return [word for word in word_list if compiled_regex.fullmatch(word)]
 
 
+def filter_words_by_letter_match(word_list, pattern, wrong_words):
+    """
+    Фильтрует список слов, исключая те, в которых буквы на определенных позициях
+    не соответствуют правильному слову, но соответствуют одному из неверных слов.
+
+    Args:
+        word_list (list): Исходный список слов для фильтрации.
+        pattern (str): Ключевое (правильное) слово.
+        wrong_words (list): Список "неправильных" слов.
+
+    Returns:
+        list: Отфильтрованный список слов.
+    """
+    result_words = []
+    for word in word_list:
+        if len(word) != len(pattern):
+            continue
+        should_exclude = False
+        for i in range(len(pattern)):
+            if i >= len(word):
+                break
+            current_char = word[i]
+            correct_char = pattern[i]
+            if current_char != correct_char:
+                found_in_wrong = False
+                for wrong_w in wrong_words:
+                    if i < len(wrong_w):
+                        if current_char == wrong_w[i]:
+                            found_in_wrong = True
+                            break
+                if found_in_wrong:
+                    should_exclude = True
+                    break
+        if not should_exclude:
+            result_words.append(word)
+    return result_words
+
+
 if __name__ == '__main__':
     pattern = "*дм**"
     letters = ['и']

@@ -126,15 +126,23 @@ def remove(request):
 @user_passes_test(lambda u: u.is_superuser)
 def helper(request):
     matches = [" "]
+    wrong_words = []
+    frequent_words = ["океан", "спорт", "спирт", "фильм", "выгул"]
     letters = request.GET.get('letters', '')
     excluded_letters = request.GET.get('excluded_letters', '')
-    if pattern := request.GET.get('pattern'):
+    pattern = request.GET.get('pattern', '*****')
+    if excluded_letters or letters:
         words = find_word_at_mask.get_all_words_at_length(len(pattern))
         matches = find_word_at_mask.find_matches_with_conditions(pattern.lower(), words, letters, excluded_letters)
+        if wrong_words := [word for word in request.GET.get('wrong_words', '').split(',') if len(word) == len(pattern)]:
+            matches = find_word_at_mask.filter_words_by_letter_match(matches, pattern, wrong_words)
+
     return render(request, 'guess_the_word_game/helper.html',
                   {
+                      'frequent_words': frequent_words,
+                      'wrong_words': wrong_words,
                       'matches': matches,
-                      'pattern': pattern or '',
+                      'pattern': pattern,
                       'letters': letters,
                       'excluded_letters': excluded_letters
                   }
