@@ -24,9 +24,9 @@
                aria-label="слова, которые не подошли" aria-describedby="wrong words"
                value="{{ wrong_words|join:"," }}"
                title="Пожалуйста, введите слова русскими буквами, разделяя их запятыми или пробелами">
-        <div class="row mt-4">
+        <div class="row">
             {% for word in frequent_words %}
-                <div class="col-auto frequent_word {% if word in wrong_words %}visually-hidden{% endif %}">
+                <div class="col-auto frequent_word mt-4 {% if word in wrong_words %}visually-hidden{% endif %}">
                     <a class="btn btn-outline-light text-center" onclick="transferTextAndHide(event)" role="button">
                         {{ word }}
                     </a>
@@ -79,7 +79,7 @@
 
             transferTextAndHide = function (event) {
                 const callingElement = event.target;
-                if (wrongWordsEl.value) wrongWordsEl.value += ',';
+                if (wrongWordsEl.value && wrongWordsEl.value.last() !== ',') wrongWordsEl.value += ',';
                 const callingElementText = callingElement.textContent.trim().toLowerCase();
                 wrongWordsEl.value += callingElementText;
                 const combinedString = excludedLettersEl.value.toLowerCase() + callingElementText;
@@ -100,7 +100,8 @@
 
 
             clearAllInput = function () {
-                wrongWordsEl.value = patternEl.value = lettersEl.value = excludedLettersEl.value = '';
+                wrongWordsEl.value = lettersEl.value = excludedLettersEl.value = '';
+                patternEl.value = "*****";
                 for (const el of document.querySelectorAll(".frequent_word")) {
                     el.classList.remove("visually-hidden");
                 }
