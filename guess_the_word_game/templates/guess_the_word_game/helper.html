@@ -79,7 +79,7 @@
 
             transferTextAndHide = function (event) {
                 const callingElement = event.target;
-                if (wrongWordsEl.value && wrongWordsEl.value.last() !== ',') wrongWordsEl.value += ',';
+                if (wrongWordsEl.value && wrongWordsEl.value.slice(-1) !== ',') wrongWordsEl.value += ',';
                 const callingElementText = callingElement.textContent.trim().toLowerCase();
                 wrongWordsEl.value += callingElementText;
                 const combinedString = excludedLettersEl.value.toLowerCase() + callingElementText;
