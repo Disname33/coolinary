@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
+from django.views.decorators.csrf import requires_csrf_token
 
 from .forms import UserRegistrationForm, UserProfileForm, EmailChangeForm
 from .models import UserProfile
@@ -20,8 +22,30 @@ def device_info(request):
     return render(request, 'home/device_info.html')
 
 
-def work_trip(request):
-    return render(request, 'work_trip/work_trip.html')
+def handler404(request, exception=""):
+    return render(request, 'registration/error404.html', {'exception': exception}, status=404)
+
+
+@requires_csrf_token
+def csrf_failure(request, reason=""):
+    from django.contrib.sessions.models import Session
+    error_text = 'Ключ доступа не верен или не прошёл проверку'
+    if not "csrfmiddlewaretoken" in request.POST:
+        error_text = "Отсутствует ключ доступа"
+    elif not request.POST.get("csrfmiddlewaretoken"):
+        error_text = "Ключ доступа пуст"
+    if request.session.is_empty():
+        error_text = "Пустая сессия, возможно она истекла"
+    elif not request.session.exists(request.session.session_key):
+        error_text = "Устаревшая сессия, уже используется новый ключ доступа"
+    else:
+        try:
+            session = Session.objects.get(session_key=request.session.session_key)
+            if session.expire_date < timezone.now():
+                error_text = "Сессия просрочена"
+        except Session.DoesNotExist:
+            error_text = "Сессия не найдена"
+    return render(request, 'registration/error403.html', {'error_text': error_text, 'reason': reason}, status=403)
 
 
 @ratelimit(rate='2/15m', method='POST', block=True)

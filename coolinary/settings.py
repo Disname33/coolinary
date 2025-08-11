@@ -27,7 +27,7 @@ LOGS_DIR = os.path.join(BASE_DIR, 'logs/')
 SECRET_KEY = secret.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1',
                  'localhost',
@@ -132,6 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
+CSRF_FAILURE_VIEW = 'coolinary.views.csrf_failure'
 
 LANGUAGES = [
     ('ru', 'Russian'),

@@ -1,0 +1,31 @@
+{% extends 'home/header.html' %}
+{% load static %}
+
+{% block inhead %}
+{% endblock %}
+
+
+{% block title %}
+    Ошибка 404
+{% endblock %}
+
+{% block body_block %}
+    <div class="container mt-2">
+        <div class=" mt-2">
+            <h1>Страница не найдена</h1>
+        </div>
+        {% if user.is_superuser %}
+            <div class=" mt-2">
+                {{ exception }}
+            </div>
+        {% endif %}
+        <div class=" mt-2">
+            <div class="ms-xl-auto col-xl-2 p-2">
+                <a class="btn btn-outline-success d-flex text-center" href="{% url 'home' %}" role="button">
+                    Домашняя страница
+                </a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

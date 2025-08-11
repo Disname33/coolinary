@@ -21,6 +21,8 @@ from django.urls import path, include
 
 from . import views
 
+handler404 = 'coolinary.views.handler404'
+
 urlpatterns = [
     path('', views.index, name='home'),
     path('chat/', include('chat.urls'), name='chat_main'),
